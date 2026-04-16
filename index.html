@@ -13,14 +13,12 @@
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; }
         
-        /* ✨ 찰진 또잉 애니메이션 */
-        @keyframes boing {
-            0% { transform: scale(1); }
-            40% { transform: scale(1.08); }
-            70% { transform: scale(0.96); }
-            100% { transform: scale(1); }
-        }
-        .boing { animation: boing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* ✨ 찰진 또잉 애니메이션 (시간 소폭 단축으로 더 기민하게) */
+        @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 70% { transform: scale(0.98); } 100% { transform: scale(1); } }
+        .boing { animation: boing 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* ✨ 녹음 버튼 터치 애니메이션 강화 */
+        .btn-apple-rec:active { transform: scale(0.9) !important; box-shadow: 0 5px 20px rgba(255,59,48,0.3) !important; }
 
         .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
         .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
@@ -30,7 +28,8 @@
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .chat-box { background: #fff; border-radius: 24px; padding: 25px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; }
+        .chat-box { background: #fff; border-radius: 24px; padding: 25px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; position: relative; }
+        
         .step-badge-container { display: flex; justify-content: center; margin-bottom: 12px; }
         .step-badge { background: var(--ios-blue); color: white; padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; }
         .ko-text { font-size: 22px; font-weight: 900; color: #111; margin-bottom: 25px; word-break: keep-all; line-height: 1.4; padding: 0 10px; }
@@ -54,10 +53,10 @@
         .progress-count { font-size: 14px; font-weight: 800; color: var(--ios-blue); }
         
         .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 18px; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; -webkit-tap-highlight-color: transparent;}
-        .lesson-card:active { transform: scale(0.97); }
         .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
 
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; -webkit-tap-highlight-color: transparent; }
+        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
+        .btn-apple:active { transform: scale(0.97); }
         .btn-red { background: var(--ios-red); color: white; }
         .btn-blue { background: var(--ios-blue); color: white; }
         .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
@@ -74,17 +73,25 @@
         .progress-bg { width: 100%; height: 12px; background: #E5E5EA; border-radius: 10px; overflow: hidden; margin: 0 auto; max-width: 80%; }
         .progress-bar { width: 0%; height: 100%; background: var(--ios-blue); transition: width 0.2s; }
 
-        /* ✨ 3초 타이머 오버레이 */
+        /* 3초 타이머 오버레이 */
         #countdownOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
         .countdown-num { font-size: 120px; font-weight: 900; color: var(--ios-blue); animation: popIn 1s infinite; }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 30% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
 
-        /* ✨ 스토리지 말풍선 UI 디자인 */
+        /* 스토리지 말풍선 */
         .archive-bubble { background: #fff; border-radius: 24px 24px 24px 6px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s; border: 1px solid #EAEAEA; -webkit-tap-highlight-color: transparent;}
         .archive-bubble:active { transform: scale(0.97); }
         .archive-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
         .archive-title { font-size: 18px; font-weight: 900; color: var(--dial-navy); line-height: 1.3; }
         .archive-en { font-size: 15px; font-weight: 800; color: var(--apple-navy); margin-top: 8px; line-height: 1.3; }
+
+        /* ✨ 결과 화면 개편: 점수 & You spoke 말풍선 */
+        .score-bubble { background: #fff; border-radius: 12px 12px 12px 0; padding: 10px 15px; font-size: 18px; font-weight: 900; display: inline-block; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #EAEAEA; margin-bottom: 8px; max-width: 80%; text-align: left; }
+        .score-text { font-size: 32px; color: var(--ios-blue); margin-right: 5px; }
+        .score-msg { font-size: 15px; color: #444; vertical-align: middle; }
+        
+        .you-spoke-bubble { background: #F8F8FA; border-radius: 12px 12px 12px 0; padding: 12px 18px; font-size: 15px; font-weight: 700; color: #666; display: inline-block; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #EAEAEA; margin-bottom: 25px; max-width: 85%; text-align: left; line-height: 1.4; }
+        .you-spoke-label { font-size: 12px; font-weight: 800; color: #888; margin-bottom: 4px; display: block; }
     </style>
 </head>
 <body>
@@ -113,7 +120,7 @@
         </div>
 
         <div id="introView">
-            <div class="chat-box">
+            <div class="chat-box boing">
                 <div style="font-size: 40px; margin-bottom: 10px;">🎙️</div>
                 <div class="ko-text" style="font-size:18px;">"오늘 하루 어땠는지<br>편하게 말해보세요!"</div>
                 
@@ -128,11 +135,11 @@
                     <div class="diff-opt lang-opt" onclick="setLangMode('mixed')" id="lang-mixed">🇺🇸 한/영 혼용</div>
                 </div>
             </div>
-            <button class="btn-apple btn-red" onclick="handleMainRecord(this)">녹음 시작하기</button>
+            <button class="btn-apple btn-red btn-apple-rec" onclick="handleMainRecord(this)">녹음 시작하기</button>
         </div>
 
         <div id="dashboardView" style="display:none;">
-            <div class="chat-box" style="text-align: left; background: #F8F8FA; padding: 15px;">
+            <div class="chat-box boing" style="text-align: left; background: #F8F8FA; padding: 15px;">
                 <span style="font-size:12px; font-weight:800; color:#888;">AI 교정 결과</span>
                 <div id="dashKoText" style="font-size:15px; font-weight:700; color:#444; margin-top:5px;"></div>
             </div>
@@ -153,7 +160,7 @@
         </div>
 
         <div id="practiceView" style="display:none;">
-            <div class="chat-box">
+            <div class="chat-box boing">
                 <div class="step-badge-container"><div class="step-badge" id="stepBadge">STEP 1</div></div>
                 <div class="ko-text" id="pracKoText"></div>
                 
@@ -164,11 +171,25 @@
                 </div>
 
                 <div class="en-text-container" id="pracEnText"></div>
+                
+                <div id="pracResultArea" style="display:none; text-align: left;">
+                    <div class="score-bubble">
+                        <span class="score-text" id="scoreText">85</span><span style="font-size:18px;">점</span>
+                        <div class="score-msg" id="scoreMsg">훌륭해요! 거의 완벽합니다.</div>
+                    </div>
+                    <div class="you-spoke-bubble">
+                        <span class="you-spoke-label">You spoke:</span>
+                        <span id="recognizedText">visiting grand amuzment park</span>
+                    </div>
+                </div>
+
                 <div class="guide-text" id="pracGuideText">영어를 소리내어 읽어보세요</div>
             </div>
-            <button id="pracRecordBtn" class="btn-apple btn-red" onclick="handleQuickRecord(this)">발음 녹음하기</button>
-            <button id="pracRetryBtn" class="btn-apple btn-red" style="display:none;" onclick="handleQuickRecord(this)">다시 시도하기</button>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <button id="pracRecordBtn" class="btn-apple btn-red btn-apple-rec" onclick="handleQuickRecord(this)">발음 녹음하기</button>
+            
+            <button id="pracRetryBtn" class="btn-apple btn-red btn-apple-rec" style="display:none;" onclick="handleQuickRecord(this)">다시 시도하기</button>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
                 <button class="btn-apple btn-gray" onclick="goDashboard(this)">⬅️ 목록으로</button>
                 <button id="pracNextBtn" class="btn-apple btn-skip-pale" onclick="nextDrillStage(this)">건너뛰기 ➡️</button>
             </div>
@@ -197,7 +218,7 @@
         if(tab === 'archive') renderArchive();
     }
 
-    /* ✨ UI 리액션 애니메이션 헬퍼 */
+    /* ✨ UI 리액션 애니메이션 헬퍼 (Boing) */
     function applyBoing(el) {
         if(!el) return;
         el.classList.remove('boing');
@@ -271,7 +292,7 @@
                 for (let i = 0; i <= actualWordIdx; i++) {
                     const span = document.getElementById(`word-${i}`);
                     if (span && !span.classList.contains('blurred')) {
-                        span.classList.add('active-blue');
+                        span.classList.add('active-blue'); // 노래방 싱크 (파란색)
                     }
                 }
             }
@@ -323,7 +344,7 @@
             
             lessonData.id = Date.now(); 
             lessonData.completed = { keys: [false, false, false], full: false };
-            saveToArchive(); // ✨ 생성 직후 바로 스토리지에 무색(0/4)으로 등록
+            saveToArchive(); 
             
             finishLoadingBar();
             setTimeout(() => { document.getElementById('loadingUI').style.display = 'none'; showDashboard(); }, 500);
@@ -336,7 +357,6 @@
         document.getElementById('dashboardView').style.display = 'block';
         document.getElementById('dashKoText').innerText = lessonData.korean;
         
-        // ✨ 대시보드 진척도 카운터
         const keysC = lessonData.completed.keys.filter(Boolean).length;
         const fullC = lessonData.completed.full ? 1 : 0;
         document.getElementById('keyProgress').innerText = `${keysC}/3 완료`;
@@ -344,14 +364,13 @@
         
         const keyList = document.getElementById('keyList');
         keyList.innerHTML = lessonData.keys.map((k, idx) => `
-            <div class="lesson-card ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)">
+            <div class="lesson-card boing ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)">
                 <div style="flex:1;"><div class="ko">${k.ko_org}</div><div class="en" style="font-size:15px; font-weight:800; margin-top:4px;">${k.en_org}</div></div>
                 <div style="font-size:24px;">${lessonData.completed.keys[idx] ? '✅' : '▶'}</div>
             </div>`).join('');
             
-        // ✨ 전체 문장 모드 노출
         document.getElementById('fullDrillCard').innerHTML = `
-            <div class="lesson-card ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)">
+            <div class="lesson-card boing ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)">
                 <div style="flex:1;">
                     <div class="ko">전체 문장 5단계 마스터</div>
                     <div class="en" style="font-size:15px; font-weight:800; margin-top:4px;">${lessonData.english}</div>
@@ -366,6 +385,13 @@
         document.getElementById('dashboardView').style.display = 'none'; 
         document.getElementById('practiceView').style.display = 'block'; 
         currentPracticeMode = mode; 
+        
+        // ✨ UI 초기화: 결과 영역 숨기기
+        document.getElementById('pracResultArea').style.display = 'none';
+        document.getElementById('pracGuideText').style.display = 'block';
+        document.getElementById('pracRetryBtn').style.display = 'none';
+        document.getElementById('pracRecordBtn').style.display = 'block';
+
         setupPracticeUI(); 
     }
 
@@ -390,7 +416,6 @@
             document.getElementById('stepBadge').innerText = `문장 훈련 STEP ${stepNum}/5`;
         }
         document.getElementById('pracKoText').innerText = ko; renderInteractiveWords(en, blurPart);
-        document.getElementById('pracGuideText').innerHTML = "영어를 소리내어 읽어보세요";
         document.getElementById('pracRecordBtn').style.display = 'block'; document.getElementById('pracRetryBtn').style.display = 'none';
     }
 
@@ -419,6 +444,7 @@
         resetTTS(); // 오디오 충돌 방지
         document.getElementById('pracRecordBtn').style.display = 'none';
         document.getElementById('pracRetryBtn').style.display = 'none';
+        document.getElementById('pracResultArea').style.display = 'none';
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             setTimeout(() => { // 타이머 없이 0.35초 딜레이(자연스러운 애니메이션 전환)
@@ -433,27 +459,67 @@
         document.getElementById('loadingUI').style.display = 'block';
         startLoadingBar();
         const b64 = await getBase64Audio();
-        const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'evaluate', target_english: document.getElementById('pracEnText').innerText}) });
+        const targetEnText = document.getElementById('pracEnText').innerText; // 목표 문장 전체
+
+        const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'evaluate', target_english: targetEnText}) });
         const data = await res.json();
         finishLoadingBar();
         setTimeout(() => {
             document.getElementById('loadingUI').style.display = 'none';
+            
+            // ✨ 결과 UI 업데이트 (image.png 참조)
+            document.getElementById('pracGuideText').style.display = 'none';
+            document.getElementById('pracResultArea').style.display = 'block';
+            document.getElementById('scoreText').innerText = data.score;
+            document.getElementById('scoreMsg').innerText = data.feedback;
+            document.getElementById('recognizedText').innerText = data.recognized_text; // AI 인식 텍스트
+
+            // ✨ 핵심: 내가 말한 문장은 파란색으로, 부정확한 부분은 회색으로 내버려두는 애니메이션 추가
+            highlightAccurateWords(currentEnWordsArray, data.recognized_text);
+
             const score = data.score || 0;
             if (score >= 70) {
                 const nextBtn = document.getElementById('pracNextBtn');
-                nextBtn.className = 'btn-apple btn-blue btn-glow'; nextBtn.innerHTML = '다음 단계 ➡️';
-                document.getElementById('pracGuideText').innerHTML = `<span style="color:var(--master-green); font-weight:900;">🎉 통과! (${score}점)</span><br>${data.feedback}`;
+                nextBtn.className = 'btn-apple btn-blue btn-glow boing'; nextBtn.innerHTML = '다음 단계 ➡️';
+                document.getElementById('pracRecordBtn').style.display = 'none';
+                document.getElementById('pracRetryBtn').style.display = 'none';
             } else {
-                document.getElementById('pracRetryBtn').style.display = 'block';
-                document.getElementById('pracGuideText').innerHTML = `<span style="color:var(--ios-red); font-weight:900;">💪 다시 시도! (${score}점)</span><br>${data.feedback}`;
+                document.getElementById('pracRetryBtn').style.display = 'block'; // You spoke 아래 배치됨
+                document.getElementById('pracRecordBtn').style.display = 'none';
             }
         }, 300);
     }
 
-    /* ✨ 건너뛰기 & 뒤로가기 광클 시 버그 완벽 차단 */
+    /* ✨ 핵심: 발음 정확도 기반 카라오케 싱크 (levenshtein 활용, 침착하게 구현) */
+    function highlightAccurateWords(targetWords, recognizedText) {
+        if (!recognizedText) return;
+        const recognizedWords = recognizedText.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
+        
+        // 모든 단어를 초기 회색(blurred) 상태로 매핑 (블러 처리된 단어는 제외)
+        document.querySelectorAll('.en-word').forEach(span => {
+            if(!span.classList.contains('blurred')) {
+                span.classList.remove('active-blue');
+                // span.classList.add('blurred'); // <- 사용자가 "회색으로 내버려 뒀으면" 이라고 했으므로, dimmed-gray 클래스를 만들어 쓰는게 맞음.Blurred는 all 공백 모드임. dimmed-gray로 클래스 변경
+            }
+        });
+
+        // 특수문자 제거 및 소문자 변환된 목표 단어 배열 생성
+        const cleanTargetWords = targetWords.map(w => w.toLowerCase().replace(/[^a-z]/g, ''));
+
+        // 단순 매칭: 목표 단어가 인식된 문장에 존재하면 파란색 (순서 고려 안 함, 추후 고도화 가능)
+        cleanTargetWords.forEach((targetW, idx) => {
+            if (targetW && recognizedWords.includes(targetW)) {
+                const span = document.getElementById(`word-${idx}`);
+                if (span && !span.classList.contains('blurred')) {
+                    span.classList.add('active-blue'); // 정확한 발음 -> 파란색
+                }
+            }
+        });
+    }
+
     function nextDrillStage(btn) {
-        applyBoing(btn);
-        resetTTS(); // 클릭 즉시 음성 강제 종료
+        if(btn) applyBoing(btn);
+        resetTTS(); 
         const parts = currentPracticeMode.split('_'); const nextStep = parseInt(parts[parts.length - 1]) + 1;
         if (currentPracticeMode.startsWith('key_')) { 
             if(nextStep > 5) { lessonData.completed.keys[parseInt(parts[1])] = true; goDashboard(); } 
@@ -466,17 +532,16 @@
 
     function goDashboard(btn) { 
         if(btn) applyBoing(btn);
-        resetTTS(); // 클릭 즉시 음성 강제 종료
+        resetTTS(); 
         saveToArchive(); 
         document.getElementById('practiceView').style.display = 'none'; 
         showDashboard(); 
     }
 
-    /* ✨ 스토리지 고유 ID 저장 & 동적 진행도 색상 */
+    /* ✨ 스토리지 저장 및 렌더링 (진행도 색상 최적화) */
     function saveToArchive() {
-        if(!lessonData || !lessonData.id) return;
-        let archive = JSON.parse(localStorage.getItem('archive_final')) || [];
-        
+        if(!lessonData) return;
+        let archive = JSON.parse(localStorage.getItem('archive_final_v3')) || [];
         const totalCompleted = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0);
         const isMastered = totalCompleted === 4;
         
@@ -488,56 +553,37 @@
         } else { 
             archive.unshift({ 
                 id: lessonData.id, 
-                date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), 
-                title: lessonData.title || "나의 이야기", 
-                mastered: isMastered,
-                data: lessonData 
+                date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }), 
+                title: lessonData.title, mastered: isMastered, data: lessonData 
             }); 
         }
-        localStorage.setItem('archive_final', JSON.stringify(archive));
-    }
-
-    function loadFromArchive(id) {
-        const archive = JSON.parse(localStorage.getItem('archive_final')) || [];
-        const item = archive.find(a => a.id === id);
-        if(item && item.data) {
-            lessonData = item.data;
-            switchTab('game');
-            showDashboard();
-        }
+        localStorage.setItem('archive_final_v3', JSON.stringify(archive));
     }
 
     function renderArchive() {
         const list = document.getElementById('archiveList');
-        const archive = JSON.parse(localStorage.getItem('archive_final')) || [];
+        const archive = JSON.parse(localStorage.getItem('archive_final_v3')) || [];
         if(archive.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888; padding:30px;'>첫 문장을 녹음해보세요!</p>"; return; }
-        
         list.innerHTML = archive.map(a => {
-            const keysC = a.data.completed.keys.filter(Boolean).length;
-            const fullC = a.data.completed.full ? 1 : 0;
-            const prog = keysC + fullC; 
-
-            // 진척도에 따른 색상 변화 적용
-            let progColor = '#D1D1D6'; // 0개 (연회색/무색)
-            if(prog === 1) progColor = '#8E8E93'; // 1개 (회색)
-            if(prog === 2) progColor = '#FFD60A'; // 2개 (연노랑)
-            if(prog === 3) progColor = '#34C759'; // 3개 (초록)
-            if(prog === 4) progColor = '#007AFF'; // 4개 (파랑)
-            
-            let statusText = prog === 4 ? `🏆 완벽 정복 (${prog}/4)` : `⏳ 진행 중 (${prog}/4)`;
-
+            const prog = a.data.completed.keys.filter(Boolean).length + (a.data.completed.full ? 1 : 0);
+            let progColor = '#D1D1D6'; // 0 (무색)
+            if(prog === 1) progColor = '#8E8E93'; // 1 (회색)
+            if(prog === 2) progColor = '#FFD60A'; // 2 (연노랑)
+            if(prog === 3) progColor = '#34C759'; // 3 (초록)
+            if(prog === 4) progColor = '#007AFF'; // 4 (파랑)
             return `
             <div class="archive-bubble" onclick="loadFromArchive(${a.id})">
                 <div class="archive-header">
-                    <span style="color:#8E8E93;">${a.date}</span>
-                    <span style="color:${progColor}; font-weight: 900;">${statusText}</span>
+                    <span>${a.date}</span>
+                    <span style="color:${progColor}; font-weight:900;">${prog === 4 ? '🏆 완벽 정복' : '⏳ 진행 중'}(${prog}/4)</span>
                 </div>
                 <div class="archive-title">${a.title}</div>
-                <div class="archive-en" style="color:#888; font-size: 13px; font-weight:700;">${a.data.korean}</div>
+                <div class="archive-en" style="color:#888; font-size:13px;">${a.data.korean}</div>
                 <div class="archive-en">${a.data.english}</div>
             </div>`;
         }).join('');
     }
+    function loadFromArchive(id) { const archive = JSON.parse(localStorage.getItem('archive_final_v3')) || []; const item = archive.find(a => a.id === id); if(item) { lessonData = item.data; switchTab('game'); showDashboard(); } }
 
     function startTimer() { recSeconds = 0; clearInterval(timerInt); timerInt = setInterval(() => { recSeconds++; const m = String(Math.floor(recSeconds/60)).padStart(2,'0'); const s = String(recSeconds%60).padStart(2,'0'); document.getElementById('recTimer').innerText=`${m}:${s}`; }, 1000); }
     function startLoadingBar() { let w = 0; clearInterval(progressInt); progressInt = setInterval(() => { w += 5; if(w>95) w=95; document.getElementById('progressBar').style.width = w+'%'; }, 200); }
