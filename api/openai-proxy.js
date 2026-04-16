@@ -24,31 +24,35 @@ export default async function handler(req, res) {
         let instruction = "";
 
         if (action === 'korean') {
-            // ✨ 핵심: 문장 번역과 함께 중요한 3단어/표현을 추출하도록 강제
             instruction = `
             사용자가 한국어로 말했습니다: "${userSpeech}"
-            이를 자연스러운 원어민 영어로 번역하고, 초보자가 꼭 배워야 할 가장 핵심적인 영어 표현이나 단어 3개를 뽑아주세요.
+            이 문장을 바탕으로 초보자를 위한 단계별 영어 레슨을 구성하세요.
+            
             반드시 아래 JSON 형식만 반환하세요.
             {
+                "title": "<이 상황을 요약한 2~3단어 제목 (예: 놀이공원 가기)>",
                 "korean": "${userSpeech}",
-                "english": "<자연스러운 영어 번역>",
-                "key_expressions": [
-                    {"en": "<영어표현1>", "ko": "<한국어 뜻>"},
-                    {"en": "<영어표현2>", "ko": "<한국어 뜻>"},
-                    {"en": "<영어표현3>", "ko": "<한국어 뜻>"}
+                "english": "<자연스러운 원어민 영어 번역>",
+                "keys": [
+                    {"en": "<핵심표현1>", "ko": "<뜻>"},
+                    {"en": "<핵심표현2>", "ko": "<뜻>"},
+                    {"en": "<핵심표현3>", "ko": "<뜻>"}
+                ],
+                "drills": [
+                    {"step": 1, "ko": "<원래 한국어 문장>", "en_full": "<원래 영어 문장>", "blur_part": "<끝부분 명사/표현 1개>"},
+                    {"step": 2, "ko": "<상황이 살짝 바뀐 한국어>", "en_full": "<살짝 바뀐 영어 문장>", "blur_part": "<바뀐 단어/표현>"},
+                    {"step": 3, "ko": "<상황이 바뀐 한국어>", "en_full": "<살짝 바뀐 영어 문장>", "blur_part": "<절반 이상 길게>"},
+                    {"step": 4, "ko": "<원래 한국어 문장>", "en_full": "<원래 영어 문장>", "blur_part": "<문장 전체>"}
                 ]
             }`;
         } else {
-            // ✨ 발음 평가 모드
+            // 발음 평가 모드
             instruction = `
             목표 문장: "${target_english}"
             실제 발음: "${userSpeech}"
-            두 문장을 비교하여 발음/유창성 점수(0~100)를 매기고, 피드백을 주세요.
-            반드시 아래 JSON 형식만 반환하세요.
-            {
-                "score": <숫자>,
-                "feedback": "<한국어 피드백>"
-            }`;
+            두 문장을 비교해 발음/유창성 점수(0~100)를 매기고, 짧은 한국어 피드백 한 줄을 주세요.
+            JSON 반환: {"score": <숫자>, "feedback": "<피드백>"}
+            `;
         }
 
         const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
