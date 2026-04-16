@@ -13,7 +13,6 @@
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; }
         
-        /* 애니메이션 */
         @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.1); } 100% { transform: scale(1); } }
         .boing-active { animation: boing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
@@ -21,7 +20,6 @@
         @keyframes glowPulseWhite { 0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.4); border-color: rgba(255,255,255,0.5); } 100% { box-shadow: 0 0 22px rgba(255, 255, 255, 1); border-color: white; } }
         .btn-glow { animation: glowPulseWhite 1.2s infinite alternate; border: 2px solid white; }
 
-        /* ✨ 7/7 달성 시 아우터 글로우 (마스터의 징표) */
         @keyframes blackPulse { 0% { box-shadow: 0 0 10px rgba(0,0,0,0.4); border-color: #333; } 100% { box-shadow: 0 0 30px rgba(0,0,0,0.9); border-color: #eee; } }
         .black-glow { animation: blackPulse 1.5s infinite alternate !important; border: 2.5px solid #1C1C1E !important; background: #1C1C1E !important; color: white !important; }
         .black-glow .en-text-container, .black-glow .dash-label, .black-glow .bubble-ko { color: #fff !important; }
@@ -35,7 +33,6 @@
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* 말풍선 디자인 */
         .bubble-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
         .speech-bubble { background: #fff; border-radius: 20px 20px 20px 4px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative; text-align: left; transition: background 0.3s, box-shadow 0.3s, color 0.3s; border: 2px solid transparent; }
         .bubble-ko { font-size: 20px; font-weight: 900; color: #111; line-height: 1.4; text-align: center; }
@@ -49,9 +46,8 @@
         .en-word { display: inline-block; margin-right: 6px; margin-bottom: 6px; transition: color 0.2s; }
         .en-word.active-blue { color: var(--ios-blue) !important; }
         .en-word.dimmed { color: #D1D1D6 !important; }
-        .en-word.blurred { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 5px; pointer-events: none; }
+        .en-word.blurred { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 5px; cursor: pointer; }
 
-        /* ✨ 라이팅 폼 UI */
         .writing-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
         .writing-input { width: 100%; height: 55px; border-radius: 14px; border: 2px solid #D1D1D6; padding: 0 15px; font-size: 18px; font-weight: 700; text-align: center; outline: none; transition: 0.2s; box-sizing: border-box; }
         .writing-input:focus { border-color: var(--ios-blue); }
@@ -76,7 +72,7 @@
         .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
         .btn-skip-pale { background: var(--skip-blue); color: #0056B3; font-weight: 900; }
 
-        #recordingPanel { display: none; background: #fff; border-radius: 20px; padding: 15px 20px; align-items: center; justify-content: space-between; border: 1.5px solid var(--ios-red); margin-bottom: 15px; }
+        #recordingPanel { display: none; background: #fff; border-radius: 20px; padding: 15px 20px; align-items: center; justify-content: space-between; border: 2px solid var(--ios-red); box-shadow: 0 10px 25px rgba(255,59,48,0.25); position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 460px; z-index: 9999; box-sizing: border-box; }
         .waveform-container { display: flex; align-items: center; gap: 3.5px; height: 40px; flex: 2; overflow: hidden; }
         .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; }
         .stopwatch { font-family: "Malgun Gothic", sans-serif; font-weight: 900; font-size: 22px; flex: 1; text-align: center; }
@@ -97,7 +93,6 @@
         .ans-text { font-size: 17px; font-weight: 800; color: var(--apple-navy); line-height: 1.4; margin-bottom: 12px; }
         .fb-text { font-size: 14px; font-weight: 700; color: #666; line-height: 1.5; border-top: 1px solid #EEE; padding-top: 12px; }
 
-        /* 단어 객관식용 버튼 */
         #mcqArea { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
         .mcq-btn { background: #F2F2F7; border: none; padding: 15px; border-radius: 14px; font-weight: 800; font-size: 16px; cursor: pointer; color: var(--apple-navy); transition: 0.2s; text-align: center;}
 
@@ -137,12 +132,12 @@
         <div id="introView">
             <div class="speech-bubble" style="text-align: center; margin-bottom:20px;">
                 <div style="font-size: 40px; margin-bottom: 10px;">🎙️</div>
-                <div style="font-size: 20px; font-weight: 900; margin-bottom: 25px;">오늘 하루 어땠는지<br>편하게 말해보세요!</div>
+                <div id="introMainTitle" style="font-size: 20px; font-weight: 900; margin-bottom: 25px;">당신의 취미와 일상에 대하여<br>말해보세요!</div>
                 
                 <div class="diff-control">
-                    <div class="diff-opt" onclick="setDifficulty('beginner')" id="diff-beginner">🌱 초급</div>
-                    <div class="diff-opt active" onclick="setDifficulty('intermediate')" id="diff-intermediate">🌿 중급</div>
-                    <div class="diff-opt" onclick="setDifficulty('advanced')" id="diff-advanced">🌳 상급</div>
+                    <div class="diff-opt" onclick="setDifficulty('beginner', this)" id="diff-beginner">🌱 초급</div>
+                    <div class="diff-opt active" onclick="setDifficulty('intermediate', this)" id="diff-intermediate">🌿 중급</div>
+                    <div class="diff-opt" onclick="setDifficulty('advanced', this)" id="diff-advanced">🌳 상급</div>
                 </div>
                 
                 <div class="diff-control" style="background: #F2F2F7;">
@@ -225,8 +220,15 @@
     </div>
     
     <div id="sec-archive" class="section">
-        <h2 style="font-weight: 900; color: var(--dial-navy); margin-bottom: 20px;">학습 기록 (자동 저장)</h2>
-        <div id="archiveList"></div>
+        <h2 style="font-weight: 900; color: var(--dial-navy); margin-bottom: 15px;">학습 기록</h2>
+        
+        <div class="diff-control" style="margin-bottom: 20px;">
+            <div class="diff-opt active" id="arc-tab-story" onclick="switchArcTab('story')">📖 전체 이야기</div>
+            <div class="diff-opt" id="arc-tab-vocab" onclick="switchArcTab('vocab')">📝 내 단어장</div>
+        </div>
+
+        <div id="archiveListStory"></div>
+        <div id="archiveListVocab" style="display:none;"></div>
     </div>
 </div>
 
@@ -237,6 +239,7 @@
     let mediaRecorder, chunks = [], audioCtx, analyser, dataArray, animationId;
     let synth = window.speechSynthesis, timerInt, progressInt, recSeconds = 0;
     let hiddenTTSWord = ""; 
+    let currentArcTab = 'story'; // 스토리지 내부 탭 상태
 
     function switchTab(tab) {
         resetTTS(); 
@@ -245,6 +248,25 @@
         document.getElementById(`sec-${tab}`).classList.add('active');
         document.getElementById(`tab-${tab}`).classList.add('active');
         if(tab === 'archive') renderArchive();
+    }
+
+    /* ✨ 스토리지 탭 내부 전환 로직 */
+    function switchArcTab(tab) {
+        currentArcTab = tab;
+        document.getElementById('arc-tab-story').classList.toggle('active', tab === 'story');
+        document.getElementById('arc-tab-vocab').classList.toggle('active', tab === 'vocab');
+        
+        document.getElementById('archiveListStory').style.display = tab === 'story' ? 'block' : 'none';
+        
+        const vocabList = document.getElementById('archiveListVocab');
+        if (tab === 'vocab') {
+            vocabList.style.display = 'flex';
+            vocabList.style.flexDirection = 'column';
+            vocabList.style.gap = '10px';
+        } else {
+            vocabList.style.display = 'none';
+        }
+        renderArchive();
     }
 
     function applyBoing(el) {
@@ -259,10 +281,19 @@
     function handlePauseTTS(btn) { applyBoing(btn); pauseTTS(); }
     function handleResetTTS(btn) { applyBoing(btn); resetTTS(); }
 
-    function setDifficulty(lvl) {
+    function setDifficulty(lvl, el) {
         selectedDifficulty = lvl;
-        document.querySelectorAll('.diff-opt:not(.lang-opt)').forEach(el => el.classList.remove('active'));
-        document.getElementById(`diff-${lvl}`).classList.add('active');
+        document.querySelectorAll('.diff-opt:not(.lang-opt):not(#arc-tab-story):not(#arc-tab-vocab)').forEach(o => o.classList.remove('active'));
+        if (el) el.classList.add('active');
+        
+        const titleEl = document.getElementById('introMainTitle');
+        if (lvl === 'beginner') {
+            titleEl.innerHTML = "아 이거 어떻게 말할까?<br>에 대해서 말해보세요!";
+        } else if (lvl === 'intermediate') {
+            titleEl.innerHTML = "당신의 취미와 일상에 대하여<br>말해보세요!";
+        } else if (lvl === 'advanced') {
+            titleEl.innerHTML = "통역사가 더 잘 말하기 위해<br>말해보세요!";
+        }
     }
 
     function setLangMode(mode) {
@@ -296,7 +327,6 @@
     function playTTS() {
         if (ttsIsPlaying) return;
         synth.cancel();
-        document.querySelectorAll('.en-word').forEach(span => span.classList.remove('dimmed')); 
         
         const textToSpeak = hiddenTTSWord || currentEnWordsArray.slice(ttsGlobalIndex).join(" ");
         if (!textToSpeak || textToSpeak.includes("?")) return;
@@ -312,8 +342,10 @@
                     const offset = upTo[0] === "" ? 0 : upTo.length;
                     const actIdx = ttsGlobalIndex + offset;
                     document.querySelectorAll('.en-word').forEach((span, i) => {
-                        if (i <= actIdx) span.classList.add('active-blue');
-                        else span.classList.remove('active-blue');
+                        if (!span.classList.contains('blurred')) {
+                            if (i <= actIdx) span.classList.add('active-blue');
+                            else span.classList.remove('active-blue');
+                        }
                     });
                 }
             };
@@ -323,7 +355,9 @@
             ttsIsPlaying = false; 
             if (!hiddenTTSWord && ttsGlobalIndex >= currentEnWordsArray.length - 1) {
                 ttsGlobalIndex = 0; 
-                document.querySelectorAll('.en-word').forEach(span => span.classList.add('active-blue'));
+                document.querySelectorAll('.en-word').forEach(span => {
+                    if (!span.classList.contains('blurred')) span.classList.add('active-blue');
+                });
             }
             updateTTSUI(); 
         };
@@ -363,8 +397,16 @@
             
             lessonData = tempLesson;
             lessonData.id = Date.now(); 
-            // 진척도 총 7단계 (표현3, 단어3, 문장1)
             lessonData.completed = { keys: [false, false, false], full: false, vocab: [false, false, false] };
+            
+            lessonData.vocab.forEach(v => {
+                let drills = [2, 3, 4, 5, 6];
+                for (let i = drills.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [drills[i], drills[j]] = [drills[j], drills[i]]; 
+                }
+                v.drillOrder = [1, ...drills, 7]; 
+            });
             
             saveToArchive(); 
             finishLoadingBar();
@@ -383,27 +425,23 @@
         const keysC = lessonData.completed.keys.filter(Boolean).length;
         const fullC = lessonData.completed.full ? 1 : 0;
         const vocabC = lessonData.completed.vocab.filter(Boolean).length;
-        const totalProg = keysC + fullC + vocabC; // 최대 7
+        const totalProg = keysC + fullC + vocabC; 
 
         document.getElementById('keyProgress').innerText = `${keysC}/3`;
         document.getElementById('vocabProgress').innerText = `${vocabC}/3`;
         document.getElementById('fullProgress').innerText = `${fullC}/1`;
 
-        // ✨ 7단계 진척도 색상 및 블랙 글로우 처리
         const mainB = document.getElementById('dashMainBubble');
         mainB.style.background = '#fff'; 
         mainB.classList.remove('black-glow');
         
-        if(totalProg === 1) mainB.style.background = '#F2F2F7'; // 회색
-        if(totalProg === 2) mainB.style.background = '#FFFBE6'; // 연한 노란색
-        if(totalProg === 3) mainB.style.background = '#E8F5E9'; // 초록색
-        if(totalProg === 4) mainB.style.background = '#E6F2FF'; // 파란색
-        if(totalProg === 5) mainB.style.background = '#D2DAE2'; // 네이비 톤
-        if(totalProg === 6) mainB.style.background = '#F3E5F5'; // 보라색
-        if(totalProg === 7) {
-            mainB.style.background = '#1C1C1E'; // 블랙
-            mainB.classList.add('black-glow'); // 텍스트 흰색 변경 + 블랙 글로우
-        }
+        if(totalProg === 1) mainB.style.background = '#F2F2F7'; 
+        if(totalProg === 2) mainB.style.background = '#FFFBE6'; 
+        if(totalProg === 3) mainB.style.background = '#E8F5E9'; 
+        if(totalProg === 4) mainB.style.background = '#E6F2FF'; 
+        if(totalProg === 5) mainB.style.background = '#D2DAE2'; 
+        if(totalProg === 6) mainB.style.background = '#F3E5F5'; 
+        if(totalProg === 7) { mainB.style.background = '#1C1C1E'; mainB.classList.add('black-glow'); }
         
         document.getElementById('keyList').innerHTML = lessonData.keys.map((k, idx) => `
             <div class="lesson-card boing-active ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)">
@@ -449,7 +487,6 @@
         resetTTS();
         hiddenTTSWord = "";
         
-        // UI 초기화
         document.getElementById('pracResultArea').style.display = 'none';
         document.getElementById('pracRecordBtn').style.display = 'block'; 
         document.getElementById('pracRetryBtn').style.display = 'none';
@@ -472,23 +509,25 @@
         } else if (currentPracticeMode.startsWith('vocab_')) {
             const p = currentPracticeMode.split('_'); const idx = parseInt(p[1]); stepNum = parseInt(p[2]);
             const v = lessonData.vocab[idx];
+            
+            const actualTask = v.drillOrder ? v.drillOrder[stepNum - 1] : stepNum; 
+            
             document.getElementById('stepBadge').innerText = `VOCAB MASTER STEP ${stepNum}/7`;
             
-            // ✨ 단어 7단계 시스템 분기
-            if (stepNum === 1) { ko = `${v.meaning} [${v.pos}]`; en = v.word; blurPart = "none"; document.getElementById('pracGuideText').innerText = "단어를 발음해보세요 🎙️"; }
-            else if (stepNum === 2) { ko = `${v.meaning}`; en = v.word; blurPart = "all"; document.getElementById('pracGuideText').innerText = "빈칸을 채워 발음해보세요 🎙️"; }
-            else if (stepNum === 3) { ko = `${v.meaning}`; en = "???"; blurPart = "none"; document.getElementById('pracGuideText').innerText = "뜻을 보고 영단어를 말해보세요 🎙️"; }
-            else if (stepNum === 4) { 
+            if (actualTask === 1) { ko = `${v.meaning} [${v.pos}]`; en = v.word; blurPart = "none"; document.getElementById('pracGuideText').innerText = "단어를 발음해보세요 🎙️"; }
+            else if (actualTask === 2) { ko = `${v.meaning}`; en = v.word; blurPart = "all"; document.getElementById('pracGuideText').innerText = "빈칸을 채워 발음해보세요 🎙️\n(어려우면 터치해서 힌트 보기)"; }
+            else if (actualTask === 3) { ko = `${v.meaning}`; en = "???"; blurPart = "none"; document.getElementById('pracGuideText').innerText = "뜻을 보고 영단어를 말해보세요 🎙️"; }
+            else if (actualTask === 4) { 
                 ko = "음성을 듣고 올바른 뜻을 고르세요"; en = "???"; hiddenTTSWord = v.word; 
                 document.getElementById('pracGuideText').style.display = 'none';
                 renderMCQ(v); 
             }
-            else if (stepNum === 5) {
+            else if (actualTask === 5) {
                 ko = `${v.meaning} (쓰기)`; en = "???"; hiddenTTSWord = v.word;
                 document.getElementById('pracGuideText').style.display = 'none';
                 renderWritingForm("한글 뜻을 보고 영어 단어를 적어주세요");
             }
-            else if (stepNum === 6) {
+            else if (actualTask === 6) {
                 ko = `듣고 받아쓰기 (Dictation)`; en = "???"; hiddenTTSWord = v.word;
                 document.getElementById('pracGuideText').style.display = 'none';
                 renderWritingForm("음성을 듣고 영어 단어를 적어주세요");
@@ -512,16 +551,24 @@
         currentEnWordsArray.forEach((w, idx) => {
             const span = document.createElement('span'); span.className = "en-word"; span.innerText = w + " "; span.id = `word-${idx}`;
             const clean = w.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            
             if (blurMode === "all" || (blurMode !== "none" && blurMode.toLowerCase().includes(clean) && clean.length > 0)) {
                 span.classList.add('blurred');
             }
             if (w.includes("?")) span.style.color = '#D1D1D6';
-            span.onclick = () => { resetTTS(); ttsGlobalIndex = idx; playTTS(); };
+            
+            span.onclick = () => { 
+                if (span.classList.contains('blurred')) {
+                    span.classList.remove('blurred');
+                    span.style.color = 'var(--ios-blue)'; 
+                    span.style.background = 'transparent';
+                }
+                resetTTS(); ttsGlobalIndex = idx; playTTS(); 
+            };
             cont.appendChild(span);
         });
     }
 
-    /* ✨ 라이팅 폼 랜더링 */
     function renderWritingForm(placeholderMsg) {
         document.getElementById('pracRecordBtn').style.display = 'none';
         const area = document.getElementById('writingArea');
@@ -532,7 +579,6 @@
         setTimeout(() => input.focus(), 100);
     }
 
-    /* ✨ 라이팅 정답 확인 */
     function checkWriting(btn) {
         applyBoing(btn);
         const inputVal = document.getElementById('writingInput').value.trim().toLowerCase();
@@ -559,7 +605,6 @@
         }
     }
 
-    /* ✨ MCQ 랜더링 */
     function renderMCQ(v) {
         document.getElementById('pracRecordBtn').style.display = 'none';
         const area = document.getElementById('mcqArea');
@@ -673,10 +718,10 @@
     function goDashboard(btn) { if(btn) applyBoing(btn); resetTTS(); saveToArchive(); document.getElementById('practiceView').style.display = 'none'; showDashboard(); }
     function stopAnyRecording(btn) { if(btn) applyBoing(btn); clearInterval(timerInt); if(mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop(); cancelAnimationFrame(animationId); if(audioCtx) audioCtx.close(); }
 
-    /* ✨ 스토리지 v12: 가장 완벽하고 안전한 저장소 연동 */
+    /* ✨ 스토리지 v14 및 단어장 렌더링 시스템 */
     function saveToArchive() {
         if(!lessonData || !lessonData.id) return;
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v12')) || [];
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v14')) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0) + lessonData.completed.vocab.filter(Boolean).length;
         const idx = arc.findIndex(a => a.id === lessonData.id);
         
@@ -695,12 +740,12 @@
             dataToSave.starred = false;
             arc.unshift(dataToSave); 
         }
-        localStorage.setItem('archive_poly_v12', JSON.stringify(arc));
+        localStorage.setItem('archive_poly_v14', JSON.stringify(arc));
     }
 
     function toggleStar(e, id) {
         e.stopPropagation(); applyBoing(e.target);
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v12')) || [];
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v14')) || [];
         const idx = arc.findIndex(a => a.id === id);
         if (idx === -1) return;
 
@@ -709,27 +754,34 @@
             if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; }
             arc[idx].starred = true;
         } else { arc[idx].starred = false; }
-        localStorage.setItem('archive_poly_v12', JSON.stringify(arc));
+        localStorage.setItem('archive_poly_v14', JSON.stringify(arc));
         renderArchive();
     }
 
     function deleteArchive(e, id) {
         e.stopPropagation(); applyBoing(e.target);
         if(!confirm("기록을 영구 삭제하시겠습니까?")) return;
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v12')) || [];
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v14')) || [];
         arc = arc.filter(a => a.id !== id);
-        localStorage.setItem('archive_poly_v12', JSON.stringify(arc));
+        localStorage.setItem('archive_poly_v14', JSON.stringify(arc));
         if (lessonData && lessonData.id === id) location.reload(); else renderArchive();
     }
 
     function renderArchive() {
-        const list = document.getElementById('archiveList');
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v12')) || [];
-        if(arc.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; return; }
+        const listStory = document.getElementById('archiveListStory');
+        const listVocab = document.getElementById('archiveListVocab');
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v14')) || [];
+        
+        if(arc.length === 0) { 
+            listStory.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; 
+            listVocab.innerHTML = "<p style='text-align:center; color:#888;'>저장된 단어가 없습니다.</p>";
+            return; 
+        }
         
         arc.sort((a, b) => { if (a.starred && !b.starred) return -1; if (!a.starred && b.starred) return 1; return 0; });
 
-        list.innerHTML = arc.map(a => {
+        // 이야기(스토리) 렌더링
+        listStory.innerHTML = arc.map(a => {
             const pr = a.data.completed.keys.filter(Boolean).length + (a.data.completed.full ? 1 : 0) + a.data.completed.vocab.filter(Boolean).length;
             let textCol = '#D1D1D6'; let bgCol = '#fff'; let exClass = '';
             
@@ -753,9 +805,46 @@
                 <div class="archive-title" style="${pr===7?'color:#fff;':''}">${a.title}</div><div style="font-size:13px; color:${pr===7?'#ccc':'#888'}; margin-top:5px;">${a.data.english}</div>
             </div>`;
         }).join('');
+
+        // ✨ 단어장 렌더링 (모든 과거 단어 리스트업)
+        let vocabHtml = '';
+        arc.forEach(a => {
+            if(a.data && a.data.vocab) {
+                a.data.vocab.forEach((v, vIdx) => {
+                    const isMastered = a.data.completed.vocab[vIdx];
+                    vocabHtml += `
+                    <div class="lesson-card boing-active ${isMastered ? 'mastered' : ''}" onclick="loadVocabFromArchive(${a.id}, ${vIdx}, this)" style="margin-bottom:0;">
+                        <div style="flex:1;">
+                            <div class="ko" style="font-size:13px; color:#888;">${v.pos} | ${v.phonetics}</div>
+                            <div class="en" style="font-size:20px; font-weight:900; margin-top:2px;">${v.word}</div>
+                            <div class="ko" style="font-size:15px; color:#444; margin-top:2px; font-weight:800;">${v.meaning}</div>
+                        </div>
+                        <div style="font-size:24px;">${isMastered ? '✅' : '▶'}</div>
+                    </div>`;
+                });
+            }
+        });
+        listVocab.innerHTML = vocabHtml;
     }
     
-    function loadFromArchive(id, el) { applyBoing(el); const arc = JSON.parse(localStorage.getItem('archive_poly_v12')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+    function loadFromArchive(id, el) { applyBoing(el); const arc = JSON.parse(localStorage.getItem('archive_poly_v14')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+
+    /* ✨ 단어장 탭에서 특정 단어 클릭 시 바로 다이렉트 훈련 진입 */
+    function loadVocabFromArchive(id, vIdx, el) {
+        applyBoing(el);
+        const arc = JSON.parse(localStorage.getItem('archive_poly_v14')) || [];
+        const item = arc.find(a => a.id === id);
+        if(item) {
+            lessonData = item.data;
+            setTimeout(() => {
+                document.getElementById('tab-archive').classList.remove('active');
+                document.getElementById('sec-archive').classList.remove('active');
+                document.getElementById('tab-game').classList.add('active');
+                document.getElementById('sec-game').classList.add('active');
+                startPractice(`vocab_${vIdx}_1`);
+            }, 200);
+        }
+    }
 
     function startTimer() { recSeconds = 0; clearInterval(timerInt); timerInt = setInterval(() => { recSeconds++; document.getElementById('recTimer').innerText=`${String(Math.floor(recSeconds/60)).padStart(2,'0')}:${String(recSeconds%60).padStart(2,'0')}`; }, 1000); }
     function startLoadingBar() { let w = 0; clearInterval(progressInt); progressInt = setInterval(() => { w += 5; if(w>95) w=95; document.getElementById('progressBar').style.width = w+'%'; }, 200); }
