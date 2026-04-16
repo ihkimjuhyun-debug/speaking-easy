@@ -1,8 +1,8 @@
-// api/openai-proxy.js
+// api/openai-proxy.js (최종 최적화판)
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { audio, action, target_english, difficulty, lang_mode } = req.body;
+    const { audio, action, target_english, difficulty, lang_mode, current_lesson_id } = req.body;
     const API_KEY = process.env.OPENAI_API_KEY;
 
     if (!API_KEY) return res.status(500).json({ error: "API 키 오류" });
@@ -13,34 +13,30 @@ export default async function handler(req, res) {
         const formData = new FormData();
         formData.append('file', blob, 'audio.m4a');
         formData.append('model', 'whisper-1');
-        
-        // 한/영 스위치 값에 따른 Whisper 설정
-        if (lang_mode === 'ko') {
-            formData.append('language', 'ko');
-        }
+        if (lang_mode === 'ko') formData.append('language', 'ko');
 
         const sttResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
             method: "POST", headers: { "Authorization": `Bearer ${API_KEY}` }, body: formData
         });
         const sttData = await sttResponse.json();
-        const userSpeech = sttData.text;
+        const userSpeech = sttData.text; // AI가 인식한 실제 발음
 
         let instruction = "";
 
         if (action === 'korean') {
-            const langContext = lang_mode === 'mixed' 
-                ? "사용자의 말에 한국어와 영어가 섞여 있을 수 있습니다. 맥락을 파악해 가장 세련된 영어 문장으로 번역하세요."
-                : "사용자는 오직 한국어로만 말했습니다. 이를 원어민식 영어로 번역하세요.";
-
+            const langContext = lang_mode === 'mixed' ? "한/영 혼용 감지" : "한국어 전용";
+            
+            // ✨ 핵심: 바리에이션 강도 조절 프롬프트 업데이트 (사용자 예시 반영)
             instruction = `
-            사용자가 다음과 같이 말했습니다: "${userSpeech}"
+            사용자의 말: "${userSpeech}"
             난이도: ${difficulty}
             ${langContext}
             
             초보자를 위한 입체적인 영어 레슨을 구성하세요. 
-            [필수 규칙 - 버그 방지]
+            [필수 규칙 - 버그 방지 및 바리에이션 조절]
             1. "keys" 배열에는 **반드시 정확히 3개의 독립된 객체**가 있어야 합니다. 절대 하나로 합치지 마세요.
-            2. 레슨 5단계 구성 규칙 (주제 이탈 금지):
+            2. [중요] 바리에이션(ko_var, en_var)을 만들 때, 원본 문장의 구조(예: 'visiting the [amusement park]')를 최대한 유지하면서 핵심 동사나 명사('[amusement park]')만 바꾸도록 강도를 조절하세요. 연관성이 느껴져야 합니다. (예: "쉬는 거" -> "[resting]", "먹는 거" -> "[eating at the grand spot]")
+            3. 레슨 5단계 구성 규칙 (주제 이탈 금지):
                - STEP 1: 원본 문장 (기본)
                - STEP 2: 원본 문장 (핵심단어 블러)
                - STEP 3: 주어/시제/상황을 비튼 변형 문장 (Variation)
@@ -66,7 +62,11 @@ export default async function handler(req, res) {
                 ]
             }`;
         } else {
-            instruction = `목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 점수(0~100)와 짧은 한국어 피드백을 JSON {"score": <숫자>, "feedback": "<문장>"}으로 반환하세요.`;
+            // 발음 평가 모드
+            instruction = `
+            목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 
+            점수(0~100)와 짧은 한국어 피드백을 JSON {"score": <숫자>, "feedback": "<문장>"}으로 반환하세요.
+            `;
         }
 
         const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -75,6 +75,9 @@ export default async function handler(req, res) {
         });
 
         const gptData = await gptResponse.json();
-        res.status(200).json({ ...JSON.parse(gptData.choices[0].message.content), user_speech: userSpeech });
+        const finalResult = JSON.parse(gptData.choices[0].message.content);
+        
+        // ✨ 최적화: AI가 인식한 텍스트(userSpeech)를 결과에 포함하여 반환
+        res.status(200).json({ ...finalResult, recognized_text: userSpeech });
     } catch (error) { res.status(500).json({ error: error.message }); }
 }
