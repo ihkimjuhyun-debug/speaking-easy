@@ -22,8 +22,10 @@ export default async function handler(req, res) {
         const sttData = await sttResponse.json();
         const userSpeech = sttData.text || "";
 
+        // ✨ 환각(Hallucination) 및 일본어 잡음 완벽 차단
         const lowerSpeech = userSpeech.toLowerCase();
-        const isHallucination = lowerSpeech.includes("mbc") || lowerSpeech.includes("amara") || lowerSpeech.includes("thank you") || userSpeech.trim().length < 2;
+        const jpRegex = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/;
+        const isHallucination = lowerSpeech.includes("mbc") || lowerSpeech.includes("amara") || lowerSpeech.includes("thank you") || jpRegex.test(userSpeech) || userSpeech.trim().length < 2;
 
         if (isHallucination && action === 'korean') {
             return res.status(200).json({ error: "음성이 명확히 인식되지 않았습니다. 조금 더 크게 말씀해주세요!" });
@@ -47,15 +49,20 @@ export default async function handler(req, res) {
             
             [필수 엄수 규칙]
             1. "keys" 배열에는 단어가 아닌, 실제 문장에서 쓰이는 **덩어리 표현(Phrase, 2~4단어)** 3개를 추출하세요.
-            2. "vocab" 배열에는 중요한 핵심 단어 3개를 추출하고, 반드시 객관식 오답(wrong_options) 2개를 포함하세요.
-            3. 반환은 오직 아래 JSON 구조로만 하세요.
-
+            2. "vocab" 배열에는 핵심 단어 3개를 추출하고, 객관식 오답(wrong_options) 2개를 포함하세요.
+            3. "dictionary"에는 "english" 문장에 사용된 핵심 단어들의 소문자 원형을 키(key)로 하는 백과사전 정보를 구축하세요.
+            
+            반환은 오직 아래 JSON 구조로만 하세요.
             {
                 "title": "상황 요약 제목",
                 "korean": "사용자 의도를 정리한 완벽한 한글 문장",
                 "english": "세련되게 교정된 전체 영어 문장",
+                "dictionary": {
+                    "word1": { "ko": "한국어 뜻", "pos": "명사/동사 등", "phonetics": "발음기호", "expression": "대표적 표현 예시", "other_forms": "원문: require, 명: requirement" },
+                    "word2": { "ko": "...", "pos": "...", "phonetics": "...", "expression": "...", "other_forms": "..." }
+                },
                 "keys": [
-                    { "phrase": "덩어리 표현1 (예: visiting the park)", "ko_org": "원본 한글", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" },
+                    { "phrase": "덩어리 표현1", "ko_org": "한글", "en_org": "영어", "ko_var": "변형 한글", "en_var": "변형 영어" },
                     { "phrase": "덩어리 표현2", "ko_org": "한글", "en_org": "영어", "ko_var": "변형 한글", "en_var": "변형 영어" },
                     { "phrase": "덩어리 표현3", "ko_org": "한글", "en_org": "영어", "ko_var": "변형 한글", "en_var": "변형 영어" }
                 ],
@@ -67,13 +74,19 @@ export default async function handler(req, res) {
                     {"step": 5, "ko": "원본 한글", "en_full": "원본 영어", "blur_part": "all"}
                 ],
                 "vocab": [
-                    { "word": "단어1", "meaning": "한글 뜻", "pos": "명사/동사", "phonetics": "발음기호", "example_en": "가벼운 영어 예문", "example_ko": "예문 해석", "wrong_options": ["틀린뜻1", "틀린뜻2"] },
-                    { "word": "단어2", "meaning": "한글 뜻", "pos": "명사/동사", "phonetics": "발음기호", "example_en": "가벼운 영어 예문", "example_ko": "예문 해석", "wrong_options": ["틀린뜻1", "틀린뜻2"] },
-                    { "word": "단어3", "meaning": "한글 뜻", "pos": "명사/동사", "phonetics": "발음기호", "example_en": "가벼운 영어 예문", "example_ko": "예문 해석", "wrong_options": ["틀린뜻1", "틀린뜻2"] }
+                    { "word": "단어1", "meaning": "한글 뜻", "pos": "품사", "phonetics": "발음기호", "example_en": "영어 예문", "example_ko": "예문 해석", "wrong_options": ["오답1", "오답2"] },
+                    { "word": "단어2", "meaning": "한글 뜻", "pos": "품사", "phonetics": "발음기호", "example_en": "영어 예문", "example_ko": "예문 해석", "wrong_options": ["오답1", "오답2"] },
+                    { "word": "단어3", "meaning": "한글 뜻", "pos": "품사", "phonetics": "발음기호", "example_en": "영어 예문", "example_ko": "예문 해석", "wrong_options": ["오답1", "오답2"] }
                 ]
             }`;
         } else {
-            instruction = `목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 만약 실제 발음이 목표 문장과 전혀 상관없는 잡음이나 짧은 단어라면 0점 처리하세요. 점수(0~100)와 짧은 피드백을 JSON {"score": <숫자>, "feedback": "<문장>"}으로 반환하세요.`;
+            // ✨ 점수 완화 (부분 점수제 도입)
+            instruction = `목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 
+            [채점 규칙]
+            1. 발음이 완벽하지 않거나 단어가 조금 달라도, 원어민이 문맥상 이해할 수 있다면 너무 빡빡하게 깎지 말고 관대하게(lenient) 채점하세요.
+            2. 한 단어가 틀렸다고 무조건 0점 처리하지 마세요. 틀린 단어의 중요도와 전체 문장 대비 비율을 계산하여 10~100점 사이의 유연한 부분 점수를 부여하세요. 
+            3. 잡음이거나 완전히 무관한 단어일 때만 낮은 점수를 주세요.
+            반환: JSON {"score": <숫자>, "feedback": "<문장>"}`;
         }
 
         const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
