@@ -2,7 +2,7 @@
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { audio, action, target_english, difficulty } = req.body;
+    const { audio, action, target_english, difficulty, lang_mode } = req.body;
     const API_KEY = process.env.OPENAI_API_KEY;
 
     if (!API_KEY) return res.status(500).json({ error: "API 키 오류" });
@@ -13,7 +13,11 @@ export default async function handler(req, res) {
         const formData = new FormData();
         formData.append('file', blob, 'audio.m4a');
         formData.append('model', 'whisper-1');
-        // language 파라미터를 지정하지 않아 한국어/영어 혼용(코드 스위칭)을 완벽히 감지합니다.
+        
+        // 한/영 스위치 값에 따른 Whisper 설정
+        if (lang_mode === 'ko') {
+            formData.append('language', 'ko');
+        }
 
         const sttResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
             method: "POST", headers: { "Authorization": `Bearer ${API_KEY}` }, body: formData
@@ -24,15 +28,19 @@ export default async function handler(req, res) {
         let instruction = "";
 
         if (action === 'korean') {
+            const langContext = lang_mode === 'mixed' 
+                ? "사용자의 말에 한국어와 영어가 섞여 있을 수 있습니다. 맥락을 파악해 가장 세련된 영어 문장으로 번역하세요."
+                : "사용자는 오직 한국어로만 말했습니다. 이를 원어민식 영어로 번역하세요.";
+
             instruction = `
             사용자가 다음과 같이 말했습니다: "${userSpeech}"
-            (한국어와 영어가 섞여 있을 수 있습니다. 맥락을 파악해 자연스러운 문장으로 이해하세요.)
             난이도: ${difficulty}
+            ${langContext}
             
-            1. 혼용된 문장을 분석하여 사용자가 의도한 전체 의미를 파악하세요.
-            2. 이를 바탕으로 가장 세련된 원어민식 전체 영어 문장(english)과 한국어 번역(korean)을 만드세요.
-            3. 레슨 5단계 구성 규칙:
-               - 주제 이탈 절대 금지 (맥락 유지)
+            초보자를 위한 입체적인 영어 레슨을 구성하세요. 
+            [필수 규칙 - 버그 방지]
+            1. "keys" 배열에는 **반드시 정확히 3개의 독립된 객체**가 있어야 합니다. 절대 하나로 합치지 마세요.
+            2. 레슨 5단계 구성 규칙 (주제 이탈 금지):
                - STEP 1: 원본 문장 (기본)
                - STEP 2: 원본 문장 (핵심단어 블러)
                - STEP 3: 주어/시제/상황을 비튼 변형 문장 (Variation)
@@ -42,14 +50,12 @@ export default async function handler(req, res) {
             반드시 아래 JSON 형식만 반환하세요:
             {
                 "title": "상황 요약 제목",
-                "korean": "사용자 의도를 정리한 한글 문장",
+                "korean": "사용자 의도를 정리한 완벽한 한글 문장",
                 "english": "세련되게 교정된 전체 영어 문장",
                 "keys": [
-                    {
-                        "word": "핵심표현",
-                        "ko_org": "원본 맥락 문장(한)", "en_org": "원본 맥락 문장(영)",
-                        "ko_var": "변형 문장(한)", "en_var": "변형 문장(영)"
-                    }
+                    { "word": "핵심단어1", "ko_org": "원본 한글 문장", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" },
+                    { "word": "핵심단어2", "ko_org": "원본 한글 문장", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" },
+                    { "word": "핵심단어3", "ko_org": "원본 한글 문장", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" }
                 ],
                 "drills": [
                     {"step": 1, "ko": "원본 한글", "en_full": "원본 영어", "blur_part": "none"},
