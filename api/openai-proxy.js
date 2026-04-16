@@ -9,7 +9,6 @@ export default async function handler(req, res) {
 
     try {
         const audioBuffer = Buffer.from(audio, 'base64');
-        // 호환성을 위해 webm 혹은 mp4를 자동 포용하도록 파일명 지정
         const blob = new Blob([audioBuffer], { type: 'audio/webm' });
         const formData = new FormData();
         formData.append('file', blob, 'audio.webm');
@@ -23,7 +22,6 @@ export default async function handler(req, res) {
         const sttData = await sttResponse.json();
         const userSpeech = sttData.text || "";
 
-        // ✨ 환각(Hallucination) 및 일본어 잡음 완벽 차단 필터
         const lowerSpeech = userSpeech.toLowerCase();
         const jpRegex = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/;
         const isHallucination = lowerSpeech.includes("mbc") || lowerSpeech.includes("amara") || lowerSpeech.includes("thank you") || jpRegex.test(userSpeech) || userSpeech.trim().length < 2;
@@ -49,13 +47,15 @@ export default async function handler(req, res) {
             ${levelInstruction}
             
             [필수 엄수 규칙]
-            1. "keys" 배열에는 단어가 아닌, 실제 문장에서 쓰이는 **덩어리 표현(Phrase, 2~4단어)** 3개를 추출하세요.
-            2. "vocab" 배열에는 핵심 단어 3개를 추출하고, 객관식 오답(wrong_options) 2개를 포함하세요.
-            3. "dictionary"에는 "english" 문장에 사용된 핵심 단어들의 소문자 원형을 키(key)로 하는 백과사전 정보를 구축하세요.
+            1. "keys" 배열에는 단어가 아닌, 실제 문장에서 쓰이는 덩어리 표현(Phrase) 3개를 추출.
+            2. "vocab" 배열에는 핵심 단어 3개를 추출하고, 오답(wrong_options) 2개 포함.
+            3. "dictionary"에는 "english" 문장에 사용된 **모든 개별 단어(관사, 전치사, 대명사 등 예외 없이 100% 전부)**의 소문자 원형을 키(key)로 하는 백과사전 정보를 구축하세요.
+            4. 제목은 반드시 "title_ko" (한국어)와 "title_en" (영어) 2가지로 분리하여 작성.
             
             반환은 오직 아래 JSON 구조로만 하세요.
             {
-                "title": "상황 요약 제목",
+                "title_ko": "상황 요약 제목 (한국어)",
+                "title_en": "상황 요약 제목 (영어)",
                 "korean": "사용자 의도를 정리한 완벽한 한글 문장",
                 "english": "세련되게 교정된 전체 영어 문장",
                 "dictionary": {
@@ -81,7 +81,6 @@ export default async function handler(req, res) {
                 ]
             }`;
         } else {
-            // ✨ 점수 완화 (부분 점수제 완벽 적용)
             instruction = `목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 
             [채점 규칙]
             1. 발음이 완벽하지 않거나 단어가 조금 달라도, 원어민이 문맥상 이해할 수 있다면 너무 빡빡하게 깎지 말고 관대하게(lenient) 채점하세요.
