@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         const sttData = await sttResponse.json();
         const userSpeech = sttData.text || "";
 
-        // ✨ 버그 픽스: Whisper 환각(Hallucination) 및 침묵 방지 로직
+        // 환각(Hallucination) 방지
         const lowerSpeech = userSpeech.toLowerCase();
         const isHallucination = lowerSpeech.includes("mbc") || lowerSpeech.includes("amara") || lowerSpeech.includes("thank you") || userSpeech.trim().length < 2;
 
@@ -37,7 +37,6 @@ export default async function handler(req, res) {
                 ? "[LANGUAGE FOCUS: 90% English / 10% Korean] 사용자의 말에 한국/영어가 섞여 있습니다. 의도를 파악해 90% 세련된 영어 표현으로 교정하고, 10% 한국어는 의미 설명에만 사용하세요."
                 : "사용자는 한국어로 말했습니다. 이를 원어민식 영어로 번역하세요.";
 
-            // ✨ 유기적인 IELTS 레벨 디자인 적용
             let levelInstruction = "";
             if (difficulty === "beginner") {
                 levelInstruction = "[난이도: 초급] IELTS 3.0 ~ 5.0 수준. 누구나 알만한 매우 쉽고 직관적인 기초 단어와 짧은 문장 구조를 사용하세요.";
