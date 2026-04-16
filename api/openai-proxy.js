@@ -22,15 +22,22 @@ export default async function handler(req, res) {
         const sttData = await sttResponse.json();
         const userSpeech = sttData.text || "";
 
+        // ✨ 버그 픽스: Whisper 환각(Hallucination) 및 침묵 방지 로직
+        const lowerSpeech = userSpeech.toLowerCase();
+        const isHallucination = lowerSpeech.includes("mbc") || lowerSpeech.includes("amara") || lowerSpeech.includes("thank you") || userSpeech.trim().length < 2;
+
+        if (isHallucination && action === 'korean') {
+            return res.status(200).json({ error: "음성이 명확히 인식되지 않았습니다. 조금 더 크게 말씀해주세요!" });
+        }
+
         let instruction = "";
 
         if (action === 'korean') {
-            // ✨ 1. 90/10 포커스 시스템 적용
             const langContext = lang_mode === 'focus90' 
-                ? "[LANGUAGE FOCUS: 90% English / 10% Korean] 사용자의 말에 한국어와 영어가 섞여 있습니다. 의도를 파악해 90% 세련된 영어 표현으로 교정하고, 10% 한국어는 의미 설명에만 사용하세요."
+                ? "[LANGUAGE FOCUS: 90% English / 10% Korean] 사용자의 말에 한국/영어가 섞여 있습니다. 의도를 파악해 90% 세련된 영어 표현으로 교정하고, 10% 한국어는 의미 설명에만 사용하세요."
                 : "사용자는 한국어로 말했습니다. 이를 원어민식 영어로 번역하세요.";
 
-            // ✨ 2. IELTS 기반 유기적 레벨 디자인
+            // ✨ 유기적인 IELTS 레벨 디자인 적용
             let levelInstruction = "";
             if (difficulty === "beginner") {
                 levelInstruction = "[난이도: 초급] IELTS 3.0 ~ 5.0 수준. 누구나 알만한 매우 쉽고 직관적인 기초 단어와 짧은 문장 구조를 사용하세요.";
@@ -68,7 +75,7 @@ export default async function handler(req, res) {
                 ]
             }`;
         } else {
-            instruction = `목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 점수(0~100)와 짧은 피드백을 JSON {"score": <숫자>, "feedback": "<문장>"}으로 반환하세요.`;
+            instruction = `목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 만약 실제 발음이 목표 문장과 전혀 상관없는 잡음이나 짧은 단어('Thank you' 등)라면 0점 처리하세요. 점수(0~100)와 짧은 피드백을 JSON {"score": <숫자>, "feedback": "<문장>"}으로 반환하세요.`;
         }
 
         const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
