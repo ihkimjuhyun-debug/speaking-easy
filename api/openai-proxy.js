@@ -2,7 +2,7 @@
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { audio, action, target_english } = req.body;
+    const { audio, action, target_english, difficulty } = req.body;
     const API_KEY = process.env.OPENAI_API_KEY;
 
     if (!API_KEY) return res.status(500).json({ error: "API 키 오류" });
@@ -24,29 +24,35 @@ export default async function handler(req, res) {
         let instruction = "";
 
         if (action === 'korean') {
+            let diffContext = "";
+            if (difficulty === 'beginner') diffContext = "아주 기초적인 단어와 짧고 쉬운 구조 사용 (예: too busy, I can do both)";
+            else if (difficulty === 'intermediate') diffContext = "원어민들이 자주 쓰는 일상적인 회화 표현과 숙어 사용";
+            else if (difficulty === 'advanced') diffContext = "수준 높고 세련된 어휘, 복잡한 문장 구조 사용 (예: vice versa, bragging himself)";
+
             instruction = `
             사용자가 한국어로 말했습니다: "${userSpeech}"
-            이 문장을 바탕으로 초보자를 위한 단계별 영어 레슨을 구성하세요.
+            선택된 난이도: ${diffContext}
             
+            이 문장을 바탕으로 초보자를 위한 단계별 영어 레슨을 구성하세요.
             반드시 아래 JSON 형식만 반환하세요.
             {
-                "title": "<이 상황을 요약한 2~3단어 제목 (예: 놀이공원 가기)>",
+                "title": "<상황 요약 2~3단어 제목>",
                 "korean": "${userSpeech}",
-                "english": "<자연스러운 원어민 영어 번역>",
+                "english": "<난이도에 맞는 자연스러운 번역>",
                 "keys": [
                     {"en": "<핵심표현1>", "ko": "<뜻>"},
                     {"en": "<핵심표현2>", "ko": "<뜻>"},
                     {"en": "<핵심표현3>", "ko": "<뜻>"}
                 ],
                 "drills": [
-                    {"step": 1, "ko": "<원래 한국어 문장>", "en_full": "<원래 영어 문장>", "blur_part": "<끝부분 명사/표현 1개>"},
-                    {"step": 2, "ko": "<상황이 살짝 바뀐 한국어>", "en_full": "<살짝 바뀐 영어 문장>", "blur_part": "<바뀐 단어/표현>"},
-                    {"step": 3, "ko": "<상황이 바뀐 한국어>", "en_full": "<살짝 바뀐 영어 문장>", "blur_part": "<절반 이상 길게>"},
-                    {"step": 4, "ko": "<원래 한국어 문장>", "en_full": "<원래 영어 문장>", "blur_part": "<문장 전체>"}
+                    {"step": 1, "ko": "${userSpeech}", "en_full": "<원래 번역 문장>", "blur_part": "none"},
+                    {"step": 2, "ko": "${userSpeech}", "en_full": "<원래 번역 문장>", "blur_part": "<문장 끝부분 1~2단어>"},
+                    {"step": 3, "ko": "<상황이 살짝 바뀐 한국어>", "en_full": "<살짝 바뀐 영어 문장>", "blur_part": "<바뀐 부분>"},
+                    {"step": 4, "ko": "<상황이 완전히 바뀐 한국어>", "en_full": "<완전히 바뀐 영어 문장>", "blur_part": "<문장의 70% 이상 길게>"},
+                    {"step": 5, "ko": "${userSpeech}", "en_full": "<원래 번역 문장>", "blur_part": "all"}
                 ]
             }`;
         } else {
-            // 발음 평가 모드
             instruction = `
             목표 문장: "${target_english}"
             실제 발음: "${userSpeech}"
