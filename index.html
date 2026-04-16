@@ -7,134 +7,108 @@
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
-            --ios-bg: #F2F2F7; --dial-navy: #002D5E; --master-green: #34C759;
-            --skip-blue: #B3D4FF; 
+            --ios-bg: #F2F2F7; --master-green: #34C759; --skip-blue: #B3D4FF; 
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
-        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); }
+        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding: 20px; }
         
-        .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
-        .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
-        .tab.active { color: var(--ios-blue); border-bottom: 2.5px solid var(--ios-blue); }
-
-        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .chat-box { background: #fff; border-radius: 24px; padding: 25px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; position: relative; }
-        .step-badge-container { display: flex; justify-content: center; margin-bottom: 12px; }
-        .step-badge { background: var(--ios-blue); color: white; padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; }
-        .ko-text { font-size: 21px; font-weight: 900; color: #111; margin-bottom: 25px; line-height: 1.4; word-break: keep-all; }
+        /* 채팅 박스 및 텍스트 스타일 */
+        .chat-box { background: #fff; border-radius: 24px; padding: 25px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; }
+        .ko-text { font-size: 18px; font-weight: 700; color: #444; margin-bottom: 15px; }
         
-        .en-text-container { font-size: 27px; font-weight: 900; line-height: 1.35; margin-bottom: 25px; text-align: left; }
-        .en-word { color: #D1D1D6; cursor: pointer; transition: color 0.1s; display: inline-block; margin-right: 6px; margin-bottom: 6px; }
-        .en-word.active-blue { color: var(--ios-blue); }
-        .en-word.blurred { background: #E5E5EA; color: transparent; border-radius: 6px; padding: 0 5px; }
+        /* 카라오케 텍스트 스타일 */
+        .en-text-container { font-size: 26px; font-weight: 800; line-height: 1.4; margin-bottom: 25px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .en-word { color: #D1D1D6; transition: color 0.15s ease; cursor: pointer; }
+        .en-word.active-blue { color: var(--ios-blue); text-shadow: 0 0 10px rgba(0,122,255,0.2); }
 
-        .audio-wrapper { display: flex; justify-content: center; margin-bottom: 25px; height: 38px; gap: 8px; }
-        .btn-audio-main { background: #E8F5E9; color: var(--master-green); border: none; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; padding: 0 18px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-audio-sub { background: #F2F2F7; color: #555; border: none; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; padding: 0 16px; }
-
-        .diff-control { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; }
-        .diff-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 13px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; }
-        .diff-opt.active { background: #fff; color: var(--apple-navy); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; transition: 0.1s; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-        .btn-apple:active { transform: scale(0.96); }
-        .btn-red { background: var(--ios-red); color: white; }
+        /* 버튼 스타일 */
+        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; transition: 0.1s; margin-bottom: 10px; }
         .btn-blue { background: var(--ios-blue); color: white; }
-        .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
-        .btn-skip-pale { background: var(--skip-blue); color: #0056B3; }
-        
-        @keyframes glowPulse { 0% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.3); } 50% { box-shadow: 0 0 20px rgba(0, 122, 255, 0.8); transform: scale(1.02); } 100% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.3); } }
-        .btn-glow { animation: glowPulse 1.5s infinite alternate; background: var(--ios-blue); color: white; border: 2px solid white; }
-
-        #recordingPanel { display: none; background: #fff; border-radius: 20px; padding: 15px 20px; align-items: center; justify-content: space-between; border: 2px solid var(--ios-red); margin-bottom: 15px; }
-        .waveform-container { display: flex; align-items: center; gap: 3.5px; height: 40px; flex: 2; overflow: hidden; }
-        .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; }
-        .stopwatch { font-family: monospace; font-weight: 900; font-size: 24px; flex: 1; text-align: center; }
-
-        #loadingUI { display: none; text-align: center; padding: 30px 0; }
-        .progress-bg { width: 80%; height: 10px; background: #E5E5EA; border-radius: 10px; overflow: hidden; margin: 10px auto; }
-        .progress-bar { width: 0%; height: 100%; background: var(--ios-blue); transition: width 0.3s; }
+        .btn-audio { background: #E8F5E9; color: var(--master-green); border: none; padding: 12px 20px; border-radius: 12px; font-weight: 800; margin-bottom: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <nav class="nav-bar">
-        <button class="tab active" id="tab-game" onclick="switchTab('game')">GAME START</button>
-        <button class="tab" id="tab-archive" onclick="switchTab('archive')">STORAGE</button>
-    </nav>
-
-    <div id="sec-game" class="section active">
-        <div id="recordingPanel">
-            <div class="waveform-container" id="waveform"><script>for(let i=0; i<25; i++) document.write('<div class="wave-bar"></div>');</script></div>
-            <div class="stopwatch" id="recTimer">00:00</div>
-            <button style="background:var(--ios-red); color:white; border:none; padding:12px 18px; border-radius:14px; font-weight:800;" onclick="stopAnyRecording()">말 끝남</button>
-        </div>
+    <div class="chat-box">
+        <div class="ko-text" id="koDisplay">"나는 공원에 가고 싶어요"</div>
         
-        <div id="loadingUI">
-            <div style="font-size: 15px; font-weight: 800; color: var(--ios-blue);" id="loadingMsg">AI 분석 중...</div>
-            <div class="progress-bg"><div class="progress-bar" id="progressBar"></div></div>
-        </div>
+        <button class="btn-audio" onclick="playKaraoke()">🔊 영어 듣기 (카라오케)</button>
+        <button class="btn-audio" style="background:#F2F2F7; color:#555;" onclick="window.speechSynthesis.cancel()">⏸ 멈춤</button>
 
-        <div id="introView">
-            <div class="chat-box">
-                <div style="font-size: 40px; margin-bottom: 10px;">🎙️</div>
-                <div class="ko-text" style="font-size:18px;">"어떤 언어로 시작할까요?"</div>
-                <div class="diff-control">
-                    <div class="diff-opt" onclick="setDifficulty('beginner')" id="diff-beginner">🌱 초급</div>
-                    <div class="diff-opt active" onclick="setDifficulty('intermediate')" id="diff-intermediate">🌿 중급</div>
-                    <div class="diff-opt" onclick="setDifficulty('advanced')" id="diff-advanced">🌳 상급</div>
-                </div>
-                <p style="font-size: 12px; color: #8E8E93;">난이도는 문장 구성 및 단어 수준에 영향을 줍니다.</p>
+        <div class="en-text-container" id="enDisplay">
             </div>
-            <button class="btn-apple btn-red" onclick="startRecordMode('ko')">🇰🇷 한국어/혼용 모드로 말하기</button>
-            <button class="btn-apple btn-blue" onclick="startRecordMode('en')">🇺🇸 영어 모드로 말하기</button>
-        </div>
-
-        <div id="dashboardView" style="display:none;">
-            <div class="chat-box" style="text-align: left; background: #F8F8FA; padding: 15px;">
-                <span style="font-size:11px; font-weight:800; color:#888;">AI 인식 결과</span>
-                <div id="dashKoText" style="font-size:15px; font-weight:700; color:#444; margin-top:5px;"></div>
-            </div>
-            <div id="keyList"></div>
-            <div id="fullDrillCard" style="margin-top:20px;"></div>
-            <button class="btn-apple btn-gray" style="margin-top: 20px; height: 50px;" onclick="location.reload()">처음으로 돌아가기</button>
-        </div>
-
-        <div id="practiceView" style="display:none;">
-            <div class="chat-box">
-                <div class="step-badge-container"><div class="step-badge" id="stepBadge">STEP 1</div></div>
-                <div class="ko-text" id="pracKoText"></div>
-                
-                <div class="audio-wrapper">
-                    <button class="btn-audio-main" id="btnPlayTTS" onclick="playTTS()">🔊 <span id="playBtnText">영어 듣기</span></button>
-                    <button class="btn-audio-sub" id="btnPauseTTS" style="display:none;" onclick="pauseTTS()">⏸ 멈춤</button>
-                    <button class="btn-audio-sub" onclick="resetTTS()">⏪ 처음부터</button>
-                </div>
-
-                <div class="en-text-container" id="pracEnText"></div>
-                <div class="guide-text" id="pracGuideText">영어를 소리내어 읽어보세요</div>
-            </div>
-            <button id="pracRecordBtn" class="btn-apple btn-red" onclick="startPracticeRecord()">발음 녹음하기</button>
-            <button id="pracRetryBtn" class="btn-apple btn-red" style="display:none;" onclick="startPracticeRecord()">다시 시도하기</button>
-            <div class="control-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <button class="btn-apple btn-gray" onclick="goDashboard()">⬅️ 목록으로</button>
-                <button id="pracNextBtn" class="btn-apple btn-skip-pale" onclick="nextDrillStage()">건너뛰기 ➡️</button>
-            </div>
-        </div>
     </div>
-    <div id="sec-archive" class="section"><h2>학습 기록</h2><div id="archiveList"></div></div>
+
+    <button class="btn-apple btn-blue" onclick="setupSentence('I want to go to the park')">새 문장 불러오기 (테스트)</button>
 </div>
 
 <script>
-    let lessonData = null, currentPracticeMode = null, selectedDifficulty = 'intermediate', currentLangMode = 'ko';
-    let currentEnWordsArray = [], wordMap = [], ttsGlobalIndex = 0, ttsIsPlaying = false;
-    let synth = window.speechSynthesis, timerInt, progressInt, recSeconds = 0;
-    let mediaRecorder, chunks = [], audioCtx, analyser, dataArray, animationId;
+    const synth = window.speechSynthesis;
+    let currentUtterance = null;
 
-    function switchTab(tab) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('
+    // 1. 문장을 단어 단위로 쪼개서 화면에 뿌려주는 함수
+    function setupSentence(sentence) {
+        const container = document.getElementById('enDisplay');
+        container.innerHTML = ''; // 초기화
+
+        const words = sentence.split(' ');
+        words.forEach((word, index) => {
+            const span = document.createElement('span');
+            span.classList.add('en-word');
+            span.innerText = word;
+            span.id = `word-${index}`;
+            container.appendChild(span);
+        });
+    }
+
+    // 2. 카라오케 재생 함수 (핵심)
+    function playKaraoke() {
+        const container = document.getElementById('enDisplay');
+        const text = container.innerText;
+        if (!text) return;
+
+        // 기존 재생 중인 것이 있으면 취소
+        synth.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.8; // 사용자가 따라하기 좋게 약간 천천히
+
+        const spans = container.querySelectorAll('.en-word');
+
+        // 음성이 단어 경계를 넘을 때마다 실행
+        utterance.onboundary = (event) => {
+            if (event.name === 'word') {
+                const charIndex = event.charIndex; // 현재 읽기 시작한 글자의 인덱스
+                
+                // 현재까지 읽은 글자 수를 바탕으로 몇 번째 단어인지 계산
+                const spokenTextSoFar = text.substring(0, charIndex + event.charLength).trim();
+                const currentWordIndex = spokenTextSoFar.split(/\s+/).length - 1;
+
+                // UI 업데이트: 현재 단어까지 파란색으로 변경
+                spans.forEach((span, i) => {
+                    if (i <= currentWordIndex) {
+                        span.classList.add('active-blue');
+                    } else {
+                        span.classList.remove('active-blue');
+                    }
+                });
+            }
+        };
+
+        // 재생이 완료되면 다시 회색으로 초기화 (선택 사항)
+        utterance.onend = () => {
+            // 원한다면 끝났을 때 다시 회색으로 돌릴 수 있습니다.
+            // spans.forEach(span => span.classList.remove('active-blue'));
+        };
+
+        synth.speak(utterance);
+    }
+
+    // 초기 실행 (예시 문장)
+    setupSentence("I want to go to the park");
+</script>
+
+</body>
+</html>
