@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Elite Edition</title>
+    <title>PolyGlot Master: Elite Final</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
@@ -17,8 +17,11 @@
         @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.15); } 70% { transform: scale(0.95); } 100% { transform: scale(1); } }
         .boing-active { animation: boing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        /* ✨ 빛나는 테두리 (Glow) */
+        /* ✨ 빛나는 테두리 (Glow) 및 통과 시 일렁임 복구 */
         .glow-active { box-shadow: 0 0 25px rgba(255, 149, 0, 0.8) !important; border: 2px solid #FF9500 !important; background: #FF9500 !important; transform: scale(1.05); transition: 0.2s all; }
+        
+        @keyframes glowPulse { 0% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.4); border-color: rgba(255,255,255,0.5); } 100% { box-shadow: 0 0 22px rgba(0, 122, 255, 0.95); border-color: white; } }
+        .btn-glow { animation: glowPulse 1.2s infinite alternate; border: 2px solid white; }
 
         .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
         .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
@@ -28,24 +31,26 @@
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* ✨ 말풍선 디자인 (분리형 & 가독성 극대화) */
-        .bubble-container { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+        /* ✨ 말풍선 디자인 */
+        .bubble-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
         .speech-bubble { background: #fff; border-radius: 20px 20px 20px 4px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative; text-align: left; transition: background 0.3s; }
-        .bubble-ko { font-size: 15px; font-weight: 700; color: #666; margin-top: 8px; line-height: 1.4; border-top: 1px solid #EAEAEA; padding-top: 12px; }
+        .bubble-ko { font-size: 20px; font-weight: 900; color: #111; line-height: 1.4; text-align: center; }
         
+        /* ✨ 오디오 버튼을 감싸는 전용 말풍선 (가독성 향상) */
+        .audio-bubble { background: #fff; border-radius: 16px; padding: 12px; display: flex; justify-content: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #EAEAEA; }
+
         .step-badge-container { display: flex; justify-content: center; margin-bottom: 12px; }
         .step-badge { background: var(--ios-blue); color: white; padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; }
         
-        /* 텍스트 하이라이트 시스템 (파랑/회색/블러) */
-        .en-text-container { font-size: 28px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); }
+        /* 텍스트 하이라이트 시스템 */
+        .en-text-container { font-size: 28px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); text-align: left; }
         .en-word { display: inline-block; margin-right: 6px; margin-bottom: 6px; transition: color 0.2s; }
         .en-word.active-blue { color: var(--ios-blue) !important; }
         .en-word.dimmed { color: #D1D1D6 !important; }
         .en-word.blurred { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 5px; pointer-events: none; }
 
-        .audio-wrapper { display: flex; justify-content: center; margin-bottom: 25px; height: 38px; gap: 8px; }
-        .btn-audio-main { background: #E8F5E9; color: var(--master-green); border: none; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; padding: 0 20px; display: flex; align-items: center; gap: 6px; }
-        .btn-audio-sub { background: #F2F2F7; color: #555; border: none; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 0 16px; }
+        .btn-audio-main { background: #E8F5E9; color: var(--master-green); border: none; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; padding: 0 20px; display: flex; align-items: center; justify-content: center; height: 38px; gap: 6px; }
+        .btn-audio-sub { background: #F2F2F7; color: #555; border: none; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px; gap: 6px; padding: 0 16px; }
         
         .diff-control { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; gap: 4px; }
         .diff-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; transition: 0.2s; }
@@ -58,7 +63,7 @@
         .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 18px; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; -webkit-tap-highlight-color: transparent;}
         .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
 
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
+        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: transform 0.2s, box-shadow 0.2s, background 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-red { background: var(--ios-red); color: white; }
         .btn-blue { background: var(--ios-blue); color: white; }
         .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
@@ -77,7 +82,7 @@
         .countdown-num { font-size: 120px; font-weight: 900; color: var(--ios-blue); animation: popIn 1s infinite; }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 30% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
 
-        /* ✨ 결과 화면 분리 말풍선 */
+        /* 결과 화면 분리 말풍선 */
         .result-bubble-container { text-align: left; margin-top: 25px; }
         .score-bubble { background: #F8F8FA; border-radius: 14px; padding: 15px 20px; border: 1px solid #EAEAEA; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
         .score-num { font-size: 40px; font-weight: 900; color: var(--ios-blue); line-height: 1; }
@@ -143,21 +148,13 @@
             <div class="speech-bubble" id="dashMainBubble" style="margin-bottom: 25px;">
                 <div style="font-size: 12px; font-weight: 800; color: #888; margin-bottom: 8px;">내 이야기 (AI 교정됨)</div>
                 <div class="en-text-container" id="dashEnText" style="font-size: 22px; margin-bottom:0;"></div>
-                <div class="bubble-ko" id="dashKoText"></div>
+                <div style="font-size: 15px; font-weight: 700; color: #666; margin-top: 8px; line-height: 1.4; border-top: 1px solid #EAEAEA; padding-top: 12px;" id="dashKoText"></div>
             </div>
             
-            <div class="dashboard-title">
-                <span>1단계: 핵심 표현 (3개)</span>
-                <span class="progress-count" id="keyProgress">0/3</span>
-            </div>
+            <div class="dashboard-title"><span>1단계: 핵심 표현 (3개)</span><span class="progress-count" id="keyProgress">0/3</span></div>
             <div id="keyList"></div>
-            
-            <div class="dashboard-title" style="margin-top:25px;">
-                <span>2단계: 전체 문장 드릴</span>
-                <span class="progress-count" id="fullProgress">0/1</span>
-            </div>
+            <div class="dashboard-title" style="margin-top:25px;"><span>2단계: 전체 문장 드릴</span><span class="progress-count" id="fullProgress">0/1</span></div>
             <div id="fullDrillCard"></div>
-            
             <button class="btn-apple btn-gray" style="margin-top: 20px;" onclick="handleReload(this)">새로운 이야기 하기</button>
         </div>
 
@@ -165,19 +162,20 @@
             <div class="step-badge-container"><div class="step-badge" id="stepBadge">STEP 1</div></div>
             
             <div class="bubble-container">
-                <div class="speech-bubble">
+                <div class="speech-bubble" style="padding: 20px;">
+                    <div class="bubble-ko" id="pracKoText" style="margin: 0; border: none; padding: 0;"></div>
+                </div>
+                
+                <div class="audio-bubble">
+                    <button class="btn-audio-main" id="btnPlayTTS" onclick="handlePlayTTS(this)">🔊 <span id="playBtnText">영어 듣기</span></button>
+                    <button class="btn-audio-sub" id="btnPauseTTS" style="display:none;" onclick="handlePauseTTS(this)">⏸ 멈춤</button>
+                    <button class="btn-audio-sub" onclick="handleResetTTS(this)">⏪ 처음부터</button>
+                </div>
+
+                <div class="speech-bubble" style="padding: 25px 20px;">
                     <div class="en-text-container" id="pracEnText" style="margin-bottom: 0;"></div>
+                    <div class="guide-text" id="pracGuideText" style="font-size: 13px; font-weight: 800; color: var(--ios-blue); margin-top: 15px; text-align: center;">영어를 소리내어 읽어보세요 🎙️</div>
                 </div>
-                <div class="speech-bubble" style="padding: 15px 20px;">
-                    <div class="bubble-ko" id="pracKoText" style="margin-top:0; border-top:none; padding-top:0;"></div>
-                    <div class="guide-text" id="pracGuideText" style="font-size: 13px; font-weight: 800; color: var(--ios-blue); margin-top: 10px;">영어를 소리내어 읽어보세요 🎙️</div>
-                </div>
-            </div>
-            
-            <div class="audio-wrapper">
-                <button class="btn-audio-main" id="btnPlayTTS" onclick="handlePlayTTS(this)">🔊 <span id="playBtnText">영어 듣기</span></button>
-                <button class="btn-audio-sub" id="btnPauseTTS" style="display:none;" onclick="handlePauseTTS(this)">⏸ 멈춤</button>
-                <button class="btn-audio-sub" onclick="handleResetTTS(this)">⏪ 처음부터</button>
             </div>
 
             <div id="pracResultArea" style="display:none;">
@@ -198,7 +196,7 @@
             <button id="pracRetryBtn" class="btn-apple btn-red" style="display:none; margin-top:15px;" onclick="handleQuickRecord(this)">다시 시도하기</button>
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                <button class="btn-apple btn-gray" onclick="goDashboard(this)">⬅️ 목록으로</button>
+                <button id="goDashboardBtn" class="btn-apple btn-gray" onclick="goDashboard(this)">⬅️ 목록으로</button>
                 <button id="pracNextBtn" class="btn-apple btn-skip-pale" onclick="nextDrillStage(this)">건너뛰기 ➡️</button>
             </div>
         </div>
@@ -226,7 +224,7 @@
         if(tab === 'archive') renderArchive();
     }
 
-    /* 버그 수정: Boing 애니메이션을 확실히 리셋하고 실행 */
+    /* ✨ UI 리액션 헬퍼 (바운스) */
     function applyBoing(el) {
         if(!el) return;
         el.classList.remove('boing-active');
@@ -276,9 +274,7 @@
     function playTTS() {
         if (ttsIsPlaying) return;
         synth.cancel();
-        
-        document.querySelectorAll('.en-word').forEach(span => span.classList.remove('dimmed')); // 발음 평가 회색화 해제
-
+        document.querySelectorAll('.en-word').forEach(span => span.classList.remove('dimmed')); 
         const textToSpeak = currentEnWordsArray.slice(ttsGlobalIndex).join(" ");
         if (!textToSpeak) return;
 
@@ -291,7 +287,6 @@
                 const upTo = textToSpeak.substring(0, e.charIndex).trim().split(/\s+/);
                 const offset = upTo[0] === "" ? 0 : upTo.length;
                 const actIdx = ttsGlobalIndex + offset;
-                
                 document.querySelectorAll('.en-word').forEach((span, i) => {
                     if (i <= actIdx) span.classList.add('active-blue');
                     else span.classList.remove('active-blue');
@@ -312,16 +307,14 @@
     }
 
     function pauseTTS() { synth.cancel(); ttsIsPlaying = false; updateTTSUI(); }
-    function resetTTS() { 
-        synth.cancel(); ttsIsPlaying = false; ttsGlobalIndex = 0; updateTTSUI(); 
-        document.querySelectorAll('.en-word').forEach(el => { el.classList.remove('active-blue'); el.classList.remove('dimmed'); }); 
-    }
+    function resetTTS() { synth.cancel(); ttsIsPlaying = false; ttsGlobalIndex = 0; updateTTSUI(); document.querySelectorAll('.en-word').forEach(el => { el.classList.remove('active-blue', 'dimmed'); }); }
 
-    /* 🎙️ 메인 녹음 (딜레이 + Glow 이펙트) */
+    /* 🎙️ 메인 녹음 (지연 트랜지션 + Glow 이펙트) */
     async function handleMainRecord(btn) {
         applyBoing(btn);
         btn.classList.add('glow-active'); 
         
+        // ✨ 버튼 애니메이션을 감상할 수 있도록 400ms 대기 후 전환
         setTimeout(async () => {
             btn.classList.remove('glow-active');
             document.getElementById('introView').style.display = 'none';
@@ -331,7 +324,7 @@
                 document.getElementById('recordingPanel').style.display = 'flex';
                 startTimer(); initMicWithStream(stream, processKoreanAI);
             } catch(e) { alert("마이크 권한이 필요합니다."); location.reload(); }
-        }, 500); 
+        }, 400); 
     }
 
     async function processKoreanAI() {
@@ -369,7 +362,6 @@
         document.getElementById('keyProgress').innerText = `${keysC}/3`;
         document.getElementById('fullProgress').innerText = `${fullC}/1`;
 
-        // 진척도 말풍선 색상 (무색 -> 파랑)
         const mainB = document.getElementById('dashMainBubble');
         mainB.style.background = '#fff'; 
         if(totalProg === 1) mainB.style.background = '#F2F2F7'; 
@@ -378,13 +370,13 @@
         if(totalProg === 4) mainB.style.background = '#E6F2FF'; 
         
         document.getElementById('keyList').innerHTML = lessonData.keys.map((k, idx) => `
-            <div class="lesson-card" onclick="startPractice('key_${idx}_1', this)">
+            <div class="lesson-card boing-active ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)">
                 <div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">${k.ko_org}</div><div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${k.en_org}</div></div>
                 <div style="font-size:24px;">${lessonData.completed.keys[idx] ? '✅' : '▶'}</div>
             </div>`).join('');
             
         document.getElementById('fullDrillCard').innerHTML = `
-            <div class="lesson-card" onclick="startPractice('full_1', this)">
+            <div class="lesson-card boing-active ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)">
                 <div style="flex:1;">
                     <div class="ko" style="font-size:14px; color:#666;">전체 문장 마스터</div>
                     <div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${lessonData.english}</div>
@@ -399,13 +391,16 @@
         document.getElementById('dashboardView').style.display = 'none'; 
         document.getElementById('practiceView').style.display = 'block'; 
         currentPracticeMode = mode; 
+        
+        // 버튼 기본 클래스 리셋 (통과 시의 glow 효과 제거)
+        const nextBtn = document.getElementById('pracNextBtn');
+        nextBtn.className = 'btn-apple btn-skip-pale'; nextBtn.innerHTML = '건너뛰기 ➡️';
+        
         setupPracticeUI(); 
     }
 
     function setupPracticeUI() {
         let ko = "", en = "", blurPart = "", stepNum = 1; resetTTS();
-        const nextBtn = document.getElementById('pracNextBtn');
-        nextBtn.className = 'btn-apple btn-skip-pale'; nextBtn.innerHTML = '건너뛰기 ➡️';
         
         if (currentPracticeMode.startsWith('key_')) {
             const p = currentPracticeMode.split('_'); const idx = parseInt(p[1]); stepNum = parseInt(p[2]);
@@ -450,18 +445,20 @@
         applyBoing(btn);
         btn.classList.add('glow-active'); 
         resetTTS(); 
-        document.getElementById('pracRecordBtn').style.display = 'none';
-        document.getElementById('pracRetryBtn').style.display = 'none';
-        document.getElementById('pracResultArea').style.display = 'none'; 
         
+        // ✨ 버튼이 눌리고 애니메이션이 작동할 시간을 주기 위해 400ms 지연
         setTimeout(async () => {
             btn.classList.remove('glow-active');
+            document.getElementById('pracRecordBtn').style.display = 'none';
+            document.getElementById('pracRetryBtn').style.display = 'none';
+            document.getElementById('pracResultArea').style.display = 'none'; 
+            
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 document.getElementById('recordingPanel').style.display = 'flex';
                 startTimer(); initMicWithStream(stream, processPracticeAI);
             } catch(e) { alert("마이크 권한 필요"); }
-        }, 500); 
+        }, 400); 
     }
 
     async function processPracticeAI() {
@@ -483,12 +480,13 @@
             document.getElementById('scoreMsg').innerText = data.feedback;
             document.getElementById('targetTextDisplay').innerText = data.recognized_text || "인식 불가";
 
-            // 정밀 발음 하이라이트 (파랑/회색)
             highlightAccurateWords(currentEnWordsArray, data.recognized_text);
 
             if ((data.score || 0) >= 70) {
                 const nextBtn = document.getElementById('pracNextBtn');
-                nextBtn.className = 'btn-apple btn-blue btn-glow'; nextBtn.innerHTML = '다음 단계 ➡️';
+                // ✨ 통과 시 '다음 단계' 버튼에 영롱한 하얀색 일렁임(btn-glow) 추가!
+                nextBtn.className = 'btn-apple btn-blue btn-glow boing-active'; 
+                nextBtn.innerHTML = '다음 단계 ➡️';
             } else {
                 document.getElementById('pracRetryBtn').style.display = 'block';
             }
@@ -530,30 +528,32 @@
         cancelAnimationFrame(animationId); if(audioCtx) audioCtx.close(); 
     }
 
+    /* ✨ 스토리지 버그 수정 완료 (v6 버젼 적용하여 클린 저장소 확보) */
     function saveToArchive() {
         if(!lessonData) return;
-        let arc = JSON.parse(localStorage.getItem('archive_final_v5')) || [];
+        let arc = JSON.parse(localStorage.getItem('archive_final_v6')) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0);
         const idx = arc.findIndex(a => a.id === lessonData.id);
         if (idx !== -1) { arc[idx].data = lessonData; arc[idx].mastered = (pr === 4); }
         else { arc.unshift({ id: lessonData.id, date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }), title: lessonData.title, mastered: (pr === 4), data: lessonData }); }
-        localStorage.setItem('archive_final_v5', JSON.stringify(arc));
+        localStorage.setItem('archive_final_v6', JSON.stringify(arc));
     }
 
     function renderArchive() {
         const list = document.getElementById('archiveList');
-        const arc = JSON.parse(localStorage.getItem('archive_final_v5')) || [];
+        const arc = JSON.parse(localStorage.getItem('archive_final_v6')) || [];
         if(arc.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888;'>기록이 없습니다.</p>"; return; }
         list.innerHTML = arc.map(a => {
             const pr = a.data.completed.keys.filter(Boolean).length + (a.data.completed.full ? 1 : 0);
             let col = '#D1D1D6'; if(pr===1) col='#8E8E93'; if(pr===2) col='#FFD60A'; if(pr===3) col='#34C759'; if(pr===4) col='#007AFF';
-            return `<div class="archive-bubble" onclick="loadFromArchive(${a.id}, this)">
+            return `<div class="archive-bubble boing-active" onclick="loadFromArchive(${a.id}, this)">
                 <div class="archive-header"><span>${a.date}</span><span style="color:${col}; font-weight:900;">${pr===4?'🏆 완벽':'⏳ 진행'}(${pr}/4)</span></div>
                 <div class="archive-title">${a.title}</div><div style="font-size:13px; color:#888; margin-top:5px;">${a.data.english}</div>
             </div>`;
         }).join('');
     }
-    function loadFromArchive(id, el) { applyBoing(el); const arc = JSON.parse(localStorage.getItem('archive_final_v5')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+    
+    function loadFromArchive(id, el) { applyBoing(el); const arc = JSON.parse(localStorage.getItem('archive_final_v6')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
 
     function startTimer() { recSeconds = 0; clearInterval(timerInt); timerInt = setInterval(() => { recSeconds++; document.getElementById('recTimer').innerText=`${String(Math.floor(recSeconds/60)).padStart(2,'0')}:${String(recSeconds%60).padStart(2,'0')}`; }, 1000); }
     function startLoadingBar() { let w = 0; clearInterval(progressInt); progressInt = setInterval(() => { w += 5; if(w>95) w=95; document.getElementById('progressBar').style.width = w+'%'; }, 200); }
