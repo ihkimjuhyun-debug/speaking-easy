@@ -24,9 +24,9 @@
         @keyframes glowPulseWhite { 0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.4); border-color: rgba(255,255,255,0.5); } 100% { box-shadow: 0 0 22px rgba(255, 255, 255, 1); border-color: white; } }
         .btn-glow { animation: glowPulseWhite 1.2s infinite alternate; border: 2px solid white; }
 
-        /* 파란색 4/4 완벽 정복 시 파란 테두리 + 하얀빛 일렁임 (Mastered Glow) */
+        /* ✨ 파란색 4/4 완벽 정복 시 파란 테두리 + 하얀빛 일렁임 (Mastered Glow) */
         @keyframes masteredPulse { 0% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.3); border-color: rgba(0, 122, 255, 0.5); } 100% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.9), 0 0 15px rgba(0, 122, 255, 0.6); border-color: white; } }
-        .mastered-glow { animation: masteredPulse 1.5s infinite alternate !important; border: 2px solid transparent; }
+        .mastered-glow { border: 2px solid var(--ios-blue) !important; animation: masteredPulse 1.5s infinite alternate !important; }
 
         .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
         .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
@@ -116,8 +116,8 @@
 
 <div class="container">
     <nav class="nav-bar">
-        <button class="tab active" onclick="switchTab('game')">GAME START</button>
-        <button class="tab" onclick="switchTab('archive')">STORAGE</button>
+        <button class="tab active" id="tab-game" onclick="switchTab('game')">GAME START</button>
+        <button class="tab" id="tab-archive" onclick="switchTab('archive')">STORAGE</button>
     </nav>
 
     <div id="sec-game" class="section active">
@@ -212,7 +212,7 @@
     </div>
     
     <div id="sec-archive" class="section">
-        <h2 style="font-weight: 900; color: var(--dial-navy); margin-bottom: 20px;">학습 기록</h2>
+        <h2 style="font-weight: 900; color: var(--dial-navy); margin-bottom: 20px;">학습 기록 (자동 저장)</h2>
         <div id="archiveList"></div>
     </div>
 </div>
@@ -228,6 +228,7 @@
         resetTTS(); 
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        // ✨ 여기서 발생했던 탭 전환 에러가 위 HTML id 복구로 말끔히 해결되었습니다.
         document.getElementById(`sec-${tab}`).classList.add('active');
         document.getElementById(`tab-${tab}`).classList.add('active');
         if(tab === 'archive') renderArchive();
@@ -317,7 +318,6 @@
     function pauseTTS() { synth.cancel(); ttsIsPlaying = false; updateTTSUI(); }
     function resetTTS() { synth.cancel(); ttsIsPlaying = false; ttsGlobalIndex = 0; updateTTSUI(); document.querySelectorAll('.en-word').forEach(el => { el.classList.remove('active-blue', 'dimmed'); }); }
 
-    /* 🎙️ 메인 녹음 (딜레이 + Glow 이펙트) */
     async function handleMainRecord(btn) {
         applyBoing(btn);
         btn.classList.add('glow-active'); 
@@ -355,7 +355,7 @@
             lessonData.id = Date.now(); 
             lessonData.completed = { keys: [false, false, false], full: false };
             
-            // ✨ 핵심 추가 기능: 결과가 나오자마자 스토리지에 무조건 "자동 저장"
+            // ✨ 핵심: 첫 녹음 후 로딩 끝나자마자 스토리지에 무조건 자동 저장!
             saveToArchive(); 
             
             finishLoadingBar();
@@ -378,6 +378,7 @@
         document.getElementById('keyProgress').innerText = `${keysC}/3`;
         document.getElementById('fullProgress').innerText = `${fullC}/1`;
 
+        // ✨ 진척도 컬러 + 테두리 일렁임 (완벽 복구)
         const mainB = document.getElementById('dashMainBubble');
         mainB.style.background = '#fff'; 
         mainB.classList.remove('mastered-glow');
@@ -387,7 +388,7 @@
         if(totalProg === 3) mainB.style.background = '#E8F5E9'; 
         if(totalProg === 4) {
             mainB.style.background = '#E6F2FF'; 
-            mainB.classList.add('mastered-glow'); // 마스터 시 테두리 빛남 복원
+            mainB.classList.add('mastered-glow');
         }
         
         document.getElementById('keyList').innerHTML = lessonData.keys.map((k, idx) => `
@@ -545,37 +546,37 @@
         cancelAnimationFrame(animationId); if(audioCtx) audioCtx.close(); 
     }
 
-    /* ✨ 스토리지 버그 고침 + 별표(즐겨찾기) + 삭제 기능 추가 (v8) */
+    /* ✨ 스토리지 v9: 자동 저장 및 별표/삭제 완벽 통합 */
     function saveToArchive() {
         if(!lessonData || !lessonData.id) return;
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v8')) || [];
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v9')) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0);
         const idx = arc.findIndex(a => a.id === lessonData.id);
         
+        const dataToSave = { 
+            id: lessonData.id, 
+            date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), 
+            title: lessonData.title || "나의 이야기", 
+            mastered: (pr === 4), 
+            data: lessonData 
+        };
+
         if (idx !== -1) { 
-            // 기존 데이터 업데이트 (즐겨찾기 상태 유지)
-            arc[idx].data = lessonData; 
-            arc[idx].mastered = (pr === 4);
-            arc[idx].title = lessonData.title;
+            dataToSave.starred = arc[idx].starred; // 기존 별표 상태 유지
+            arc[idx] = dataToSave; 
         } else { 
-            // 새로운 데이터 생성
-            arc.unshift({ 
-                id: lessonData.id, 
-                date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), 
-                title: lessonData.title, 
-                mastered: (pr === 4), 
-                starred: false, // 별표 기본값 false
-                data: lessonData 
-            }); 
+            dataToSave.starred = false;
+            arc.unshift(dataToSave); 
         }
-        localStorage.setItem('archive_poly_v8', JSON.stringify(arc));
+        
+        localStorage.setItem('archive_poly_v9', JSON.stringify(arc));
     }
 
-    /* 별표 토글 기능 (최대 3개 제한) */
+    /* ✨ 별표(즐겨찾기) 로직 (최대 3개 제한) */
     function toggleStar(e, id) {
-        e.stopPropagation(); // 카드 열림 방지
+        e.stopPropagation(); 
         applyBoing(e.target);
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v8')) || [];
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v9')) || [];
         const idx = arc.findIndex(a => a.id === id);
         if (idx === -1) return;
 
@@ -587,31 +588,37 @@
         } else {
             arc[idx].starred = false;
         }
-        localStorage.setItem('archive_poly_v8', JSON.stringify(arc));
+        localStorage.setItem('archive_poly_v9', JSON.stringify(arc));
         renderArchive();
     }
 
-    /* 삭제 기능 */
+    /* ✨ 삭제 기능 로직 */
     function deleteArchive(e, id) {
-        e.stopPropagation(); // 카드 열림 방지
+        e.stopPropagation(); 
         applyBoing(e.target);
-        if(!confirm("이 기록을 삭제하시겠습니까? (삭제된 데이터는 복구할 수 없습니다)")) return;
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v8')) || [];
+        if(!confirm("이 기록을 영구 삭제하시겠습니까? (불필요한 기록 정리)")) return;
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v9')) || [];
         arc = arc.filter(a => a.id !== id);
-        localStorage.setItem('archive_poly_v8', JSON.stringify(arc));
-        renderArchive();
+        localStorage.setItem('archive_poly_v9', JSON.stringify(arc));
+        
+        // 현재 열려있는 레슨을 지웠다면 리로드
+        if (lessonData && lessonData.id === id) {
+            location.reload();
+        } else {
+            renderArchive();
+        }
     }
 
     function renderArchive() {
         const list = document.getElementById('archiveList');
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v8')) || [];
-        if(arc.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888;'>기록이 없습니다.</p>"; return; }
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v9')) || [];
+        if(arc.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888;'>자동으로 저장된 기록이 없습니다.</p>"; return; }
         
-        // ✨ 별표(starred) 된 항목을 무조건 최상단으로 정렬
+        // ✨ 별표 항목을 무조건 최상단으로 정렬
         arc.sort((a, b) => {
             if (a.starred && !b.starred) return -1;
             if (!a.starred && b.starred) return 1;
-            return 0; // 둘 다 같으면 원래 최신순 유지
+            return 0; // 둘 다 같으면 최신순(원래 배열 순서) 유지
         });
 
         list.innerHTML = arc.map(a => {
@@ -620,7 +627,7 @@
             if(pr===1) { textCol='#8E8E93'; bgCol='#F2F2F7'; }
             if(pr===2) { textCol='#FFD60A'; bgCol='#FFFBE6'; }
             if(pr===3) { textCol='#34C759'; bgCol='#E8F5E9'; }
-            if(pr===4) { textCol='#007AFF'; bgCol='#E6F2FF'; exClass='mastered-glow'; }
+            if(pr===4) { textCol='#007AFF'; bgCol='#E6F2FF'; exClass='mastered-glow'; } // 파란색+일렁임
             
             return `<div class="archive-bubble boing-active ${exClass}" onclick="loadFromArchive(${a.id}, this)" style="background:${bgCol};">
                 <div class="archive-header">
@@ -638,7 +645,7 @@
         }).join('');
     }
     
-    function loadFromArchive(id, el) { applyBoing(el); const arc = JSON.parse(localStorage.getItem('archive_poly_v8')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+    function loadFromArchive(id, el) { applyBoing(el); const arc = JSON.parse(localStorage.getItem('archive_poly_v9')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
 
     function startTimer() { recSeconds = 0; clearInterval(timerInt); timerInt = setInterval(() => { recSeconds++; document.getElementById('recTimer').innerText=`${String(Math.floor(recSeconds/60)).padStart(2,'0')}:${String(recSeconds%60).padStart(2,'0')}`; }, 1000); }
     function startLoadingBar() { let w = 0; clearInterval(progressInt); progressInt = setInterval(() => { w += 5; if(w>95) w=95; document.getElementById('progressBar').style.width = w+'%'; }, 200); }
