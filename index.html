@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Speaking Master: Beginner Pro</title>
+    <title>Speaking Master: Elite Start</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
-            --ios-bg: #F2F2F7; --dial-navy: #002D5E; --soft-green-bg: #E8F5E9; 
-            --master-green: #34C759;
+            --ios-bg: #F2F2F7; --dial-navy: #002D5E; --master-green: #34C759;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 30px; }
@@ -22,7 +21,7 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .chat-box { background: #fff; border-radius: 24px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; position: relative; }
-        .ko-text { font-size: 18px; font-weight: 700; color: #444; margin-bottom: 15px; }
+        .ko-text { font-size: 17px; font-weight: 700; color: #444; margin-bottom: 15px; }
         
         .en-text-container { font-size: 26px; font-weight: 900; line-height: 1.4; margin-bottom: 20px; text-align: left; }
         .en-word { color: #D1D1D6; cursor: pointer; transition: 0.2s; display: inline-block; margin-right: 6px; margin-bottom: 6px; }
@@ -31,47 +30,45 @@
 
         .guide-text { font-size: 14px; font-weight: 800; color: #8E8E93; margin-top: 10px; }
 
-        /* 난이도 선택 UI */
-        .difficulty-select { width: 100%; padding: 14px; border-radius: 14px; border: 1.5px solid #EAEAEA; font-size: 16px; font-weight: 800; color: var(--dial-navy); margin-bottom: 20px; background: #F8F8FA; outline: none; -webkit-appearance: none; text-align: center; }
+        /* ✨ 세련된 난이도 선택 UI (iOS Segmented Control 스타일) */
+        .diff-control { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; }
+        .diff-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .diff-opt.active { background: #fff; color: var(--apple-navy); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-        .lesson-dashboard { display: none; text-align: left; }
         .dashboard-title { font-size: 18px; font-weight: 900; margin-bottom: 15px; color: var(--dial-navy); }
-        .lesson-card { background: #fff; border: 1.5px solid #EAEAEA; border-radius: 16px; padding: 18px; margin-bottom: 12px; cursor: pointer; transition: transform 0.1s; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
-        .lesson-card:active { transform: scale(0.96); background: #F8F8FA; }
+        .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 18px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .lesson-card:active { transform: scale(0.96); }
         .lesson-card .ko { font-size: 12px; color: #8E8E93; font-weight: 700; margin-bottom: 4px; }
-        .lesson-card .en { font-size: 16px; font-weight: 900; color: var(--ios-blue); }
-        .lesson-card.full-sent { border-color: var(--ios-blue); background: #F0F8FF; }
+        .lesson-card .en { font-size: 16px; font-weight: 900; color: var(--apple-navy); }
+        
+        /* ✨ 마스터 완료된 카드의 초록색 테두리 효과 */
+        .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
+        .lesson-card.mastered .icon { color: var(--master-green); }
 
         .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
         .btn-apple:active { transform: scale(0.95); }
         .btn-red { background: var(--ios-red); color: white; }
         .btn-blue { background: var(--ios-blue); color: white; }
-        .btn-end { background: #FFFFFF; color: var(--dial-navy); box-shadow: 0 4px 12px rgba(0, 45, 94, 0.05); margin-top: 15px;}
-        .btn-cancel { background: transparent; color: #8E8E93; font-size: 14px; height: 40px; margin-top: 0; box-shadow: none; text-decoration: underline; }
+        .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
         
+        .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .btn-sound-small { display: inline-flex; align-items: center; justify-content: center; background: #F0F8FF; color: var(--ios-blue); width: 40px; height: 40px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; margin-bottom: 15px; }
 
-        /* 녹음 패널 (스톱워치 추가) */
-        #recordingPanel { display: none; background: #fff; border-radius: 20px; padding: 15px 20px; align-items: center; justify-content: space-between; gap: 12px; border: 1.5px solid var(--ios-red); margin-bottom: 15px; box-shadow: 0 5px 20px rgba(255, 59, 48, 0.1); flex-wrap: wrap; }
+        #recordingPanel { display: none; background: #fff; border-radius: 20px; padding: 15px 20px; align-items: center; justify-content: space-between; gap: 12px; border: 1.5px solid var(--ios-red); margin-bottom: 15px; flex-wrap: wrap; }
         .waveform-container { display: flex; align-items: center; gap: 3.5px; height: 40px; flex: 2; overflow: hidden; }
         .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; flex-shrink: 0; }
-        
-        /* 견고딕체 스톱워치 */
-        .stopwatch { font-family: "Malgun Gothic", "AppleGothic", sans-serif; font-weight: 900; font-size: 22px; color: var(--apple-navy); flex: 1; text-align: center; font-variant-numeric: tabular-nums; }
-        
+        .stopwatch { font-family: "Malgun Gothic", sans-serif; font-weight: 900; font-size: 22px; color: var(--apple-navy); flex: 1; text-align: center; }
         .btn-stop { background: var(--ios-red); color: white; border: none; padding: 12px 18px; border-radius: 14px; font-weight: 800; font-size: 14px; flex: 1; cursor: pointer; }
 
-        /* 로딩 UI (퍼센트 게이지 추가) */
         #loadingUI { display: none; text-align: center; padding: 30px 0; }
-        .loader-text { font-size: 15px; font-weight: 800; color: var(--ios-blue); margin-bottom: 10px; }
         .progress-bg { width: 100%; height: 12px; background: #E5E5EA; border-radius: 10px; overflow: hidden; margin: 0 auto; max-width: 80%; }
         .progress-bar { width: 0%; height: 100%; background: var(--ios-blue); transition: width 0.2s; }
         .progress-percent { font-size: 13px; font-weight: 900; color: var(--ios-blue); margin-top: 5px; display: block; }
 
-        .archive-card { background: #fff; padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid #D1D1D6; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .archive-card { background: #fff; padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid #D1D1D6; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: 0.2s; }
+        .archive-card:active { transform: scale(0.98); }
         .archive-card.mastered { border-left-color: var(--master-green); }
         
-        /* 훈련 단계 뱃지 */
         .step-badge { position: absolute; top: 15px; right: 15px; background: var(--ios-blue); color: white; padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 800; }
     </style>
 </head>
@@ -91,12 +88,11 @@
             </div>
             <div class="stopwatch" id="recTimer">00:00</div>
             <button class="btn-stop" onclick="stopAnyRecording()">완료</button>
-            <button class="btn-apple btn-cancel" style="flex-basis: 100%;" onclick="cancelRecording()">녹음 취소 (End Game)</button>
         </div>
         
         <div id="loadingUI">
             <div style="font-size: 30px; margin-bottom:10px;">✨</div>
-            <div class="loader-text" id="loadingMsg">AI가 분석 중입니다...</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--ios-blue); margin-bottom: 10px;" id="loadingMsg">AI가 분석 중입니다...</div>
             <div class="progress-bg"><div class="progress-bar" id="progressBar"></div></div>
             <span class="progress-percent" id="progressPercent">0%</span>
         </div>
@@ -106,31 +102,29 @@
                 <div style="font-size: 40px; margin-bottom: 10px;">🎙️</div>
                 <div class="ko-text">"오늘 하루 어땠는지<br>한국어로 편하게 말해보세요!"</div>
                 
-                <select id="difficultySelect" class="difficulty-select">
-                    <option value="beginner">🌱 초급 (기본적이고 쉬운 표현)</option>
-                    <option value="intermediate" selected>🌿 중급 (자연스러운 일상 표현)</option>
-                    <option value="advanced">🌳 상급 (고급 어휘와 세련된 구조)</option>
-                </select>
+                <div class="diff-control" id="diffControl">
+                    <div class="diff-opt" onclick="setDifficulty('beginner')" id="diff-beginner">🌱 초급</div>
+                    <div class="diff-opt active" onclick="setDifficulty('intermediate')" id="diff-intermediate">🌿 중급</div>
+                    <div class="diff-opt" onclick="setDifficulty('advanced')" id="diff-advanced">🌳 상급</div>
+                </div>
 
                 <div class="guide-text">상황을 설명해주시면 맞춤형 레슨을 만듭니다.</div>
             </div>
-            <button id="introRecordBtn" class="btn-apple btn-red" onclick="startKoreanRecord()">한국어 녹음하기</button>
+            <button class="btn-apple btn-red" onclick="startKoreanRecord()">한국어 녹음하기</button>
         </div>
 
-        <div id="dashboardView" class="lesson-dashboard">
+        <div id="dashboardView" style="display:none;">
             <div class="chat-box" style="padding: 15px; text-align: left; background: #F8F8FA; border: 1px solid #EAEAEA;">
                 <span style="font-size:12px; font-weight:800; color:#888;">내가 한 말</span>
                 <div id="dashKoText" style="font-size:15px; font-weight:700; color:#444; margin-top:5px;"></div>
             </div>
-            <div class="dashboard-title">1단계: 핵심 단어 배우기</div>
+            <div class="dashboard-title">1단계: 문장 단위 핵심 표현</div>
             <div id="keyList"></div>
             
             <div class="dashboard-title" style="margin-top:25px;">2단계: 5단계 변형 드릴</div>
-            <div class="lesson-card full-sent" onclick="startPractice('full')">
-                <div><div class="ko">전체 문장 마스터하기</div><div class="en">Full Sentence Drill</div></div>
-                <div style="font-size:24px;">➡️</div>
-            </div>
-            <button class="btn-apple btn-end" onclick="location.reload()">End Game (초기화)</button>
+            <div id="fullDrillCard"></div>
+            
+            <button class="btn-apple btn-gray" style="margin-top: 20px; height: 50px;" onclick="resetToIntro()">새로운 이야기 하기</button>
         </div>
 
         <div id="practiceView" style="display:none;">
@@ -143,16 +137,19 @@
             </div>
 
             <button id="pracRecordBtn" class="btn-apple btn-red" onclick="startPracticeRecord()">발음 녹음하기</button>
-            <button id="pracRetryBtn" class="btn-apple btn-red" style="display:none;" onclick="startPracticeRecord()">다시 시도 (50점 이하)</button>
-            <button id="pracNextBtn" class="btn-apple btn-blue" style="display:none;" onclick="nextDrillStage()">다음 단계로 넘어가기</button>
-            <button id="pracBackBtn" class="btn-apple btn-blue" style="display:none;" onclick="goDashboard()">학습 목록으로 돌아가기</button>
-            <button class="btn-apple btn-end" onclick="location.reload()">End Game (처음으로)</button>
+            <button id="pracRetryBtn" class="btn-apple btn-red" style="display:none;" onclick="startPracticeRecord()">다시 시도</button>
+            
+            <div class="control-grid">
+                <button class="btn-apple btn-gray" style="margin-bottom:0;" onclick="goDashboard()">⬅️ 목록으로</button>
+                <button class="btn-apple btn-blue" style="margin-bottom:0;" onclick="nextDrillStage()">다음 단계 ➡️</button>
+            </div>
         </div>
 
     </div>
 
     <div id="sec-archive" class="section">
         <h2 style="font-weight: 900; color: var(--dial-navy);">내 학습 기록</h2>
+        <p style="font-size: 13px; color: #888;">기록을 터치하면 당시의 레슨을 복습할 수 있습니다.</p>
         <div id="archiveList"></div>
     </div>
 </div>
@@ -160,8 +157,7 @@
 <script>
     let lessonData = null; 
     let currentPracticeMode = null; 
-    let retryCount = 0;
-    let targetEnglishStr = "";
+    let selectedDifficulty = 'intermediate';
     
     let mediaRecorder, chunks = [];
     let audioCtx, analyser, dataArray, animationId;
@@ -176,14 +172,18 @@
         if(tab === 'archive') renderArchive();
     }
 
-    // TTS 음성 재생 (단어 클릭 시 타임라인 기능 포함)
-    function playTTS(textToPlay = targetEnglishStr, startIdx = 0) {
+    function setDifficulty(level) {
+        selectedDifficulty = level;
+        document.querySelectorAll('.diff-opt').forEach(el => el.classList.remove('active'));
+        document.getElementById(`diff-${level}`).classList.add('active');
+    }
+
+    function playTTS(textToPlay = "", startIdx = 0) {
         synth.cancel();
         document.querySelectorAll('.en-word').forEach(el => el.classList.remove('active-blue'));
-        const utterance = new SpeechSynthesisUtterance(textToPlay);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.85;
-
+        const text = textToPlay || document.getElementById('pracEnText').innerText;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US'; utterance.rate = 0.85;
         let wordCounter = startIdx;
         utterance.onboundary = (e) => {
             if(e.name === 'word') {
@@ -195,10 +195,8 @@
         synth.speak(utterance);
     }
 
-    /* ⏱️ 스톱워치 및 프로그레스 바 UI 컨트롤 */
     function startTimer() {
-        recSeconds = 0;
-        document.getElementById('recTimer').innerText = "00:00";
+        recSeconds = 0; document.getElementById('recTimer').innerText = "00:00";
         clearInterval(timerInt);
         timerInt = setInterval(() => {
             recSeconds++;
@@ -209,60 +207,41 @@
     }
     
     function startLoadingBar() {
-        let w = 0;
-        const bar = document.getElementById('progressBar');
-        const per = document.getElementById('progressPercent');
-        bar.style.width = '0%'; per.innerText = '0%';
-        clearInterval(progressInt);
+        let w = 0; const bar = document.getElementById('progressBar'); const per = document.getElementById('progressPercent');
+        bar.style.width = '0%'; per.innerText = '0%'; clearInterval(progressInt);
         progressInt = setInterval(() => {
             if(w >= 94) clearInterval(progressInt);
             else { w += Math.floor(Math.random() * 5) + 1; if(w>95) w=95; bar.style.width = w+'%'; per.innerText = w+'%'; }
         }, 300);
     }
     function finishLoadingBar() {
-        clearInterval(progressInt);
-        document.getElementById('progressBar').style.width = '100%';
-        document.getElementById('progressPercent').innerText = '100%';
+        clearInterval(progressInt); document.getElementById('progressBar').style.width = '100%'; document.getElementById('progressPercent').innerText = '100%';
     }
 
-    function cancelRecording() {
-        stopAnyRecording();
-        document.getElementById('recordingPanel').style.display = 'none';
-        if(lessonData) { document.getElementById('practiceView').style.display = 'block'; document.getElementById('pracRecordBtn').style.display = 'block'; }
-        else { document.getElementById('introView').style.display = 'block'; }
-    }
-
-    /* 🎙️ 1. 한국어 녹음 (초기) */
     async function startKoreanRecord() {
         document.getElementById('introView').style.display = 'none';
         document.getElementById('recordingPanel').style.display = 'flex';
         startTimer();
-        try { await initMic(processKoreanAI); } 
-        catch(e) { alert("마이크 권한을 허용해주세요."); location.reload(); }
+        try { await initMic(processKoreanAI); } catch(e) { alert("마이크 오류"); location.reload(); }
     }
 
     async function processKoreanAI() {
         document.getElementById('recordingPanel').style.display = 'none';
-        document.getElementById('loadingMsg').innerText = "AI가 학습 커리큘럼을 짜는 중입니다...";
+        document.getElementById('loadingMsg').innerText = "AI가 맞춤 레슨을 생성 중입니다...";
         document.getElementById('loadingUI').style.display = 'block';
         startLoadingBar();
 
         const b64 = await getBase64Audio();
-        const difficulty = document.getElementById('difficultySelect').value;
-        
         try {
-            const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'korean', difficulty: difficulty}) });
+            const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'korean', difficulty: selectedDifficulty}) });
             lessonData = await res.json();
+            // 완료 상태 추적 객체 초기화
+            lessonData.completed = { keys: [false, false, false], full: false };
             finishLoadingBar();
-            setTimeout(() => {
-                document.getElementById('loadingUI').style.display = 'none';
-                showDashboard();
-                saveToArchive(false);
-            }, 500);
-        } catch (e) { alert("서버 분석 오류"); location.reload(); }
+            setTimeout(() => { document.getElementById('loadingUI').style.display = 'none'; showDashboard(); saveToArchive(); }, 500);
+        } catch (e) { alert("서버 에러"); location.reload(); }
     }
 
-    /* 🗂️ 2. 레슨 대시보드 */
     function showDashboard() {
         document.getElementById('introView').style.display = 'none';
         document.getElementById('practiceView').style.display = 'none';
@@ -270,90 +249,82 @@
         document.getElementById('dashKoText').innerText = lessonData.korean;
         
         const keyList = document.getElementById('keyList');
-        keyList.innerHTML = lessonData.keys.map((k, idx) => `
-            <div class="lesson-card" onclick="startPractice('key_${idx}_1')">
-                <div><div class="ko">${k.ko}</div><div class="en">${k.en}</div></div>
-                <div style="font-size:20px; color:#8E8E93;">▶</div>
+        keyList.innerHTML = lessonData.keys.map((k, idx) => {
+            const isDone = lessonData.completed.keys[idx];
+            return `
+            <div class="lesson-card ${isDone ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1')">
+                <div style="flex:1;">
+                    <div class="ko">${k.ko}</div>
+                    <div class="en" style="font-size:14px; margin-top:2px;">${k.en}</div>
+                    <div style="font-size:11px; color:#8E8E93; margin-top:6px;">Target: <strong style="color:var(--apple-navy);">${k.word}</strong></div>
+                </div>
+                <div class="icon" style="font-size:20px; color:#D1D1D6; margin-left:10px;">${isDone ? '✅' : '▶'}</div>
+            </div>`;
+        }).join('');
+
+        const isFullDone = lessonData.completed.full;
+        document.getElementById('fullDrillCard').innerHTML = `
+            <div class="lesson-card full-sent ${isFullDone ? 'mastered' : ''}" onclick="startPractice('full_1')">
+                <div><div class="ko">전체 문장 5단계 마스터</div><div class="en">Full Sentence Drill</div></div>
+                <div class="icon" style="font-size:24px;">${isFullDone ? '✅' : '➡️'}</div>
             </div>
-        `).join('');
+        `;
     }
 
-    /* 🚀 3. 실전 연습 모드 (개별 단어도 3단계 적용, 문장은 5단계) */
     function startPractice(mode) {
         document.getElementById('dashboardView').style.display = 'none';
         document.getElementById('practiceView').style.display = 'block';
-        currentPracticeMode = mode === 'full' ? 'full_1' : mode; 
-        retryCount = 0;
+        currentPracticeMode = mode;
         setupPracticeUI();
     }
 
     function setupPracticeUI() {
         let ko = "", en = "", blurPart = "", stepNum = 1;
         
-        // 핵심 단어 모드 (3단계 프론트엔드 드릴)
         if (currentPracticeMode.startsWith('key_')) {
             const parts = currentPracticeMode.split('_');
-            const idx = parseInt(parts[1]);
-            stepNum = parseInt(parts[2]);
-            
-            ko = lessonData.keys[idx].ko; 
-            en = lessonData.keys[idx].en;
-            
+            const idx = parseInt(parts[1]); stepNum = parseInt(parts[2]);
+            ko = lessonData.keys[idx].ko; en = lessonData.keys[idx].en;
             if(stepNum === 1) blurPart = "none";
-            else if (stepNum === 2) blurPart = en.split(" ").slice(-1).join(" "); // 마지막 단어 블러
+            else if (stepNum === 2) blurPart = lessonData.keys[idx].word; // 핵심 단어만 블러
             else if (stepNum === 3) blurPart = "all";
-            
-            document.getElementById('stepBadge').innerText = `단어 STEP ${stepNum}/3`;
+            document.getElementById('stepBadge').innerText = `단어 문장 STEP ${stepNum}/3`;
         } 
-        // 전체 문장 모드 (API에서 받은 5단계 드릴)
         else if (currentPracticeMode.startsWith('full_')) {
             stepNum = parseInt(currentPracticeMode.split('_')[1]);
             const drill = lessonData.drills[stepNum - 1];
-            ko = drill.ko; 
-            en = drill.en_full; 
-            blurPart = drill.blur_part;
-            
-            document.getElementById('stepBadge').innerText = `문장 STEP ${stepNum}/5`;
+            ko = drill.ko; en = drill.en_full; blurPart = drill.blur_part;
+            document.getElementById('stepBadge').innerText = `종합 훈련 STEP ${stepNum}/5`;
         }
 
-        targetEnglishStr = en;
         document.getElementById('pracKoText').innerText = ko;
         renderInteractiveWords(en, blurPart);
         
         document.getElementById('pracGuideText').innerText = "버튼을 눌러 영어를 소리내어 읽어보세요";
         document.getElementById('pracRecordBtn').style.display = 'block';
         document.getElementById('pracRetryBtn').style.display = 'none';
-        document.getElementById('pracNextBtn').style.display = 'none';
-        document.getElementById('pracBackBtn').style.display = 'none';
     }
 
     function renderInteractiveWords(text, blurText = "") {
         const container = document.getElementById('pracEnText');
         container.innerHTML = "";
         const words = text.split(" ");
-        
         words.forEach((word, idx) => {
             const span = document.createElement('span');
-            span.className = "en-word";
-            span.innerText = word + " ";
-            span.id = `word-${idx}`;
+            span.className = "en-word"; span.innerText = word + " "; span.id = `word-${idx}`;
             
             const cleanWord = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
             if (blurText === "all" || (blurText !== "none" && blurText.toLowerCase().includes(cleanWord) && cleanWord.length > 0)) {
                 span.classList.add('blurred');
             }
-            
             span.onclick = () => { const remainingText = words.slice(idx).join(" "); playTTS(remainingText, idx); };
             container.appendChild(span);
         });
     }
 
-    /* 🎙️ 발음 평가 녹음 */
     async function startPracticeRecord() {
         document.getElementById('pracRecordBtn').style.display = 'none';
         document.getElementById('pracRetryBtn').style.display = 'none';
-        document.getElementById('pracNextBtn').style.display = 'none';
-        document.getElementById('pracBackBtn').style.display = 'none';
         document.getElementById('recordingPanel').style.display = 'flex';
         startTimer();
         try { await initMic(processPracticeAI); } catch(e) { alert("마이크 오류"); }
@@ -367,10 +338,10 @@
         startLoadingBar();
 
         const b64 = await getBase64Audio();
+        const targetEn = document.getElementById('pracEnText').innerText;
         try {
-            const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'evaluate', target_english: targetEnglishStr}) });
+            const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'evaluate', target_english: targetEn}) });
             const data = await res.json();
-            
             finishLoadingBar();
             setTimeout(() => {
                 document.getElementById('loadingUI').style.display = 'none';
@@ -378,12 +349,8 @@
                 const score = data.score || 0;
                 document.getElementById('pracGuideText').innerHTML = `<span style="color:var(--ios-blue); font-size:20px;">점수: ${score}점</span><br>${data.feedback}`;
                 
-                if (score >= 80) {
-                    handleStageClear();
-                } else {
-                    retryCount++; document.getElementById('pracRetryBtn').style.display = 'block';
-                    if (retryCount >= 2) handleStageClear(); // 2번 실패시 넘어감
-                }
+                if (score >= 80) handleStageClear();
+                else document.getElementById('pracRetryBtn').style.display = 'block';
             }, 300);
         } catch (e) { alert("분석 오류"); document.getElementById('loadingUI').style.display = 'none'; }
     }
@@ -397,28 +364,9 @@
         });
     }
 
-    /* ⏭️ 단계 클리어 로직 (단어 3단계 / 문장 5단계 판별) */
     function handleStageClear() {
-        let isFinalStep = false;
-        if (currentPracticeMode.startsWith('key_')) {
-            const stepNum = parseInt(currentPracticeMode.split('_')[2]);
-            if (stepNum >= 3) isFinalStep = true;
-        } else if (currentPracticeMode.startsWith('full_')) {
-            const stepNum = parseInt(currentPracticeMode.split('_')[1]);
-            if (stepNum >= 5) isFinalStep = true;
-        }
-
-        if (isFinalStep) {
-            document.getElementById('pracBackBtn').style.display = 'block';
-            if (currentPracticeMode.startsWith('full_')) {
-                alert("🎉 전체 문장 5단계 훈련 정복 완료!");
-                saveToArchive(true); 
-            } else {
-                alert("👍 핵심 단어 3단계 훈련 완료!");
-            }
-        } else {
-            document.getElementById('pracNextBtn').style.display = 'block';
-        }
+        // 이 함수가 호출되면 바로 다음 스텝으로 넘어가는 것이 아니라, 유저가 인지할 수 있게 유지
+        alert("통과했습니다! '다음 단계' 버튼을 누르세요.");
     }
 
     function nextDrillStage() {
@@ -426,49 +374,89 @@
         const nextStep = parseInt(parts[parts.length - 1]) + 1;
         
         if (currentPracticeMode.startsWith('key_')) {
-            currentPracticeMode = `key_${parts[1]}_${nextStep}`;
+            if(nextStep > 3) {
+                // 단어 마스터 처리
+                lessonData.completed.keys[parseInt(parts[1])] = true;
+                saveToArchive();
+                goDashboard();
+            } else {
+                currentPracticeMode = `key_${parts[1]}_${nextStep}`;
+                setupPracticeUI();
+            }
         } else {
-            currentPracticeMode = `full_${nextStep}`;
+            if(nextStep > 5) {
+                // 전체 문장 마스터 처리
+                lessonData.completed.full = true;
+                saveToArchive();
+                alert("🎉 모든 단계를 정복하셨습니다!");
+                goDashboard();
+            } else {
+                currentPracticeMode = `full_${nextStep}`;
+                setupPracticeUI();
+            }
         }
-        retryCount = 0;
-        setupPracticeUI();
     }
 
-    function goDashboard() { document.getElementById('practiceView').style.display = 'none'; document.getElementById('dashboardView').style.display = 'block'; }
+    function goDashboard() { document.getElementById('practiceView').style.display = 'none'; showDashboard(); }
+    function resetToIntro() { lessonData = null; document.getElementById('dashboardView').style.display = 'none'; document.getElementById('introView').style.display = 'block'; }
 
-    /* 💾 아카이브 로직 */
-    function saveToArchive(isMastered = false) {
+    /* ✨ 5. 아카이브에서 게임 데이터 복원 로직 추가 */
+    function loadFromArchive(id) {
+        const archive = JSON.parse(localStorage.getItem('archive_v4')) || [];
+        const item = archive.find(a => a.id === id);
+        if(item && item.data) {
+            lessonData = item.data;
+            switchTab('game');
+            showDashboard();
+        }
+    }
+
+    function saveToArchive() {
         if(!lessonData) return;
-        let archive = JSON.parse(localStorage.getItem('archive_v3')) || [];
-        const existingIdx = archive.findIndex(a => a.english === lessonData.english);
-        if (existingIdx !== -1) { archive[existingIdx].mastered = isMastered; } 
-        else { archive.unshift({ id: Date.now(), date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), title: lessonData.title || "나의 일상 이야기", korean: lessonData.korean, english: lessonData.english, mastered: isMastered }); }
-        localStorage.setItem('archive_v3', JSON.stringify(archive));
+        let archive = JSON.parse(localStorage.getItem('archive_v4')) || [];
+        const isMastered = lessonData.completed.full;
+        const existingIdx = archive.findIndex(a => a.data.english === lessonData.english);
+        if (existingIdx !== -1) { 
+            archive[existingIdx].mastered = isMastered;
+            archive[existingIdx].data = lessonData; // 진척도 저장
+        } else { 
+            archive.unshift({ 
+                id: Date.now(), 
+                date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), 
+                title: lessonData.title || "나의 일상 이야기", 
+                mastered: isMastered,
+                data: lessonData // 데이터 통째로 저장
+            }); 
+        }
+        localStorage.setItem('archive_v4', JSON.stringify(archive));
     }
 
     function renderArchive() {
         const list = document.getElementById('archiveList');
-        const archive = JSON.parse(localStorage.getItem('archive_v3')) || [];
+        const archive = JSON.parse(localStorage.getItem('archive_v4')) || [];
         if(archive.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888; padding:30px;'>첫 문장을 녹음해보세요!</p>"; return; }
-        list.innerHTML = archive.map(a => `<div class="archive-card ${a.mastered ? 'mastered' : ''}"><div style="font-size:11px; color:var(--ios-blue); font-weight:800; margin-bottom:5px; display:flex; justify-content:space-between;"><span>${a.date}</span><span style="color:${a.mastered ? 'var(--master-green)' : '#FF9500'}">${a.mastered ? '🏆 완벽 정복' : '⏳ 진행 중'}</span></div><div style="font-size:18px; font-weight:900; color:var(--dial-navy);">${a.title}</div><div style="font-size:13px; color:#888; margin-top:5px;">${a.korean}</div><div style="font-size:15px; font-weight:800; color:var(--deep-green-text); margin-top:5px;">${a.english}</div></div>`).join('');
+        list.innerHTML = archive.map(a => `
+            <div class="archive-card ${a.mastered ? 'mastered' : ''}" onclick="loadFromArchive(${a.id})">
+                <div style="font-size:11px; color:var(--ios-blue); font-weight:800; margin-bottom:5px; display:flex; justify-content:space-between;">
+                    <span>${a.date}</span>
+                    <span style="color:${a.mastered ? 'var(--master-green)' : '#FF9500'}">${a.mastered ? '🏆 완벽 정복' : '⏳ 진행 중'}</span>
+                </div>
+                <div style="font-size:18px; font-weight:900; color:var(--dial-navy);">${a.title}</div>
+                <div style="font-size:13px; color:#888; margin-top:5px;">${a.data.korean}</div>
+                <div style="font-size:15px; font-weight:800; color:var(--apple-navy); margin-top:5px;">${a.data.english}</div>
+            </div>
+        `).join('');
     }
 
-    /* 🎤 공통 마이크 컨트롤 로직 */
     async function initMic(stopCallback) {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AudioContextClass();
-        analyser = audioCtx.createAnalyser();
-        const source = audioCtx.createMediaStreamSource(stream);
-        source.connect(analyser);
-        analyser.fftSize = 64;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        
-        mediaRecorder = new MediaRecorder(stream);
-        chunks = [];
+        audioCtx = new AudioContextClass(); analyser = audioCtx.createAnalyser();
+        const source = audioCtx.createMediaStreamSource(stream); source.connect(analyser);
+        analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount);
+        mediaRecorder = new MediaRecorder(stream); chunks = [];
         mediaRecorder.ondataavailable = e => chunks.push(e.data);
-        mediaRecorder.onstop = stopCallback;
-        mediaRecorder.start();
+        mediaRecorder.onstop = stopCallback; mediaRecorder.start();
         drawWave();
     }
     
@@ -476,9 +464,7 @@
         animationId = requestAnimationFrame(drawWave);
         analyser.getByteFrequencyData(dataArray);
         const bars = document.querySelectorAll('.wave-bar');
-        bars.forEach((bar, i) => {
-            bar.style.height = Math.max(4, (dataArray[i % dataArray.length] / 128.0) * 45) + 'px';
-        });
+        bars.forEach((bar, i) => { bar.style.height = Math.max(4, (dataArray[i % dataArray.length] / 128.0) * 45) + 'px'; });
     }
 
     function stopAnyRecording() { 
