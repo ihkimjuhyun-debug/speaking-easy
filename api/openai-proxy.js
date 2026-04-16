@@ -25,10 +25,11 @@ export default async function handler(req, res) {
 
         if (action === 'korean') {
             let diffContext = "";
-            if (difficulty === 'beginner') diffContext = "아주 기초적인 단어와 짧고 쉬운 구조 사용 (예: too busy, I can do both)";
+            if (difficulty === 'beginner') diffContext = "아주 기초적인 단어와 짧고 쉬운 구조 사용";
             else if (difficulty === 'intermediate') diffContext = "원어민들이 자주 쓰는 일상적인 회화 표현과 숙어 사용";
-            else if (difficulty === 'advanced') diffContext = "수준 높고 세련된 어휘, 복잡한 문장 구조 사용 (예: vice versa, bragging himself)";
+            else if (difficulty === 'advanced') diffContext = "수준 높고 세련된 어휘, 복잡한 문장 구조 사용";
 
+            // ✨ 핵심: keys 배열에 단어(word)와 그 단어가 포함된 실용적인 문장(en, ko)을 함께 요구합니다.
             instruction = `
             사용자가 한국어로 말했습니다: "${userSpeech}"
             선택된 난이도: ${diffContext}
@@ -40,9 +41,21 @@ export default async function handler(req, res) {
                 "korean": "${userSpeech}",
                 "english": "<난이도에 맞는 자연스러운 번역>",
                 "keys": [
-                    {"en": "<핵심표현1>", "ko": "<뜻>"},
-                    {"en": "<핵심표현2>", "ko": "<뜻>"},
-                    {"en": "<핵심표현3>", "ko": "<뜻>"}
+                    {
+                        "word": "<핵심 단어나 숙어>", 
+                        "en": "<이 단어가 포함된 일상에서 돌려 쓰기 좋은 짧은 문장 (예: I was happy to share different values.)>", 
+                        "ko": "<위 문장의 한국어 뜻>"
+                    },
+                    {
+                        "word": "<핵심 단어나 숙어>", 
+                        "en": "<이 단어가 포함된 일상에서 돌려 쓰기 좋은 짧은 문장>", 
+                        "ko": "<위 문장의 한국어 뜻>"
+                    },
+                    {
+                        "word": "<핵심 단어나 숙어>", 
+                        "en": "<이 단어가 포함된 일상에서 돌려 쓰기 좋은 짧은 문장>", 
+                        "ko": "<위 문장의 한국어 뜻>"
+                    }
                 ],
                 "drills": [
                     {"step": 1, "ko": "${userSpeech}", "en_full": "<원래 번역 문장>", "blur_part": "none"},
