@@ -13,15 +13,20 @@
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; }
         
-        /* ✨ 역동적인 튀어오름(Boing) 효과 */
+        /* 역동적인 튀어오름(Boing) 효과 */
         @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.15); } 70% { transform: scale(0.95); } 100% { transform: scale(1); } }
         .boing-active { animation: boing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        /* ✨ 빛나는 테두리 (Glow) 및 통과 시 일렁임 복구 */
+        /* ✨ 녹음 터치 시 주황색 빛나는 테두리 */
         .glow-active { box-shadow: 0 0 25px rgba(255, 149, 0, 0.8) !important; border: 2px solid #FF9500 !important; background: #FF9500 !important; transform: scale(1.05); transition: 0.2s all; }
         
-        @keyframes glowPulse { 0% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.4); border-color: rgba(255,255,255,0.5); } 100% { box-shadow: 0 0 22px rgba(0, 122, 255, 0.95); border-color: white; } }
-        .btn-glow { animation: glowPulse 1.2s infinite alternate; border: 2px solid white; }
+        /* ✨ 통과 시 다음단계 버튼 하얀색 테두리 일렁임 */
+        @keyframes glowPulseWhite { 0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.4); border-color: rgba(255,255,255,0.5); } 100% { box-shadow: 0 0 22px rgba(255, 255, 255, 1); border-color: white; } }
+        .btn-glow { animation: glowPulseWhite 1.2s infinite alternate; border: 2px solid white; }
+
+        /* ✨ 파란색 4/4 완벽 정복 시 파란 테두리 + 하얀빛 일렁임 (Mastered Glow) */
+        @keyframes masteredPulse { 0% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.3); } 100% { box-shadow: 0 0 25px rgba(255, 255, 255, 0.9), 0 0 15px rgba(0, 122, 255, 0.6); } }
+        .mastered-glow { border: 2px solid var(--ios-blue) !important; animation: masteredPulse 1.5s infinite alternate !important; }
 
         .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
         .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
@@ -31,12 +36,12 @@
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* ✨ 말풍선 디자인 */
+        /* 말풍선 디자인 */
         .bubble-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
-        .speech-bubble { background: #fff; border-radius: 20px 20px 20px 4px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative; text-align: left; transition: background 0.3s; }
+        .speech-bubble { background: #fff; border-radius: 20px 20px 20px 4px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative; text-align: left; transition: background 0.3s; border: 2px solid transparent; }
         .bubble-ko { font-size: 20px; font-weight: 900; color: #111; line-height: 1.4; text-align: center; }
         
-        /* ✨ 오디오 버튼을 감싸는 전용 말풍선 (가독성 향상) */
+        /* 오디오 버튼을 감싸는 전용 말풍선 */
         .audio-bubble { background: #fff; border-radius: 16px; padding: 12px; display: flex; justify-content: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #EAEAEA; }
 
         .step-badge-container { display: flex; justify-content: center; margin-bottom: 12px; }
@@ -92,7 +97,7 @@
         .ans-text { font-size: 17px; font-weight: 800; color: var(--apple-navy); line-height: 1.4; margin-bottom: 12px; }
         .fb-text { font-size: 14px; font-weight: 700; color: #666; line-height: 1.5; border-top: 1px solid #EEE; padding-top: 12px; }
 
-        .archive-bubble { background: #fff; border-radius: 24px 24px 24px 6px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s; border: 1px solid #EAEAEA; -webkit-tap-highlight-color: transparent;}
+        .archive-bubble { background: #fff; border-radius: 24px 24px 24px 6px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; -webkit-tap-highlight-color: transparent;}
         .archive-header { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
         .archive-title { font-size: 18px; font-weight: 900; color: var(--dial-navy); line-height: 1.3; }
         .archive-en { font-size: 15px; font-weight: 800; color: var(--apple-navy); margin-top: 8px; line-height: 1.3; }
@@ -224,7 +229,6 @@
         if(tab === 'archive') renderArchive();
     }
 
-    /* ✨ UI 리액션 헬퍼 (바운스) */
     function applyBoing(el) {
         if(!el) return;
         el.classList.remove('boing-active');
@@ -309,12 +313,11 @@
     function pauseTTS() { synth.cancel(); ttsIsPlaying = false; updateTTSUI(); }
     function resetTTS() { synth.cancel(); ttsIsPlaying = false; ttsGlobalIndex = 0; updateTTSUI(); document.querySelectorAll('.en-word').forEach(el => { el.classList.remove('active-blue', 'dimmed'); }); }
 
-    /* 🎙️ 메인 녹음 (지연 트랜지션 + Glow 이펙트) */
+    /* 🎙️ 메인 녹음 (딜레이 + Glow 이펙트) */
     async function handleMainRecord(btn) {
         applyBoing(btn);
         btn.classList.add('glow-active'); 
         
-        // ✨ 버튼 애니메이션을 감상할 수 있도록 400ms 대기 후 전환
         setTimeout(async () => {
             btn.classList.remove('glow-active');
             document.getElementById('introView').style.display = 'none';
@@ -334,10 +337,18 @@
         const b64 = await getBase64Audio();
         try {
             const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'korean', difficulty: selectedDifficulty, lang_mode: currentLangMode}) });
-            lessonData = await res.json();
+            const tempLesson = await res.json();
             
-            if(!lessonData.keys || lessonData.keys.length !== 3) throw new Error("JSON 파싱 에러");
+            // 환각 버그 차단 시스템 연동
+            if (tempLesson.error) {
+                alert(tempLesson.error);
+                location.reload();
+                return;
+            }
             
+            if(!tempLesson.keys || tempLesson.keys.length !== 3) throw new Error("데이터 오류");
+            
+            lessonData = tempLesson;
             lessonData.id = Date.now(); 
             lessonData.completed = { keys: [false, false, false], full: false };
             saveToArchive(); 
@@ -362,12 +373,19 @@
         document.getElementById('keyProgress').innerText = `${keysC}/3`;
         document.getElementById('fullProgress').innerText = `${fullC}/1`;
 
+        // ✨ 진척도 컬러 + 테두리 파란색 일렁임
         const mainB = document.getElementById('dashMainBubble');
         mainB.style.background = '#fff'; 
+        mainB.style.borderColor = 'transparent';
+        mainB.classList.remove('mastered-glow');
+        
         if(totalProg === 1) mainB.style.background = '#F2F2F7'; 
         if(totalProg === 2) mainB.style.background = '#FFFBE6'; 
         if(totalProg === 3) mainB.style.background = '#E8F5E9'; 
-        if(totalProg === 4) mainB.style.background = '#E6F2FF'; 
+        if(totalProg === 4) {
+            mainB.style.background = '#E6F2FF'; 
+            mainB.classList.add('mastered-glow');
+        }
         
         document.getElementById('keyList').innerHTML = lessonData.keys.map((k, idx) => `
             <div class="lesson-card boing-active ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)">
@@ -392,7 +410,6 @@
         document.getElementById('practiceView').style.display = 'block'; 
         currentPracticeMode = mode; 
         
-        // 버튼 기본 클래스 리셋 (통과 시의 glow 효과 제거)
         const nextBtn = document.getElementById('pracNextBtn');
         nextBtn.className = 'btn-apple btn-skip-pale'; nextBtn.innerHTML = '건너뛰기 ➡️';
         
@@ -440,13 +457,12 @@
         });
     }
 
-    /* 🎙️ 연습 녹음 (바운스 + 테두리 딜레이) */
+    /* 🎙️ 연습 녹음 (바운스 효과 적용) */
     async function handleQuickRecord(btn) {
         applyBoing(btn);
         btn.classList.add('glow-active'); 
         resetTTS(); 
         
-        // ✨ 버튼이 눌리고 애니메이션이 작동할 시간을 주기 위해 400ms 지연
         setTimeout(async () => {
             btn.classList.remove('glow-active');
             document.getElementById('pracRecordBtn').style.display = 'none';
@@ -484,7 +500,6 @@
 
             if ((data.score || 0) >= 70) {
                 const nextBtn = document.getElementById('pracNextBtn');
-                // ✨ 통과 시 '다음 단계' 버튼에 영롱한 하얀색 일렁임(btn-glow) 추가!
                 nextBtn.className = 'btn-apple btn-blue btn-glow boing-active'; 
                 nextBtn.innerHTML = '다음 단계 ➡️';
             } else {
@@ -528,32 +543,48 @@
         cancelAnimationFrame(animationId); if(audioCtx) audioCtx.close(); 
     }
 
-    /* ✨ 스토리지 버그 수정 완료 (v6 버젼 적용하여 클린 저장소 확보) */
+    /* ✨ 스토리지 버그 완벽 픽스 (V7 버전) */
     function saveToArchive() {
-        if(!lessonData) return;
-        let arc = JSON.parse(localStorage.getItem('archive_final_v6')) || [];
+        if(!lessonData || !lessonData.id) return;
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v7')) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0);
         const idx = arc.findIndex(a => a.id === lessonData.id);
-        if (idx !== -1) { arc[idx].data = lessonData; arc[idx].mastered = (pr === 4); }
-        else { arc.unshift({ id: lessonData.id, date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }), title: lessonData.title, mastered: (pr === 4), data: lessonData }); }
-        localStorage.setItem('archive_final_v6', JSON.stringify(arc));
+        
+        const dataToSave = { 
+            id: lessonData.id, 
+            date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), 
+            title: lessonData.title, 
+            mastered: (pr === 4), 
+            data: lessonData 
+        };
+
+        if (idx !== -1) arc[idx] = { ...arc[idx], ...dataToSave }; 
+        else arc.unshift(dataToSave); 
+        
+        localStorage.setItem('archive_poly_v7', JSON.stringify(arc));
     }
 
     function renderArchive() {
         const list = document.getElementById('archiveList');
-        const arc = JSON.parse(localStorage.getItem('archive_final_v6')) || [];
+        const arc = JSON.parse(localStorage.getItem('archive_poly_v7')) || [];
         if(arc.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888;'>기록이 없습니다.</p>"; return; }
+        
         list.innerHTML = arc.map(a => {
             const pr = a.data.completed.keys.filter(Boolean).length + (a.data.completed.full ? 1 : 0);
-            let col = '#D1D1D6'; if(pr===1) col='#8E8E93'; if(pr===2) col='#FFD60A'; if(pr===3) col='#34C759'; if(pr===4) col='#007AFF';
-            return `<div class="archive-bubble boing-active" onclick="loadFromArchive(${a.id}, this)">
-                <div class="archive-header"><span>${a.date}</span><span style="color:${col}; font-weight:900;">${pr===4?'🏆 완벽':'⏳ 진행'}(${pr}/4)</span></div>
+            let textCol = '#D1D1D6'; let bgCol = '#fff'; let exClass = '';
+            if(pr===1) { textCol='#8E8E93'; bgCol='#F2F2F7'; }
+            if(pr===2) { textCol='#FFD60A'; bgCol='#FFFBE6'; }
+            if(pr===3) { textCol='#34C759'; bgCol='#E8F5E9'; }
+            if(pr===4) { textCol='#007AFF'; bgCol='#E6F2FF'; exClass='mastered-glow'; }
+            
+            return `<div class="archive-bubble boing-active ${exClass}" onclick="loadFromArchive(${a.id}, this)" style="background:${bgCol};">
+                <div class="archive-header"><span>${a.date}</span><span style="color:${textCol}; font-weight:900;">${pr===4?'🏆 완벽 정복':'⏳ 진행 중'}(${pr}/4)</span></div>
                 <div class="archive-title">${a.title}</div><div style="font-size:13px; color:#888; margin-top:5px;">${a.data.english}</div>
             </div>`;
         }).join('');
     }
     
-    function loadFromArchive(id, el) { applyBoing(el); const arc = JSON.parse(localStorage.getItem('archive_final_v6')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+    function loadFromArchive(id, el) { applyBoing(el); const arc = JSON.parse(localStorage.getItem('archive_poly_v7')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
 
     function startTimer() { recSeconds = 0; clearInterval(timerInt); timerInt = setInterval(() => { recSeconds++; document.getElementById('recTimer').innerText=`${String(Math.floor(recSeconds/60)).padStart(2,'0')}:${String(recSeconds%60).padStart(2,'0')}`; }, 1000); }
     function startLoadingBar() { let w = 0; clearInterval(progressInt); progressInt = setInterval(() => { w += 5; if(w>95) w=95; document.getElementById('progressBar').style.width = w+'%'; }, 200); }
