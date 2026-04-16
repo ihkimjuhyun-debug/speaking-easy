@@ -1,65 +1,154 @@
-// api/openai-proxy.js
-export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+// 1. 전역 변수 설정
+let mediaRecorder, chunks = [];
+let audioCtx, analyser, dataArray, animationId;
+let lessonData = null; // AI가 준 전체 데이터 (drills, keys 등)
+let currentDrillIndex = 0;
+let currentDifficulty = 'intermediate';
+let currentLangMode = 'ko';
+const synth = window.speechSynthesis;
 
-    const { audio, action, target_english, difficulty, lang_mode } = req.body;
-    const API_KEY = process.env.OPENAI_API_KEY;
+// 2. 초기 설정 및 탭 전환
+function setDifficulty(diff) {
+    currentDifficulty = diff;
+    document.querySelectorAll('.diff-opt').forEach(opt => opt.classList.remove('active'));
+    document.getElementById(`diff-${diff}`).classList.add('active');
+}
 
-    if (!API_KEY) return res.status(500).json({ error: "API 키 오류" });
+function showView(viewId) {
+    ['introView', 'dashboardView', 'practiceView', 'loadingUI'].forEach(id => {
+        document.getElementById(id).style.display = (id === viewId) ? 'block' : 'none';
+    });
+}
 
+// 3. 녹음 로직 (핵심)
+async function startRecordMode(mode) {
+    currentLangMode = mode;
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    chunks = [];
+
+    document.getElementById('recordingPanel').style.display = 'flex';
+    
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    mediaRecorder.onstop = async () => {
+        const blob = new Blob(chunks, { type: 'audio/m4a' });
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+            const base64Audio = reader.result.split(',')[1];
+            sendToAI(base64Audio); // AI 프록시로 전송
+        };
+    };
+
+    mediaRecorder.start();
+}
+
+function stopAnyRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        document.getElementById('recordingPanel').style.display = 'none';
+        showView('loadingUI');
+    }
+}
+
+// 4. AI 통신 로직 (Vercel Proxy 연결)
+async function sendToAI(base64Audio) {
     try {
-        const audioBuffer = Buffer.from(audio, 'base64');
-        const blob = new Blob([audioBuffer], { type: 'audio/m4a' });
-        const formData = new FormData();
-        formData.append('file', blob, 'audio.m4a');
-        formData.append('model', 'whisper-1');
-        
-        // ✨ 마이크가 헛소리를 잡지 않도록 가이드(Prompt) 추가
-        // lang_mode에 따라 Whisper가 더 정확하게 받아쓰게 유도합니다.
-        const whisperPrompt = lang_mode === 'en' 
-            ? "This is an English speaking lesson. Ignore background noise and focus on English speech."
-            : "한국어와 영어가 섞인 대화입니다. 배경 소음은 무시하고 말소리만 정확히 기록하세요.";
-        formData.append('prompt', whisperPrompt);
-
-        const sttResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-            method: "POST", headers: { "Authorization": `Bearer ${API_KEY}` }, body: formData
+        const response = await fetch('/api/openai-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                audio: base64Audio,
+                action: 'korean', // 처음 문장 생성 시
+                difficulty: currentDifficulty,
+                lang_mode: currentLangMode
+            })
         });
-        const sttData = await sttResponse.json();
-        const userSpeech = sttData.text;
 
-        let instruction = "";
+        lessonData = await response.json();
+        renderDashboard();
+    } catch (error) {
+        alert("AI 분석 중 오류가 발생했습니다.");
+        showView('introView');
+    }
+}
 
-        if (action === 'korean') {
-            instruction = `
-            사용자가 다음 모드로 말했습니다: [${lang_mode === 'en' ? '영어 중심' : '한국어/혼용 중심'}]
-            내용: "${userSpeech}"
-            난이도: ${difficulty}
-            
-            1. 사용자의 발화를 분석하여 의도한 '완벽한 원어민식 영어 문장'을 만드세요.
-            2. 레슨 5단계 구성 (맥락 유지 필수):
-               - STEP 1: 원본 문장 (기본)
-               - STEP 2: 원본 문장 (핵심단어 블러)
-               - STEP 3: 주제를 유지한 채 상황/시제/주어를 바꾼 변형 문장 (Variation)
-               - STEP 4: 변형 문장 (핵심부분 블러)
-               - STEP 5: 원본 문장 (전체 공백)
-            3. 핵심 표현(keys) 3개를 선정해 원본(org)과 변형(var) 문장을 만드세요.
+// 5. 대시보드 및 연습 시작
+function renderDashboard() {
+    showView('dashboardView');
+    document.getElementById('dashKoText').innerText = lessonData.korean;
+    
+    // 드릴 시작 버튼 생성 (첫 번째 드릴부터 시작)
+    const drillList = document.getElementById('keyList');
+    drillList.innerHTML = `
+        <button class="btn-apple btn-blue" onclick="startPractice(0)">학습 시작하기 (5단계 드릴)</button>
+    `;
+}
 
-            JSON 형식 반환:
-            {
-                "title": "제목", "korean": "의도 요약(한)", "english": "교정된 문장(영)",
-                "keys": [{"word": "단어", "ko_org": "한", "en_org": "영", "ko_var": "한", "en_var": "영"}],
-                "drills": [...]
-            }`;
-        } else {
-            instruction = `목표: "${target_english}", 발음: "${userSpeech}". 점수(0~100)와 피드백을 JSON {"score": <숫자>, "feedback": "<피드백>"}으로 반환.`;
+function startPractice(index) {
+    currentDrillIndex = index;
+    const drill = lessonData.drills[index];
+    showView('practiceView');
+    
+    document.getElementById('stepBadge').innerText = `STEP ${index + 1}`;
+    document.getElementById('pracKoText').innerText = drill.ko;
+    
+    // 영어 문장을 단어별 span으로 쪼개서 넣기 (카라오케 준비)
+    setupKaraokeText(drill.en);
+}
+
+// 6. 카라오케 시스템 (가장 중요한 부분!)
+function setupKaraokeText(sentence) {
+    const container = document.getElementById('pracEnText');
+    container.innerHTML = '';
+    
+    // 문장을 단어 단위로 쪼개서 span 생성
+    const words = sentence.split(' ');
+    words.forEach((word, i) => {
+        const span = document.createElement('span');
+        span.className = 'en-word';
+        span.innerText = word;
+        container.appendChild(span);
+    });
+}
+
+function playTTS() {
+    const container = document.getElementById('pracEnText');
+    const text = container.innerText;
+    const spans = container.querySelectorAll('.en-word');
+
+    synth.cancel(); // 이전 소리 끄기
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.8;
+
+    // 카라오케 실시간 색상 변경 이벤트
+    utterance.onboundary = (event) => {
+        if (event.name === 'word') {
+            const charIndex = event.charIndex;
+            const upToNow = text.substring(0, charIndex + event.charLength).trim();
+            const wordIdx = upToNow.split(/\s+/).length - 1;
+
+            spans.forEach((span, i) => {
+                if (i <= wordIdx) span.classList.add('active-blue');
+                else span.classList.remove('active-blue');
+            });
         }
+    };
 
-        const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-            body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" } })
-        });
+    utterance.onend = () => {
+        // 재생 끝나면 버튼 상태 변경 등 처리
+    };
 
-        const gptData = await gptResponse.json();
-        res.status(200).json({ ...JSON.parse(gptData.choices[0].message.content), user_speech: userSpeech });
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    synth.speak(utterance);
+}
+
+// 7. 다음 단계로 이동
+function nextDrillStage() {
+    if (currentDrillIndex < lessonData.drills.length - 1) {
+        startPractice(currentDrillIndex + 1);
+    } else {
+        alert("축하합니다! 모든 단계를 완료하셨습니다.");
+        location.reload();
+    }
 }
