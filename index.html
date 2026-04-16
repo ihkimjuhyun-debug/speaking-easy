@@ -3,97 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Speaking Master: Beginner Starter</title>
+    <title>Beginner Starter</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
             --ios-bg: #F2F2F7; --dial-navy: #002D5E; --soft-green-bg: #E8F5E9; 
-            --deep-green-text: #2E7D32; --border: #D1D1D6; --bubble-gray: #F8F8FA;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
-        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
+        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; }
         
-        /* 타이틀 */
-        .header { text-align: center; margin-bottom: 30px; margin-top: 20px; }
-        .header h1 { font-size: 24px; font-weight: 900; color: var(--dial-navy); margin: 0; }
-        .header p { font-size: 13px; color: #8E8E93; margin-top: 5px; font-weight: 600; }
+        /* 탭 내비게이션 */
+        .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
+        .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
+        .tab.active { color: var(--ios-blue); border-bottom: 2.5px solid var(--ios-blue); }
 
-        /* 대화창 (버블) UI */
-        .chat-box { background: #fff; border-radius: 24px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
+        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* 채팅 & 내용 박스 */
+        .chat-box { background: #fff; border-radius: 24px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; }
         .ko-text { font-size: 18px; font-weight: 700; color: #444; margin-bottom: 15px; }
-        .en-text { font-size: 24px; font-weight: 900; color: var(--ios-blue); margin-bottom: 15px; display: none; }
+        .en-text { font-size: 24px; font-weight: 900; color: var(--ios-blue); margin-bottom: 15px; display: none; line-height: 1.4; }
         .guide-text { font-size: 14px; font-weight: 800; color: #8E8E93; margin-top: 10px; }
 
-        /* 쫀득한 애플 버튼 */
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.1s; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-        .btn-apple:active { transform: scale(0.95); opacity: 0.85; }
+        /* 핵심 3표현 박스 */
+        #keyWordsBox { display: none; background: #F8F8FA; border-radius: 16px; padding: 15px; margin-top: 20px; text-align: left; border: 1px solid #EAEAEA; }
+        .kw-title { font-size: 12px; font-weight: 800; color: var(--ios-blue); margin-bottom: 10px; }
+        .kw-item { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: #333; }
+        .kw-item span { color: #888; font-weight: 500; font-size: 13px; margin-left: 8px; }
+
+        /* 사운드 재생 버튼 (TTS) */
+        .btn-sound { background: #E8F5E9; color: var(--deep-green-text); border: none; padding: 10px 20px; border-radius: 20px; font-weight: 800; font-size: 14px; cursor: pointer; display: none; margin: 0 auto 15px auto; transition: 0.1s; }
+        .btn-sound:active { transform: scale(0.95); }
+
+        /* 메인 버튼류 */
+        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+        .btn-apple:active { transform: scale(0.95); }
         .btn-red { background: var(--ios-red); color: white; }
         .btn-blue { background: var(--ios-blue); color: white; }
-        
-        /* End Game 버튼 (세련된 하얀 바탕 + 네이비 글씨) */
-        .btn-end { background: #FFFFFF; color: var(--dial-navy); border: none; box-shadow: 0 4px 12px rgba(0, 45, 94, 0.05); }
+        .btn-end { background: #FFFFFF; color: var(--dial-navy); box-shadow: 0 4px 12px rgba(0, 45, 94, 0.05); }
 
         /* 녹음 UI */
         #recordingPanel { display: none; background: #fff; border-radius: 20px; padding: 15px 20px; align-items: center; justify-content: space-between; gap: 12px; border: 1.5px solid var(--ios-red); margin-bottom: 15px; }
         .waveform-container { display: flex; align-items: center; gap: 3.5px; height: 40px; flex: 2.5; overflow: hidden; }
         .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; flex-shrink: 0; }
-        .btn-stop { background: var(--ios-red); color: white; border: none; padding: 12px 18px; border-radius: 14px; font-weight: 800; font-size: 14px; transition: transform 0.1s; flex: 1; }
+        .btn-stop { background: var(--ios-red); color: white; border: none; padding: 12px 18px; border-radius: 14px; font-weight: 800; font-size: 14px; transition: 0.1s; flex: 1; }
         .btn-stop:active { transform: scale(0.92); }
-
-        /* 로딩 UI */
-        #loadingUI { display: none; text-align: center; padding: 20px 0; }
-        .loader { font-size: 15px; font-weight: 800; color: var(--ios-blue); animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-        /* 최종 리뷰 UI */
-        #reviewUI { display: none; }
-        .review-card { background: #fff; padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid var(--ios-blue); box-shadow: 0 5px 15px rgba(0,0,0,0.03); text-align: left;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <h1>Beginner Starter</h1>
-        <p>내 일상을 영어로 바꿔서 말해보세요</p>
-    </div>
+    <nav class="nav-bar">
+        <button class="tab active" id="tab-game" onclick="switchTab('game')">START LESSON</button>
+        <button class="tab" id="tab-archive" onclick="switchTab('archive')">MY ARCHIVE</button>
+    </nav>
 
-    <div class="chat-box" id="chatBox">
-        <div id="statusIcon" style="font-size: 40px; margin-bottom: 10px;">🎙️</div>
-        <div class="ko-text" id="koText">"오늘 하루 어땠는지<br>한국어로 편하게 말해보세요!"</div>
-        <div class="en-text" id="enText"></div>
-        <div class="guide-text" id="guideText">아래 버튼을 눌러 녹음을 시작하세요</div>
-    </div>
+    <div id="sec-game" class="section active">
+        <div class="chat-box" id="chatBox">
+            <div id="statusIcon" style="font-size: 40px; margin-bottom: 10px;">🎙️</div>
+            <div class="ko-text" id="koText">"오늘 하루 어땠는지<br>한국어로 편하게 말해보세요!"</div>
+            
+            <button class="btn-sound" id="btnSound" onclick="playTTS()">🔊 원어민 발음 듣기</button>
+            <div class="en-text" id="enText"></div>
+            
+            <div id="keyWordsBox">
+                <div class="kw-title">🔥 꼭 알아야 할 핵심 3표현</div>
+                <div id="kwList"></div>
+            </div>
 
-    <div id="recordingPanel">
-        <div class="waveform-container" id="waveform">
-            <script>for(let i=0; i<30; i++) document.write('<div class="wave-bar"></div>');</script>
+            <div class="guide-text" id="guideText">아래 버튼을 눌러 녹음을 시작하세요</div>
         </div>
-        <button class="btn-stop" onclick="stopRecording()">완료</button>
+
+        <div id="recordingPanel">
+            <div class="waveform-container" id="waveform">
+                <script>for(let i=0; i<30; i++) document.write('<div class="wave-bar"></div>');</script>
+            </div>
+            <button class="btn-stop" onclick="stopRecording()">완료</button>
+        </div>
+
+        <div id="controlPanel">
+            <button id="mainBtn" class="btn-apple btn-red" onclick="startRecording()">한국어 녹음하기</button>
+            <button id="retryBtn" class="btn-apple btn-red" style="display:none;" onclick="startRecording()">다시 시도하기</button>
+            <button id="nextBtn" class="btn-apple btn-blue" style="display:none;" onclick="resetTurn()">다음 챕터 넘어가기</button>
+            <button id="endBtn" class="btn-apple btn-end" style="display:none;" onclick="location.reload()">End Game</button>
+        </div>
     </div>
 
-    <div id="loadingUI"><div class="loader">AI가 영어로 번역하고 있어요...</div></div>
-
-    <div id="controlPanel">
-        <button id="mainBtn" class="btn-apple btn-red" onclick="startRecording()">한국어 녹음하기</button>
-        <button id="nextBtn" class="btn-apple btn-blue" style="display:none;" onclick="resetTurn()">다음 문장 만들기</button>
-        <button id="endBtn" class="btn-apple btn-end" onclick="showReview()">End Game (핵심 3문장 복습)</button>
-    </div>
-
-    <div id="reviewUI">
-        <h2 style="font-weight: 900; color: var(--dial-navy); margin-bottom: 20px;">🔥 오늘의 핵심 3문장</h2>
-        <div id="reviewList"></div>
-        <button class="btn-apple btn-blue" onclick="location.reload()" style="margin-top: 30px;">새로운 세션 시작</button>
+    <div id="sec-archive" class="section">
+        <h2 style="font-weight: 900; color: var(--dial-navy);">학습 저장소</h2>
+        <p style="font-size: 13px; color: #888;">나중에 빈칸 뚫기 복습 모드가 이곳에 추가될 예정입니다.</p>
+        <div id="archiveList"></div>
     </div>
 </div>
 
 <script>
-    let currentStep = 'korean'; // 'korean' (한국어 녹음) -> 'english' (영어 발음 연습)
-    let sessionHistory = []; // 이번 게임에서 말한 문장들 저장
-    let currentSentenceData = {}; // 현재 턴의 데이터 저장
+    let currentStep = 'korean'; 
+    let retryCount = 0; // 발음 재시도 횟수 카운터
+    let currentSentenceData = {}; 
 
     let mediaRecorder, chunks = [];
     let audioCtx, analyser, dataArray, animationId;
+
+    function switchTab(tab) {
+        document.getElementById('sec-game').classList.remove('active');
+        document.getElementById('sec-archive').classList.remove('active');
+        document.getElementById('tab-game').classList.remove('active');
+        document.getElementById('tab-archive').classList.remove('active');
+        
+        document.getElementById(`sec-${tab}`).classList.add('active');
+        document.getElementById(`tab-${tab}`).classList.add('active');
+    }
+
+    // TTS 발음 듣기 함수
+    function playTTS() {
+        if (!currentSentenceData.en) return;
+        const utterance = new SpeechSynthesisUtterance(currentSentenceData.en);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9; // 초보자를 위해 살짝 느리게
+        window.speechSynthesis.speak(utterance);
+    }
 
     async function startRecording() { 
         try { 
@@ -110,16 +140,11 @@
             mediaRecorder.onstop = processAI; 
             mediaRecorder.start(); 
             
-            // UI 변경
-            document.getElementById('mainBtn').style.display = 'none';
-            document.getElementById('endBtn').style.display = 'none';
+            // 버튼 숨김 및 UI 세팅
+            document.getElementById('controlPanel').style.display = 'none';
             document.getElementById('recordingPanel').style.display = 'flex';
             document.getElementById('statusIcon').innerText = '🔴';
-            if(currentStep === 'korean') {
-                document.getElementById('koText').innerHTML = "듣고 있습니다...<br>편하게 말씀하세요.";
-            } else {
-                document.getElementById('guideText').innerText = "위의 영어 문장을 소리내어 읽어보세요!";
-            }
+            document.getElementById('guideText').innerText = currentStep === 'korean' ? "듣고 있습니다..." : "영어를 소리내어 읽어보세요!";
             drawWave(); 
         } catch(e) { alert("마이크 권한을 허용해주세요."); } 
     }
@@ -134,9 +159,8 @@
     function stopRecording() { 
         mediaRecorder.stop(); cancelAnimationFrame(animationId); if(audioCtx) audioCtx.close(); 
         document.getElementById('recordingPanel').style.display = 'none'; 
-        document.getElementById('loadingUI').style.display = 'block'; 
-        document.querySelector('.loader').innerText = currentStep === 'korean' ? "AI가 원어민 표현으로 바꾸고 있어요..." : "발음을 분석하고 있어요...";
         document.getElementById('statusIcon').innerText = '⏳';
+        document.getElementById('guideText').innerText = "AI가 분석 중입니다...";
     }
 
     async function processAI() {
@@ -144,40 +168,63 @@
         reader.onloadend = async () => {
             const base64Audio = reader.result.split(',')[1];
             try {
-                // 현재 스텝에 따라 서버에 다른 요청(action)을 보냅니다.
                 const payload = { audio: base64Audio, action: currentStep, target_english: currentSentenceData.en || "" };
                 const response = await fetch("/api/openai-proxy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
                 const data = await response.json(); 
                 
-                document.getElementById('loadingUI').style.display = 'none'; 
+                document.getElementById('controlPanel').style.display = 'block';
+                document.getElementById('mainBtn').style.display = 'none';
                 
                 if (currentStep === 'korean') {
-                    // 한국어 녹음 후 -> 영어 번역 결과 표시
-                    currentSentenceData = { ko: data.korean, en: data.english };
+                    // 번역 결과 및 핵심 3단어 처리
+                    currentSentenceData = { ko: data.korean, en: data.english, keys: data.key_expressions };
                     document.getElementById('statusIcon').innerText = '✨';
                     document.getElementById('koText').innerText = `"${data.korean}"`;
                     document.getElementById('enText').innerText = data.english;
                     document.getElementById('enText').style.display = 'block';
-                    document.getElementById('guideText').innerText = "이 문장을 소리내어 읽어볼까요?";
+                    document.getElementById('btnSound').style.display = 'inline-block'; // 사운드 버튼 활성화
+                    
+                    // 핵심 단어 UI 채우기
+                    if(data.key_expressions && data.key_expressions.length > 0) {
+                        document.getElementById('keyWordsBox').style.display = 'block';
+                        document.getElementById('kwList').innerHTML = data.key_expressions.map(kw => `<div class="kw-item">${kw.en} <span>${kw.ko}</span></div>`).join('');
+                    }
+
+                    document.getElementById('guideText').innerText = "원어민 발음을 듣고 따라 말해보세요!";
                     
                     const mainBtn = document.getElementById('mainBtn');
                     mainBtn.innerText = "영어로 따라 말하기";
                     mainBtn.className = "btn-apple btn-blue";
                     mainBtn.style.display = 'flex';
-                    currentStep = 'english'; // 다음 스텝으로 변경
+                    currentStep = 'english'; 
+                    retryCount = 0; // 재시도 횟수 초기화
                     
                 } else if (currentStep === 'english') {
-                    // 영어 낭독 후 -> 피드백 표시 및 저장
-                    document.getElementById('statusIcon').innerText = data.score >= 80 ? '🎉' : '👍';
-                    document.getElementById('guideText').innerHTML = `<span style="color:var(--ios-blue); font-size:20px;">발음 점수: ${data.score}점!</span><br><br>${data.feedback}`;
+                    // 발음 평가 (점수 네비게이션 로직)
+                    const score = data.score || 0;
+                    document.getElementById('statusIcon').innerText = score >= 80 ? '🎉' : '🤔';
+                    document.getElementById('guideText').innerHTML = `<span style="color:var(--ios-blue); font-size:20px;">발음 점수: ${score}점</span><br><br>${data.feedback}`;
                     
-                    // 히스토리에 저장
-                    sessionHistory.push(currentSentenceData);
-                    
-                    document.getElementById('nextBtn').style.display = 'flex';
                     document.getElementById('endBtn').style.display = 'flex';
+
+                    if (score >= 80) {
+                        // 80점 이상: 통과
+                        document.getElementById('nextBtn').style.display = 'flex';
+                        document.getElementById('retryBtn').style.display = 'none';
+                    } else {
+                        // 80점 미만: 재시도
+                        retryCount++;
+                        if (retryCount >= 2) {
+                            // 2번 실패 시 자괴감 방지를 위해 다음으로 넘어가기 버튼 활성화
+                            document.getElementById('nextBtn').style.display = 'flex';
+                            document.getElementById('retryBtn').style.display = 'flex';
+                        } else {
+                            document.getElementById('retryBtn').style.display = 'flex';
+                            document.getElementById('nextBtn').style.display = 'none';
+                        }
+                    }
                 }
-            } catch (e) { alert("오류가 발생했습니다."); location.reload(); }
+            } catch (e) { alert("서버 오류가 발생했습니다."); location.reload(); }
         };
     }
 
@@ -185,38 +232,19 @@
         currentStep = 'korean';
         currentSentenceData = {};
         document.getElementById('statusIcon').innerText = '🎙️';
-        document.getElementById('koText').innerHTML = "다음 문장을<br>한국어로 말씀해주세요.";
+        document.getElementById('koText').innerHTML = "다음 상황을<br>한국어로 말씀해주세요.";
         document.getElementById('enText').style.display = 'none';
+        document.getElementById('btnSound').style.display = 'none';
+        document.getElementById('keyWordsBox').style.display = 'none';
         document.getElementById('guideText').innerText = "아래 버튼을 눌러 녹음을 시작하세요";
         
-        const mainBtn = document.getElementById('mainBtn');
-        mainBtn.innerText = "한국어 녹음하기";
-        mainBtn.className = "btn-apple btn-red";
-        mainBtn.style.display = 'flex';
+        document.getElementById('mainBtn').innerText = "한국어 녹음하기";
+        document.getElementById('mainBtn').className = "btn-apple btn-red";
+        document.getElementById('mainBtn').style.display = 'flex';
         
         document.getElementById('nextBtn').style.display = 'none';
-    }
-
-    function showReview() {
-        document.getElementById('chatBox').style.display = 'none';
-        document.getElementById('controlPanel').style.display = 'none';
-        document.getElementById('reviewUI').style.display = 'block';
-        
-        const listUI = document.getElementById('reviewList');
-        if (sessionHistory.length === 0) {
-            listUI.innerHTML = "<p>학습한 문장이 없습니다.</p>";
-            return;
-        }
-
-        // 최신 3문장만 (또는 랜덤 3문장) 리뷰
-        const top3 = sessionHistory.slice(-3).reverse();
-        listUI.innerHTML = top3.map((item, idx) => `
-            <div class="review-card">
-                <div style="font-size:12px; font-weight:800; color:#8E8E93; margin-bottom:5px;">Sentence ${idx+1}</div>
-                <div style="font-size:14px; color:#444; margin-bottom:8px; font-weight:700;">🇰🇷 ${item.ko}</div>
-                <div style="font-size:18px; color:var(--ios-blue); font-weight:900;">🇺🇸 ${item.en}</div>
-            </div>
-        `).join('');
+        document.getElementById('retryBtn').style.display = 'none';
+        document.getElementById('endBtn').style.display = 'none';
     }
 </script>
 </body>
