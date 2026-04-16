@@ -3,112 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Speaking Master: Elite V2</title>
+    <title>Speaking Master: Elite Edition</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
-            --ios-bg: #F2F2F7; --master-green: #34C759; --skip-blue: #B3D4FF; 
+            --ios-bg: #F2F2F7; --dial-navy: #002D5E; --master-green: #34C759;
+            --skip-blue: #B3D4FF; 
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); }
-        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding: 20px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
+        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; }
         
-        /* 채팅 박스 및 텍스트 스타일 */
-        .chat-box { background: #fff; border-radius: 24px; padding: 25px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; }
-        .ko-text { font-size: 18px; font-weight: 700; color: #444; margin-bottom: 15px; }
-        
-        /* 카라오케 텍스트 스타일 */
-        .en-text-container { font-size: 26px; font-weight: 800; line-height: 1.4; margin-bottom: 25px; display: flex; flex-wrap: wrap; gap: 8px; }
-        .en-word { color: #D1D1D6; transition: color 0.15s ease; cursor: pointer; }
-        .en-word.active-blue { color: var(--ios-blue); text-shadow: 0 0 10px rgba(0,122,255,0.2); }
+        .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
+        .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
+        .tab.active { color: var(--ios-blue); border-bottom: 2.5px solid var(--ios-blue); }
 
-        /* 버튼 스타일 */
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; transition: 0.1s; margin-bottom: 10px; }
+        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .chat-box { background: #fff; border-radius: 24px; padding: 25px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; position: relative; }
+        
+        .step-badge-container { display: flex; justify-content: center; margin-bottom: 12px; }
+        .step-badge { background: var(--ios-blue); color: white; padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; }
+        .ko-text { font-size: 22px; font-weight: 900; color: #111; margin-bottom: 25px; word-break: keep-all; line-height: 1.4; padding: 0 10px; }
+        
+        .en-text-container { font-size: 28px; font-weight: 900; line-height: 1.35; margin-bottom: 25px; text-align: left; }
+        .en-word { color: #D1D1D6; cursor: pointer; transition: color 0.1s; display: inline-block; margin-right: 6px; margin-bottom: 6px; }
+        .en-word.active-blue { color: var(--ios-blue); }
+        .en-word.blurred { background: #E5E5EA; color: transparent; border-radius: 6px; padding: 0 5px; }
+
+        .audio-wrapper { display: flex; justify-content: center; margin-bottom: 25px; height: 38px; gap: 8px; }
+        .btn-audio-main { background: #E8F5E9; color: var(--master-green); border: none; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; padding: 0 20px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-audio-sub { background: #F2F2F7; color: #555; border: none; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; padding: 0 16px; }
+        
+        .diff-control { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; }
+        .diff-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .diff-opt.active { background: #fff; color: var(--apple-navy); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .dashboard-title { font-size: 18px; font-weight: 900; margin-bottom: 15px; color: var(--dial-navy); }
+        .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 18px; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
+
+        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+        .btn-red { background: var(--ios-red); color: white; }
         .btn-blue { background: var(--ios-blue); color: white; }
-        .btn-audio { background: #E8F5E9; color: var(--master-green); border: none; padding: 12px 20px; border-radius: 12px; font-weight: 800; margin-bottom: 15px; cursor: pointer; }
+        .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
+        .btn-skip-pale { background: var(--skip-blue); color: #0056B3; font-weight: 900; }
+        
+        @keyframes glowPulse { 0% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.5); } 50% { box-shadow: 0 0 20px rgba(0, 122, 255, 0.9); transform: scale(1.02); } 100% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.5); } }
+        .btn-glow { animation: glowPulse 1.5s infinite alternate; background: var(--ios-blue); color: white; border: 2px solid white; }
+
+        #recordingPanel { display: none; background: #fff; border-radius: 20px; padding: 15px 20px; align-items: center; justify-content: space-between; border: 1.5px solid var(--ios-red); margin-bottom: 15px; }
+        .waveform-container { display: flex; align-items: center; gap: 3.5px; height: 40px; flex: 2; overflow: hidden; }
+        .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; }
+        .stopwatch { font-family: "Malgun Gothic", sans-serif; font-weight: 900; font-size: 22px; flex: 1; text-align: center; }
+        
+        #loadingUI { display: none; text-align: center; padding: 30px 0; }
+        .progress-bg { width: 100%; height: 12px; background: #E5E5EA; border-radius: 10px; overflow: hidden; margin: 0 auto; max-width: 80%; }
+        .progress-bar { width: 0%; height: 100%; background: var(--ios-blue); transition: width 0.2s; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="chat-box">
-        <div class="ko-text" id="koDisplay">"나는 공원에 가고 싶어요"</div>
+    <nav class="nav-bar">
+        <button class="tab active" id="tab-game" onclick="switchTab('game')">GAME START</button>
+        <button class="tab" id="tab-archive" onclick="switchTab('archive')">STORAGE</button>
+    </nav>
+
+    <div id="sec-game" class="section active">
+        <div id="recordingPanel">
+            <div class="waveform-container" id="waveform"><script>for(let i=0; i<25; i++) document.write('<div class="wave-bar"></div>');</script></div>
+            <div class="stopwatch" id="recTimer">00:00</div>
+            <button class="btn-stop" style="background:var(--ios-red); color:white; border:none; padding:10px 15px; border-radius:12px; font-weight:800;" onclick="stopAnyRecording()">완료</button>
+        </div>
         
-        <button class="btn-audio" onclick="playKaraoke()">🔊 영어 듣기 (카라오케)</button>
-        <button class="btn-audio" style="background:#F2F2F7; color:#555;" onclick="window.speechSynthesis.cancel()">⏸ 멈춤</button>
+        <div id="loadingUI">
+            <div style="font-size: 15px; font-weight: 800; color: var(--ios-blue); margin-bottom: 10px;" id="loadingMsg">AI가 분석 중입니다...</div>
+            <div class="progress-bg"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
 
-        <div class="en-text-container" id="enDisplay">
+        <div id="introView">
+            <div class="chat-box">
+                <div style="font-size: 40px; margin-bottom: 10px;">🎙️</div>
+                <div class="ko-text" style="font-size:18px;">"오늘 하루 어땠는지<br>편하게 말해보세요!"</div>
+                <div class="diff-control">
+                    <div class="diff-opt" onclick="setDifficulty('beginner')" id="diff-beginner">🌱 초급</div>
+                    <div class="diff-opt active" onclick="setDifficulty('intermediate')" id="diff-intermediate">🌿 중급</div>
+                    <div class="diff-opt" onclick="setDifficulty('advanced')" id="diff-advanced">🌳 상급</div>
+                </div>
             </div>
-    </div>
+            <button class="btn-apple btn-red" onclick="startKoreanRecord()">녹음 시작 (한/영 섞어 쓰기 가능)</button>
+        </div>
 
-    <button class="btn-apple btn-blue" onclick="setupSentence('I want to go to the park')">새 문장 불러오기 (테스트)</button>
+        <div id="dashboardView" style="display:none;">
+            <div class="chat-box" style="text-align: left; background: #F8F8FA; padding: 15px;">
+                <span style="font-size:12px; font-weight:800; color:#888;">AI 교정 결과</span>
+                <div id="dashKoText" style="font-size:15px; font-weight:700; color:#444; margin-top:5px;"></div>
+            </div>
+            <div class="dashboard-title">1단계: 문장 단위 핵심 표현 (3개)</div>
+            <div id="keyList"></div>
+            <div class="dashboard-title" style="margin-top:25px;">2단계: 5단계 변형 드릴</div>
+            <div id="fullDrillCard"></div>
+            <button class="btn-apple btn-gray" style="margin-top: 20px;" onclick="location.reload()">새로운 이야기 하기</button>
+        </div>
+
+        <div id="practiceView" style="display:none;">
+            <div class="chat-box">
+                <div class="step-badge-container"><div class="step-badge" id="stepBadge">STEP 1</div></div>
+                <div class="ko-text" id="pracKoText"></div>
+                
+                <div class="audio-wrapper">
+                    <button class="btn-audio-main" id="btnPlayTTS" onclick="playTTS()">🔊 <span id="playBtnText">영어 듣기</span></button>
+                    <button class="btn-audio-sub" id="btnPauseTTS" style="display:none;" onclick="pauseTTS()">⏸ 멈춤</button>
+                    <button class="btn-audio-sub" onclick="resetTTS()">⏪ 처음부터</button>
+                </div>
+
+                <div class="en-text-container" id="pracEnText"></div>
+                <div class="guide-text" id="pracGuideText">영어를 소리내어 읽어보세요</div>
+            </div>
+            <button id="pracRecordBtn" class="btn-apple btn-red" onclick="startPracticeRecord()">발음 녹음하기</button>
+            <button id="pracRetryBtn" class="btn-apple btn-red" style="display:none;" onclick="startPracticeRecord()">다시 시도하기</button>
+            <div class="control-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <button class="btn-apple btn-gray" onclick="goDashboard()">⬅️ 목록으로</button>
+                <button id="pracNextBtn" class="btn-apple btn-skip-pale" onclick="nextDrillStage()">건너뛰기 ➡️</button>
+            </div>
+        </div>
+    </div>
+    <div id="sec-archive" class="section"><h2>학습 기록</h2><div id="archiveList"></div></div>
 </div>
 
 <script>
-    const synth = window.speechSynthesis;
-    let currentUtterance = null;
+    let lessonData = null, currentPracticeMode = null, selectedDifficulty = 'intermediate';
+    let currentEnWordsArray = [], ttsGlobalIndex = 0, ttsIsPlaying = false;
+    let synth = window.speechSynthesis, timerInt, progressInt, recSeconds = 0;
 
-    // 1. 문장을 단어 단위로 쪼개서 화면에 뿌려주는 함수
-    function setupSentence(sentence) {
-        const container = document.getElementById('enDisplay');
-        container.innerHTML = ''; // 초기화
+    function switchTab(tab) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(`sec-${tab}`).classList.add('active');
+        document.getElementById(`tab-${tab}`).classList.add('active');
+        if(tab === 'archive') renderArchive();
+    }
 
-        const words = sentence.split(' ');
-        words.forEach((word, index) => {
-            const span = document.createElement('span');
-            span.classList.add('en-word');
-            span.innerText = word;
-            span.id = `word-${index}`;
+    function setDifficulty(level) {
+        selectedDifficulty = level;
+        document.querySelectorAll('.diff-opt').forEach(el => el.classList.remove('active'));
+        document.getElementById(`diff-${level}`).classList.add('active');
+    }
+
+    /* ✨ 사용자 피드백 기반: 완벽한 노래방 싱크 & 일시정지 로직 */
+    function updateTTSUI() {
+        const playBtn = document.getElementById('btnPlayTTS');
+        const pauseBtn = document.getElementById('btnPauseTTS');
+        if (ttsIsPlaying) { 
+            playBtn.style.display = 'none'; pauseBtn.style.display = 'flex'; 
+        } else { 
+            playBtn.style.display = 'flex'; pauseBtn.style.display = 'none'; 
+            document.getElementById('playBtnText').innerText = ttsGlobalIndex > 0 ? "이어 듣기" : "영어 듣기"; 
+        }
+    }
+
+    function playTTS() {
+        if (ttsIsPlaying) return;
+        synth.cancel();
+        
+        // 멈췄던 부분(ttsGlobalIndex)부터 읽기 시작
+        const textToSpeak = currentEnWordsArray.slice(ttsGlobalIndex).join(" ");
+        if (!textToSpeak) return;
+
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = 'en-US'; utterance.rate = 0.85;
+        
+        // 브라우저 버그 방지
+        window.currentUtterance = utterance;
+
+        // ✨ 사용자 피드백 적용: 자른 문자열에서 공백 개수를 세어 정확한 인덱스 도출
+        utterance.onboundary = (e) => {
+            if (e.name === 'word') {
+                const spokenUpToNow = textToSpeak.substring(0, e.charIndex).trim();
+                const relativeWordIdx = spokenUpToNow === "" ? 0 : spokenUpToNow.split(/\s+/).length;
+                const actualWordIdx = ttsGlobalIndex + relativeWordIdx;
+                
+                ttsGlobalIndex = actualWordIdx; // 멈춤 시 이어듣기를 위한 갱신
+                
+                // 처음부터 현재 위치까지 완벽하게 파란색 칠하기
+                for (let i = 0; i <= actualWordIdx; i++) {
+                    const span = document.getElementById(`word-${i}`);
+                    if (span && !span.classList.contains('blurred')) {
+                        span.classList.add('active-blue');
+                    }
+                }
+            }
+        };
+
+        utterance.onend = () => { 
+            ttsIsPlaying = false; 
+            if (ttsGlobalIndex >= currentEnWordsArray.length - 1) ttsGlobalIndex = 0; 
+            updateTTSUI(); 
+            // 재생 완료 시 블러 제외 모두 파란색 처리
+            document.querySelectorAll('.en-word').forEach(span => {
+                if(!span.classList.contains('blurred')) span.classList.add('active-blue');
+            });
+        };
+        
+        utterance.onerror = () => { ttsIsPlaying = false; updateTTSUI(); };
+
+        ttsIsPlaying = true; 
+        updateTTSUI(); 
+        synth.speak(utterance);
+    }
+
+    function pauseTTS() { synth.cancel(); ttsIsPlaying = false; updateTTSUI(); }
+    function resetTTS() { synth.cancel(); ttsIsPlaying = false; ttsGlobalIndex = 0; updateTTSUI(); document.querySelectorAll('.en-word').forEach(el => el.classList.remove('active-blue')); }
+
+    async function startKoreanRecord() {
+        document.getElementById('introView').style.display = 'none';
+        document.getElementById('recordingPanel').style.display = 'flex';
+        startTimer(); await initMic(processKoreanAI);
+    }
+
+    async function processKoreanAI() {
+        document.getElementById('recordingPanel').style.display = 'none';
+        document.getElementById('loadingUI').style.display = 'block';
+        startLoadingBar();
+        const b64 = await getBase64Audio();
+        try {
+            const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'korean', difficulty: selectedDifficulty}) });
+            lessonData = await res.json();
+            lessonData.completed = { keys: [false, false, false], full: false };
+            finishLoadingBar();
+            setTimeout(() => { document.getElementById('loadingUI').style.display = 'none'; showDashboard(); }, 500);
+        } catch (e) { alert("서버 에러"); location.reload(); }
+    }
+
+    function showDashboard() {
+        document.getElementById('introView').style.display = 'none';
+        document.getElementById('practiceView').style.display = 'none';
+        document.getElementById('dashboardView').style.display = 'block';
+        document.getElementById('dashKoText').innerText = lessonData.korean;
+        const keyList = document.getElementById('keyList');
+        keyList.innerHTML = lessonData.keys.map((k, idx) => `
+            <div class="lesson-card ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1')">
+                <div style="flex:1;"><div class="ko">${k.ko_org}</div><div class="en" style="font-size:14px;">${k.en_org}</div></div>
+                <div style="font-size:20px;">${lessonData.completed.keys[idx] ? '✅' : '▶'}</div>
+            </div>`).join('');
+        document.getElementById('fullDrillCard').innerHTML = `
+            <div class="lesson-card ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1')">
+                <div><div class="ko">전체 문장 5단계 마스터</div><div class="en">Full Sentence Drill</div></div>
+                <div style="font-size:24px;">${lessonData.completed.full ? '✅' : '➡️'}</div>
+            </div>`;
+    }
+
+    function startPractice(mode) { document.getElementById('dashboardView').style.display = 'none'; document.getElementById('practiceView').style.display = 'block'; currentPracticeMode = mode; setupPracticeUI(); }
+
+    function setupPracticeUI() {
+        let ko = "", en = "", blurPart = "", stepNum = 1; resetTTS();
+        const nextBtn = document.getElementById('pracNextBtn');
+        nextBtn.className = 'btn-apple btn-skip-pale'; nextBtn.innerHTML = '건너뛰기 ➡️';
+        
+        if (currentPracticeMode.startsWith('key_')) {
+            const parts = currentPracticeMode.split('_'); const idx = parseInt(parts[1]); stepNum = parseInt(parts[2]);
+            const key = lessonData.keys[idx];
+            if(stepNum === 1) { ko = key.ko_org; en = key.en_org; blurPart = "none"; }
+            else if(stepNum === 2) { ko = key.ko_org; en = key.en_org; blurPart = key.word; }
+            else if(stepNum === 3) { ko = key.ko_var; en = key.en_var; blurPart = "none"; }
+            else if(stepNum === 4) { ko = key.ko_var; en = key.en_var; blurPart = key.word; }
+            else { ko = key.ko_org; en = key.en_org; blurPart = "all"; }
+            document.getElementById('stepBadge').innerText = `표현 마스터 STEP ${stepNum}/5`;
+        } else {
+            stepNum = parseInt(currentPracticeMode.split('_')[1]);
+            const drill = lessonData.drills[stepNum - 1];
+            ko = drill.ko; en = drill.en_full; blurPart = drill.blur_part;
+            document.getElementById('stepBadge').innerText = `문장 훈련 STEP ${stepNum}/5`;
+        }
+        document.getElementById('pracKoText').innerText = ko; renderInteractiveWords(en, blurPart);
+        document.getElementById('pracGuideText').innerHTML = "영어를 소리내어 읽어보세요";
+        document.getElementById('pracRecordBtn').style.display = 'block'; document.getElementById('pracRetryBtn').style.display = 'none';
+    }
+
+    function renderInteractiveWords(text, blurMode = "") {
+        const container = document.getElementById('pracEnText'); container.innerHTML = "";
+        currentEnWordsArray = text.split(" "); 
+        
+        currentEnWordsArray.forEach((word, idx) => {
+            const span = document.createElement('span'); span.className = "en-word"; span.innerText = word + " "; span.id = `word-${idx}`;
+            
+            const clean = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            let shouldBlur = false;
+            if (blurMode === "all") shouldBlur = true;
+            else if (blurMode === "most" && idx > 0) shouldBlur = true;
+            else if (blurMode === "half" && idx % 2 === 1) shouldBlur = true;
+            else if (blurMode !== "none" && blurMode !== "most" && blurMode !== "half" && blurMode.toLowerCase().includes(clean) && clean.length > 0) shouldBlur = true;
+            
+            if (shouldBlur) span.classList.add('blurred');
+            
+            span.onclick = () => { resetTTS(); ttsGlobalIndex = idx; playTTS(); };
             container.appendChild(span);
         });
     }
 
-    // 2. 카라오케 재생 함수 (핵심)
-    function playKaraoke() {
-        const container = document.getElementById('enDisplay');
-        const text = container.innerText;
-        if (!text) return;
-
-        // 기존 재생 중인 것이 있으면 취소
-        synth.cancel();
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.8; // 사용자가 따라하기 좋게 약간 천천히
-
-        const spans = container.querySelectorAll('.en-word');
-
-        // 음성이 단어 경계를 넘을 때마다 실행
-        utterance.onboundary = (event) => {
-            if (event.name === 'word') {
-                const charIndex = event.charIndex; // 현재 읽기 시작한 글자의 인덱스
-                
-                // 현재까지 읽은 글자 수를 바탕으로 몇 번째 단어인지 계산
-                const spokenTextSoFar = text.substring(0, charIndex + event.charLength).trim();
-                const currentWordIndex = spokenTextSoFar.split(/\s+/).length - 1;
-
-                // UI 업데이트: 현재 단어까지 파란색으로 변경
-                spans.forEach((span, i) => {
-                    if (i <= currentWordIndex) {
-                        span.classList.add('active-blue');
-                    } else {
-                        span.classList.remove('active-blue');
-                    }
-                });
-            }
-        };
-
-        // 재생이 완료되면 다시 회색으로 초기화 (선택 사항)
-        utterance.onend = () => {
-            // 원한다면 끝났을 때 다시 회색으로 돌릴 수 있습니다.
-            // spans.forEach(span => span.classList.remove('active-blue'));
-        };
-
-        synth.speak(utterance);
+    async function startPracticeRecord() {
+        document.getElementById('pracRecordBtn').style.display = 'none';
+        document.getElementById('pracRetryBtn').style.display = 'none';
+        document.getElementById('recordingPanel').style.display = 'flex';
+        resetTTS(); startTimer(); await initMic(processPracticeAI);
     }
 
-    // 초기 실행 (예시 문장)
-    setupSentence("I want to go to the park");
-</script>
+    async function processPracticeAI() {
+        document.getElementById('recordingPanel').style.display = 'none';
+        document.getElementById('loadingUI').style.display = 'block';
+        startLoadingBar();
+        const b64 = await getBase64Audio();
+        const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'evaluate', target_english: document.getElementById('pracEnText').innerText}) });
+        const data = await res.json();
+        finishLoadingBar();
+        setTimeout(() => {
+            document.getElementById('loadingUI').style.display = 'none';
+            const score = data.score || 0;
+            if (score >= 70) {
+                const nextBtn = document.getElementById('pracNextBtn');
+                nextBtn.className = 'btn-apple btn-blue btn-glow'; nextBtn.innerHTML = '다음 단계 ➡️';
+                document.getElementById('pracGuideText').innerHTML = `<span style="color:var(--master-green); font-weight:900;">🎉 통과! (${score}점)</span><br>${data.feedback}`;
+            } else {
+                document.getElementById('pracRetryBtn').style.display = 'block';
+                document.getElementById('pracGuideText').innerHTML = `<span style="color:var(--ios-red); font-weight:900;">💪 다시 시도! (${score}점)</span><br>${data.feedback}`;
+            }
+        }, 300);
+    }
 
+    function nextDrillStage() {
+        const parts = currentPracticeMode.split('_'); const nextStep = parseInt(parts[parts.length - 1]) + 1;
+        if (currentPracticeMode.startsWith('key_')) { if(nextStep > 5) { lessonData.completed.keys[parseInt(parts[1])] = true; goDashboard(); } else { currentPracticeMode = `key_${parts[1]}_${nextStep}`; setupPracticeUI(); } } 
+        else { if(nextStep > 5) { lessonData.completed.full = true; goDashboard(); } else { currentPracticeMode = `full_${nextStep}`; setupPracticeUI(); } }
+    }
+    function goDashboard() { stopTTS(); document.getElementById('practiceView').style.display = 'none'; showDashboard(); }
+    function startTimer() { recSeconds = 0; clearInterval(timerInt); timerInt = setInterval(() => { recSeconds++; const m = String(Math.floor(recSeconds/60)).padStart(2,'0'); const s = String(recSeconds%60).padStart(2,'0'); document.getElementById('recTimer').innerText=`${m}:${s}`; }, 1000); }
+    function startLoadingBar() { let w = 0; clearInterval(progressInt); progressInt = setInterval(() => { w += 5; if(w>95) w=95; document.getElementById('progressBar').style.width = w+'%'; }, 200); }
+    function finishLoadingBar() { clearInterval(progressInt); document.getElementById('progressBar').style.width = '100%'; }
+    async function initMic(cb) { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); audioCtx.createMediaStreamSource(stream).connect(analyser); analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount); mediaRecorder = new MediaRecorder(stream); chunks = []; mediaRecorder.ondataavailable = e => chunks.push(e.data); mediaRecorder.onstop = cb; mediaRecorder.start(); drawWave(); }
+    function drawWave() { animationId = requestAnimationFrame(drawWave); analyser.getByteFrequencyData(dataArray); const bars = document.querySelectorAll('.wave-bar'); bars.forEach((bar, i) => { bar.style.height = Math.max(4, (dataArray[i % dataArray.length] / 128.0) * 45) + 'px'; }); }
+    function stopAnyRecording() { clearInterval(timerInt); if(mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop(); cancelAnimationFrame(animationId); if(audioCtx) audioCtx.close(); }
+    async function getBase64Audio() { const blob = new Blob(chunks, { type: 'audio/m4a' }); return new Promise(resolve => { const r = new FileReader(); r.onloadend = () => resolve(r.result.split(',')[1]); r.readAsDataURL(blob); }); }
+</script>
 </body>
 </html>
