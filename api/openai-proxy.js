@@ -25,18 +25,29 @@ export default async function handler(req, res) {
         let instruction = "";
 
         if (action === 'korean') {
+            // ✨ 1. 90/10 포커스 시스템 적용
             const langContext = lang_mode === 'focus90' 
                 ? "[LANGUAGE FOCUS: 90% English / 10% Korean] 사용자의 말에 한국어와 영어가 섞여 있습니다. 의도를 파악해 90% 세련된 영어 표현으로 교정하고, 10% 한국어는 의미 설명에만 사용하세요."
                 : "사용자는 한국어로 말했습니다. 이를 원어민식 영어로 번역하세요.";
 
+            // ✨ 2. IELTS 기반 유기적 레벨 디자인
+            let levelInstruction = "";
+            if (difficulty === "beginner") {
+                levelInstruction = "[난이도: 초급] IELTS 3.0 ~ 5.0 수준. 누구나 알만한 매우 쉽고 직관적인 기초 단어와 짧은 문장 구조를 사용하세요.";
+            } else if (difficulty === "intermediate") {
+                levelInstruction = "[난이도: 중급] IELTS 5.5 ~ 7.5 수준. 실생활에서 자주 쓰이는 유기적이고 다양한 표현, 적당한 난이도의 이디엄을 섞어 쓰세요.";
+            } else if (difficulty === "advanced") {
+                levelInstruction = "[난이도: 고급] IELTS 8.0 ~ 9.0 수준. 전문적이고 세련된 원어민식 관용구, 뉘앙스가 살아있는 복잡한 문장 구조를 사용하세요.";
+            }
+
             instruction = `
             사용자의 말: "${userSpeech}"
-            난이도: ${difficulty}
             ${langContext}
+            ${levelInstruction}
             
             [필수 엄수 규칙]
             1. "keys" 배열에는 **반드시 정확히 3개의 객체**가 존재해야 합니다.
-            2. 바리에이션(ko_var, en_var)은 원본 구조를 유지하며 핵심 단어만 연관성 있게 변경하세요.
+            2. 바리에이션(ko_var, en_var)은 원본 문장의 구조를 유지하면서 상황과 연관성 있게 핵심 단어만 변경하세요.
             3. 반환은 오직 아래 JSON 구조로만 하세요.
 
             {
