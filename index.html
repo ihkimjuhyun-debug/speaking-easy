@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Final V17</title>
+    <title>PolyGlot Master: Final V18</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
@@ -107,8 +107,14 @@
         .icon-btn { font-size: 18px; cursor: pointer; padding: 4px; opacity: 0.8; transition: transform 0.1s; }
         .icon-btn:active { transform: scale(0.8); }
 
-        /* ✨ 전역 렌더링 방식의 단어 툴팁 */
-        #globalDictTooltip { display: none; position: absolute; background: rgba(0,0,0,0.88); backdrop-filter: blur(5px); color: #fff; padding: 15px 18px; border-radius: 16px; font-size: 13px; z-index: 99999; width: 240px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.2s; pointer-events: none; margin-top: 10px; transform: translateX(-50%); }
+        /* ✨ 툴팁 UI 수정 (잘림 방지 및 스피커 버튼 공간 확보) */
+        #globalDictTooltip { 
+            display: none; position: absolute; background: rgba(0,0,0,0.88); backdrop-filter: blur(5px); 
+            color: #fff; padding: 16px 20px; border-radius: 16px; font-size: 14px; z-index: 99999; 
+            width: max-content; max-width: 85vw; /* 화면 밖으로 넘어가지 않도록 최대 너비 설정 */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25); animation: fadeIn 0.2s; 
+            margin-top: 10px; transform: translateX(-50%); word-break: keep-all; box-sizing: border-box;
+        }
         #globalDictTooltip::before { content: ''; position: absolute; top: -8px; left: 50%; transform: translateX(-50%); border-width: 0 8px 8px 8px; border-style: solid; border-color: transparent transparent rgba(0,0,0,0.88) transparent; }
     </style>
 </head>
@@ -119,12 +125,15 @@
     <div class="countdown-num" id="countdownNumber">3</div>
 </div>
 
-<div id="globalDictTooltip">
-    <div id="dictWord" style="font-size:18px; font-weight:900; color:var(--skip-blue); margin-bottom:4px;"></div>
+<div id="globalDictTooltip" onclick="event.stopPropagation();">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <div id="dictWord" style="font-size:19px; font-weight:900; color:var(--skip-blue);"></div>
+        <div id="dictTTSBtn" style="font-size:20px; cursor:pointer; padding:2px 8px; border-radius:8px; background:rgba(255,255,255,0.1); margin-left:15px;" onclick="playDictWordTTS(event)">🔊</div>
+    </div>
     <div id="dictKo" style="font-weight:800; font-size:15px; margin-bottom:2px;"></div>
-    <div style="color:#aaa; font-size:12px; margin-bottom:8px;"><span id="dictPos"></span> | <span id="dictPhonetics"></span></div>
-    <div id="dictExp" style="margin-bottom:6px; color:#ddd; font-style:italic; border-left:2px solid var(--ios-blue); padding-left:6px;"></div>
-    <div id="dictForms" style="color:#888; font-size:11px;"></div>
+    <div style="color:#aaa; font-size:13px; margin-bottom:10px;"><span id="dictPos"></span> | <span id="dictPhonetics"></span></div>
+    <div id="dictExp" style="margin-bottom:8px; color:#ddd; font-style:italic; border-left:2px solid var(--ios-blue); padding-left:8px; line-height:1.4;"></div>
+    <div id="dictForms" style="color:#999; font-size:12px; line-height:1.3;"></div>
 </div>
 
 <div class="container">
@@ -260,7 +269,6 @@
     let synth = window.speechSynthesis, timerInt, progressInt, recSeconds = 0;
     let hiddenTTSWord = ""; 
 
-    /* ✨ 마이크 엔진 클리너 */
     function stopMicEngine() {
         if (activeStream) { activeStream.getTracks().forEach(track => track.stop()); activeStream = null; }
         if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
@@ -368,11 +376,9 @@
         document.getElementById('introView').style.display = 'none'; document.getElementById('practiceView').style.display = 'none'; document.getElementById('dashboardView').style.display = 'block';
         document.getElementById('dashKoText').innerText = lessonData.korean;
         
-        // ✨ 모든 단어 클릭 및 사전 연동
         const dashEn = document.getElementById('dashEnText');
         const wordsHtml = lessonData.english.split(' ').map(w => {
             const clean = w.toLowerCase().replace(/[^a-z]/g, '');
-            // 모든 단어에 dict-link 클래스 부여하여 클릭 유도
             return `<span class="en-word dict-link" onclick="showDictTooltip('${clean}', event, this)">${w} </span>`;
         }).join('');
         dashEn.innerHTML = wordsHtml;
@@ -391,17 +397,15 @@
         document.getElementById('fullDrillCard').innerHTML = `<div class="lesson-card boing-active ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">전체 문장 마스터</div><div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${lessonData.english}</div></div><div style="font-size:24px;">${lessonData.completed.full ? '✅' : '➡️'}</div></div>`;
     }
 
-    /* ✨ 사전 툴팁 처리 및 예외 처리 (모든 단어 지원) */
+    /* ✨ 툴팁 UI 보정 (잘림 방지 로직) 및 사전 데이터 보강 */
     function showDictTooltip(word, event, spanEl) {
         event.stopPropagation();
         
         let dict = null;
         if(lessonData.dictionary) dict = lessonData.dictionary[word] || lessonData.dictionary[word.toLowerCase()];
         
-        // AI가 누락시킨 기초 단어의 경우 간단한 기본값을 보여주어 에러 방지
-        if(!dict) {
-            dict = { ko: "기본 단어", pos: "Basic", phonetics: "", expression: "사전 데이터 준비 중", other_forms: "" };
-        }
+        // 데이터가 없을 시 최소한의 기본값 출력으로 에러 방지
+        if(!dict) dict = { ko: "기본 단어", pos: "Basic", phonetics: "", expression: "사전 데이터 확인 중", other_forms: "" };
 
         const tt = document.getElementById('globalDictTooltip');
         document.getElementById('dictWord').innerText = word; 
@@ -412,13 +416,38 @@
         document.getElementById('dictForms').innerText = dict.other_forms || "";
         
         tt.style.display = 'block';
+        
+        // 동적 위치 계산 (화면 밖으로 나가지 않도록 조정)
         const rect = spanEl.getBoundingClientRect();
+        let leftPos = rect.left + (rect.width / 2);
+        
         tt.style.top = (rect.bottom + window.scrollY) + 'px';
-        tt.style.left = (rect.left + (rect.width / 2)) + 'px';
+        tt.style.left = leftPos + 'px';
+        
+        // 렌더링 후 가로 오버플로우 체크
+        const ttRect = tt.getBoundingClientRect();
+        if (ttRect.right > window.innerWidth - 10) {
+            tt.style.left = (window.innerWidth - (ttRect.width / 2) - 10) + 'px';
+        } else if (ttRect.left < 10) {
+            tt.style.left = ((ttRect.width / 2) + 10) + 'px';
+        }
     }
+    
     function hideDictTooltip() { const tt = document.getElementById('globalDictTooltip'); if(tt) tt.style.display = 'none'; }
 
-    /* TTS */
+    /* ✨ 툴팁 내 단어 전용 발음 기능 (TTS) */
+    function playDictWordTTS(event) {
+        event.stopPropagation(); // 툴팁 닫힘 방지
+        applyBoing(event.target);
+        const word = document.getElementById('dictWord').innerText;
+        if(!word) return;
+        synth.cancel();
+        const ut = new SpeechSynthesisUtterance(word);
+        ut.lang = 'en-US';
+        synth.speak(ut);
+    }
+
+    /* 문장 TTS */
     function handlePlayTTS(btn) { applyBoing(btn); playTTS(); }
     function handlePauseTTS(btn) { applyBoing(btn); pauseTTS(); }
     function handleResetTTS(btn) { applyBoing(btn); resetTTS(); }
@@ -579,9 +608,9 @@
 
     function goDashboard(btn) { if(btn) applyBoing(btn); resetTTS(); stopMicEngine(); saveToArchive(); document.getElementById('practiceView').style.display = 'none'; showDashboard(); }
 
-    /* ✨ 스토리지 v17 (듀얼 타이틀 지원) */
+    /* ✨ 스토리지 v18 (디자인 변경: 위 작게 한글, 아래 크게 영어) */
     function saveToArchive() {
-        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v17')) || [];
+        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v18')) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0) + lessonData.completed.vocab.filter(Boolean).length;
         const idx = arc.findIndex(a => a.id === lessonData.id);
         
@@ -589,21 +618,21 @@
             id: lessonData.id, 
             date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), 
             title_ko: lessonData.title_ko || lessonData.title || "나의 이야기", 
-            title_en: lessonData.title_en || "My Story",
+            title_en: lessonData.title_en || lessonData.english || "My Story",
             mastered: (pr === 7), 
             data: lessonData 
         };
 
         if (idx !== -1) { dataToSave.starred = arc[idx].starred; arc[idx] = dataToSave; } else { dataToSave.starred = false; arc.unshift(dataToSave); }
-        localStorage.setItem('archive_poly_v17', JSON.stringify(arc));
+        localStorage.setItem('archive_poly_v18', JSON.stringify(arc));
     }
 
-    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v17')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v17', JSON.stringify(arc)); renderArchive(); }
-    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v17')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v17', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
+    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v18')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v18', JSON.stringify(arc)); renderArchive(); }
+    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v18')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v18', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
 
     function renderArchive() {
         const listStory = document.getElementById('archiveListStory'); const listVocab = document.getElementById('archiveListVocab');
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v17')) || [];
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v18')) || [];
         if(arc.length === 0) { listStory.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; listVocab.innerHTML = "<p style='text-align:center; color:#888;'>저장된 단어가 없습니다.</p>"; return; }
         arc.sort((a, b) => { if (a.starred && !b.starred) return -1; if (!a.starred && b.starred) return 1; return 0; });
 
@@ -612,7 +641,7 @@
             let textCol = '#D1D1D6'; let bgCol = '#fff'; let exClass = '';
             if(pr>=1 && pr<=2) { textCol='#8E8E93'; bgCol='#F2F2F7'; } if(pr>=3 && pr<=4) { textCol='#FFD60A'; bgCol='#FFFBE6'; } if(pr===5) { textCol='#34C759'; bgCol='#E8F5E9'; } if(pr===6) { textCol='#007AFF'; bgCol='#E6F2FF'; } if(pr===7) { textCol='#fff'; bgCol='#1C1C1E'; exClass='black-glow'; } 
             
-            // ✨ 이중 타이틀 (듀얼 타이틀 렌더링)
+            // ✨ 상단 한글(소), 하단 영어(대) 구조 적용
             const tKo = a.title_ko || a.title || "나의 이야기";
             const tEn = a.title_en || a.data.english || "My Story";
 
@@ -621,8 +650,8 @@
                     <div><span style="color:${pr===7?'#aaa':'#555'};">${a.date}</span><span style="color:${textCol}; font-weight:900; margin-left:8px;">${pr===7?'🏆 완벽 정복':'⏳ 진행 중'}(${pr}/7)</span></div>
                     <div style="display:flex; gap: 12px; align-items:center;"><span class="icon-btn" onclick="toggleStar(event, ${a.id})">${a.starred ? '⭐' : '☆'}</span><span class="icon-btn" onclick="deleteArchive(event, ${a.id})" style="opacity: 0.6;">🗑️</span></div>
                 </div>
-                <div class="archive-title" style="${pr===7?'color:#fff;':''}">${tKo}</div>
-                <div style="font-size:13px; color:${pr===7?'#aaa':'#888'}; margin-top:4px; font-weight:700;">${tEn}</div>
+                <div style="font-size:13px; color:${pr===7?'#aaa':'#888'}; margin-top:8px; font-weight:800;">${tKo}</div>
+                <div class="archive-title" style="margin-top:2px; font-size:17px; ${pr===7?'color:#fff;':''}">${tEn}</div>
             </div>`;
         }).join('');
 
@@ -631,8 +660,8 @@
         listVocab.innerHTML = vocabHtml;
     }
     
-    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v17')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
-    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v17')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
+    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v18')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v18')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
 
     function initMicWithStream(stream, cb, barsElements) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); audioCtx.createMediaStreamSource(stream).connect(analyser); analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount); mediaRecorder = new MediaRecorder(stream); chunks = []; mediaRecorder.ondataavailable = e => chunks.push(e.data); mediaRecorder.onstop = cb; mediaRecorder.start(); drawWaveSpecific(barsElements); }
     function drawWaveSpecific(bars) { animationId = requestAnimationFrame(() => drawWaveSpecific(bars)); analyser.getByteFrequencyData(dataArray); bars.forEach((bar, i) => { bar.style.height = Math.max(4, (dataArray[i % dataArray.length] / 128.0) * (bars.length > 20 ? 45 : 25)) + 'px'; }); }
