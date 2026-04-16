@@ -9,9 +9,10 @@ export default async function handler(req, res) {
 
     try {
         const audioBuffer = Buffer.from(audio, 'base64');
-        const blob = new Blob([audioBuffer], { type: 'audio/m4a' });
+        // 호환성을 위해 webm 혹은 mp4를 자동 포용하도록 파일명 지정
+        const blob = new Blob([audioBuffer], { type: 'audio/webm' });
         const formData = new FormData();
-        formData.append('file', blob, 'audio.m4a');
+        formData.append('file', blob, 'audio.webm');
         formData.append('model', 'whisper-1');
         
         if (lang_mode === 'ko') formData.append('language', 'ko');
@@ -22,7 +23,7 @@ export default async function handler(req, res) {
         const sttData = await sttResponse.json();
         const userSpeech = sttData.text || "";
 
-        // ✨ 환각(Hallucination) 및 일본어 잡음 완벽 차단
+        // ✨ 환각(Hallucination) 및 일본어 잡음 완벽 차단 필터
         const lowerSpeech = userSpeech.toLowerCase();
         const jpRegex = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/;
         const isHallucination = lowerSpeech.includes("mbc") || lowerSpeech.includes("amara") || lowerSpeech.includes("thank you") || jpRegex.test(userSpeech) || userSpeech.trim().length < 2;
@@ -80,12 +81,12 @@ export default async function handler(req, res) {
                 ]
             }`;
         } else {
-            // ✨ 점수 완화 (부분 점수제 도입)
+            // ✨ 점수 완화 (부분 점수제 완벽 적용)
             instruction = `목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 
             [채점 규칙]
             1. 발음이 완벽하지 않거나 단어가 조금 달라도, 원어민이 문맥상 이해할 수 있다면 너무 빡빡하게 깎지 말고 관대하게(lenient) 채점하세요.
-            2. 한 단어가 틀렸다고 무조건 0점 처리하지 마세요. 틀린 단어의 중요도와 전체 문장 대비 비율을 계산하여 10~100점 사이의 유연한 부분 점수를 부여하세요. 
-            3. 잡음이거나 완전히 무관한 단어일 때만 낮은 점수를 주세요.
+            2. 한 단어가 틀렸다고 0점 처리하지 마세요. 전체 문장 중 맞춘 비율과 중요도를 고려하여 10~100점 사이의 유연한 부분 점수를 부여하세요. (예: 3단어 중 1개 틀리면 60점 이상)
+            3. 완전히 무관한 잡음일 때만 낮은 점수를 주세요.
             반환: JSON {"score": <숫자>, "feedback": "<문장>"}`;
         }
 
