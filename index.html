@@ -8,7 +8,7 @@
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
             --ios-bg: #F2F2F7; --dial-navy: #002D5E; --master-green: #34C759;
-            --pale-blue: #AECBFA;
+            --pale-skip-blue: #B3D4FF; /* ✨ 활성화 안 된 느낌의 치팅 건너뛰기 컬러 */
         }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; }
@@ -22,9 +22,12 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .chat-box { background: #fff; border-radius: 24px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 20px; text-align: center; position: relative; }
-        .ko-text { font-size: 17px; font-weight: 700; color: #444; margin-bottom: 15px; }
         
-        /* 노래방 자막 텍스트 UI */
+        /* ✨ 한글 텍스트 가독성 강화 & Step 배지 분리 */
+        .step-badge-container { text-align: center; margin-bottom: 15px; }
+        .step-badge { display: inline-block; background: var(--ios-blue); color: white; padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: 900; }
+        .ko-text { font-size: 20px; font-weight: 900; color: #222; margin-bottom: 20px; word-break: keep-all; line-height: 1.4; }
+        
         .en-text-container { font-size: 26px; font-weight: 900; line-height: 1.4; margin-bottom: 20px; text-align: left; }
         .en-word { color: #D1D1D6; cursor: pointer; transition: color 0.1s ease; display: inline-block; margin-right: 6px; margin-bottom: 6px; }
         .en-word.active-blue { color: var(--ios-blue); }
@@ -50,8 +53,8 @@
         .btn-blue { background: var(--ios-blue); color: white; }
         .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
         
-        /* ✨ 건너뛰기용 연한 버튼 */
-        .btn-skip-pale { background: var(--pale-blue); color: white; }
+        /* ✨ 치팅용 건너뛰기 버튼 컬러 */
+        .btn-skip-pale { background: var(--pale-skip-blue); color: #0056B3; font-weight: 900; }
         
         .btn-end { background: #FFFFFF; color: var(--dial-navy); box-shadow: 0 4px 12px rgba(0, 45, 94, 0.05); margin-top: 15px;}
         .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
@@ -63,13 +66,13 @@
         }
         .btn-glow { animation: glowPulse 1.5s infinite alternate; background: linear-gradient(135deg, #007AFF, #5AC8FA); color: white; border: 2px solid white; }
 
-        /* ✨ 스마트 음성 컨트롤 바 (하나의 버튼이 변신) */
-        .audio-wrapper { display: flex; justify-content: center; margin-bottom: 20px; height: 50px; }
-        .btn-audio-main { background: #E8F5E9; color: var(--master-green); border: none; border-radius: 16px; font-size: 15px; font-weight: 800; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
+        /* ✨ 작고 콤팩트해진 스마트 음성 컨트롤 바 */
+        .audio-wrapper { display: flex; justify-content: center; margin-bottom: 25px; height: 40px; }
+        .btn-audio-main { background: #E8F5E9; color: var(--master-green); border: none; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer; padding: 0 20px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .btn-audio-main:active { transform: scale(0.96); }
         
-        #audioPlayingControls { display: none; width: 100%; gap: 8px; }
-        .btn-audio-sub { background: #F2F2F7; color: #8E8E93; border: none; border-radius: 16px; font-size: 14px; font-weight: 800; cursor: pointer; flex: 1; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        #audioPlayingControls { display: none; gap: 8px; justify-content: center; width: 100%; }
+        .btn-audio-sub { background: #F2F2F7; color: #555; border: none; border-radius: 12px; font-size: 13px; font-weight: 800; cursor: pointer; padding: 0 16px; transition: 0.2s; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .btn-audio-sub:active { background: #E5E5EA; transform: scale(0.96); }
         .btn-audio-sub.active-pause { background: #FFE0E0; color: var(--ios-red); }
         
@@ -90,7 +93,6 @@
         .archive-card { background: #fff; padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid #D1D1D6; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: 0.2s; }
         .archive-card:active { transform: scale(0.98); }
         .archive-card.mastered { border-left-color: var(--master-green); }
-        .step-badge { position: absolute; top: 15px; right: 15px; background: var(--ios-blue); color: white; padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 800; }
     </style>
 </head>
 <body>
@@ -121,7 +123,7 @@
         <div id="introView">
             <div class="chat-box">
                 <div style="font-size: 40px; margin-bottom: 10px;">🎙️</div>
-                <div class="ko-text">"오늘 하루 어땠는지<br>한국어로 편하게 말해보세요!"</div>
+                <div class="ko-text" style="font-size:18px;">"오늘 하루 어땠는지<br>한국어로 편하게 말해보세요!"</div>
                 
                 <div class="diff-control" id="diffControl">
                     <div class="diff-opt" onclick="setDifficulty('beginner')" id="diff-beginner">🌱 초급</div>
@@ -150,12 +152,14 @@
 
         <div id="practiceView" style="display:none;">
             <div class="chat-box">
-                <div class="step-badge" id="stepBadge">STEP 1</div>
+                <div class="step-badge-container">
+                    <div class="step-badge" id="stepBadge">STEP 1</div>
+                </div>
                 <div class="ko-text" id="pracKoText"></div>
                 
                 <div class="audio-wrapper">
                     <button class="btn-audio-main" id="btnPlayTTS" onclick="playTTS()">
-                        <span id="ttsIcon">🔊</span> 영어 음성 듣기
+                        <span id="ttsIcon">🔊</span> 영어 듣기
                     </button>
                     <div id="audioPlayingControls">
                         <button class="btn-audio-sub" id="btnPauseTTS" onclick="togglePauseTTS()">⏸ 멈춤</button>
@@ -195,6 +199,7 @@
     let audioCtx, analyser, dataArray, animationId;
     let synth = window.speechSynthesis;
     let timerInt, progressInt, recSeconds = 0;
+    let wordMap = []; // ✨ 정밀 노래방 매핑용 배열
 
     function switchTab(tab) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -210,7 +215,7 @@
         document.getElementById(`diff-${level}`).classList.add('active');
     }
 
-    /* ✨ TTS 노래방 & 일시정지 컨트롤 */
+    /* ✨ 버그 없는 완벽한 TTS 노래방 제어기 */
     function toggleTTSUI(isPlaying) {
         if(isPlaying) {
             document.getElementById('btnPlayTTS').style.display = 'none';
@@ -220,42 +225,60 @@
             document.getElementById('audioPlayingControls').style.display = 'none';
             document.getElementById('btnPauseTTS').innerHTML = "⏸ 멈춤";
             document.getElementById('btnPauseTTS').classList.remove('active-pause');
+            document.getElementById('ttsIcon').classList.remove('playing-anim');
         }
     }
 
     function togglePauseTTS() {
         if (synth.speaking && !synth.paused) {
             synth.pause();
-            document.getElementById('btnPauseTTS').innerHTML = "▶️ 계속";
+            document.getElementById('btnPauseTTS').innerHTML = "▶️ 재생";
             document.getElementById('btnPauseTTS').classList.add('active-pause');
+            document.getElementById('ttsIcon').classList.remove('playing-anim');
         } else if (synth.paused) {
             synth.resume();
             document.getElementById('btnPauseTTS').innerHTML = "⏸ 멈춤";
             document.getElementById('btnPauseTTS').classList.remove('active-pause');
+            document.getElementById('ttsIcon').classList.add('playing-anim');
         }
     }
 
     function stopTTS() { synth.cancel(); toggleTTSUI(false); }
-    function restartTTS() { stopTTS(); setTimeout(() => playTTS("", 0), 50); }
+    function restartTTS() { stopTTS(); setTimeout(() => playTTS(0), 100); }
 
-    function playTTS(textToPlay = "", startIdx = 0) {
-        synth.cancel(); toggleTTSUI(true);
-        
+    function playTTS(startIdx = 0) {
+        synth.cancel(); 
+        toggleTTSUI(true);
+        document.getElementById('ttsIcon').classList.add('playing-anim');
         document.querySelectorAll('.en-word').forEach(el => el.classList.remove('active-blue'));
         
-        // 정교한 싱크를 위해 배열을 문자열로 재조합
+        // 텍스트 재생 (startIdx 부터)
         const textToSpeak = currentEnWordsArray.slice(startIdx).join(" ");
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
-        utterance.lang = 'en-US'; utterance.rate = 0.85; 
+        utterance.lang = 'en-US'; 
+        utterance.rate = 0.85; 
         
+        window.currentUtterance = utterance; // ✨ 브라우저 GC 멈춤 버그 방지용
+
+        // startIdx 앞부분의 원래 텍스트 길이 (오프셋)
+        const offset = startIdx > 0 ? wordMap[startIdx].start : 0;
+
         utterance.onboundary = (e) => {
             if(e.name === 'word') {
-                // 잘라낸 문자열 기준(e.charIndex)으로 몇 번째 단어인지 역산
-                const slicedWordIdx = textToSpeak.substring(0, e.charIndex).split(' ').length - 1;
-                const actualWordIdx = startIdx + slicedWordIdx;
-                const span = document.getElementById(`word-${actualWordIdx}`);
-                if(span && !span.classList.contains('blurred')) {
-                    span.classList.add('active-blue');
+                // 잘라진 텍스트 기준의 charIndex를 원본 텍스트의 절대 위치로 보정
+                const absoluteIndex = e.charIndex + offset;
+                
+                // 현재 발음 중인 단어 색인 찾기
+                const wordIdx = wordMap.findIndex(w => absoluteIndex >= w.start && absoluteIndex <= w.end);
+                
+                if (wordIdx !== -1) {
+                    // 시작점부터 현재 단어까지 모두 파란색으로 채움 (노래방 Sweep 효과)
+                    for (let i = startIdx; i <= wordIdx; i++) {
+                        const span = document.getElementById(`word-${i}`);
+                        if(span && !span.classList.contains('blurred')) {
+                            span.classList.add('active-blue');
+                        }
+                    }
                 }
             }
         };
@@ -356,7 +379,7 @@
         let ko = "", en = "", blurPart = "", stepNum = 1;
         stopTTS(); 
         
-        // ✨ 버튼 상태 초기화 (건너뛰기 모드)
+        // ✨ 버튼 상태 초기화 (연한 파란색의 건너뛰기)
         const nextBtn = document.getElementById('pracNextBtn');
         nextBtn.className = 'btn-apple btn-skip-pale';
         nextBtn.innerHTML = '건너뛰기 ➡️';
@@ -371,7 +394,7 @@
             else if (stepNum === 3) blurPart = "half"; 
             else if (stepNum === 4) blurPart = "most"; 
             else if (stepNum === 5) blurPart = "all";
-            document.getElementById('stepBadge').innerText = `단어 문장 STEP ${stepNum}/5`;
+            document.getElementById('stepBadge').innerText = `단어 마스터 STEP ${stepNum}/5`;
         } 
         else if (currentPracticeMode.startsWith('full_')) {
             stepNum = parseInt(currentPracticeMode.split('_')[1]);
@@ -391,12 +414,18 @@
     function renderInteractiveWords(text, blurMode = "") {
         const container = document.getElementById('pracEnText');
         container.innerHTML = "";
-        currentEnWordsArray = text.split(" "); // 원본 단어 배열 저장
-        
+        currentEnWordsArray = text.split(" "); 
+        wordMap = []; 
+        let charOffset = 0;
+
         currentEnWordsArray.forEach((word, idx) => {
             const span = document.createElement('span');
             span.className = "en-word"; span.innerText = word + " "; span.id = `word-${idx}`;
             
+            // ✨ 정밀 매핑을 위해 각 단어의 절대 위치 저장 (+1은 공백)
+            wordMap.push({ start: charOffset, end: charOffset + word.length, id: `word-${idx}` });
+            charOffset += word.length + 1; 
+
             const cleanWord = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
             let shouldBlur = false;
 
@@ -409,7 +438,8 @@
 
             if (shouldBlur) span.classList.add('blurred');
             
-            span.onclick = () => { playTTS("", idx); };
+            // 터치하면 해당 단어부터 재생
+            span.onclick = () => { playTTS(idx); };
             container.appendChild(span);
         });
     }
@@ -441,7 +471,7 @@
                 highlightRecognizedWords(data.user_speech);
                 const score = data.score || 0;
                 
-                // ✨ 70점 이상일 때 다음 단계 버튼 활성화 (진한 파란색 + 글로우)
+                // ✨ 70점 이상일 때 진한 파란색 + 글로우 버튼으로 변신
                 if (score >= 70) {
                     const nextBtn = document.getElementById('pracNextBtn');
                     nextBtn.className = 'btn-apple btn-blue btn-glow';
@@ -493,7 +523,7 @@
     function resetToIntro() { stopTTS(); lessonData = null; document.getElementById('dashboardView').style.display = 'none'; document.getElementById('introView').style.display = 'block'; }
 
     function loadFromArchive(id) {
-        const archive = JSON.parse(localStorage.getItem('archive_v7')) || [];
+        const archive = JSON.parse(localStorage.getItem('archive_v8')) || [];
         const item = archive.find(a => a.id === id);
         if(item && item.data) {
             lessonData = item.data;
@@ -504,7 +534,7 @@
 
     function saveToArchive() {
         if(!lessonData) return;
-        let archive = JSON.parse(localStorage.getItem('archive_v7')) || [];
+        let archive = JSON.parse(localStorage.getItem('archive_v8')) || [];
         const isMastered = lessonData.completed.full && lessonData.completed.keys.every(Boolean);
         const existingIdx = archive.findIndex(a => a.data.english === lessonData.english);
         if (existingIdx !== -1) { 
@@ -519,12 +549,12 @@
                 data: lessonData 
             }); 
         }
-        localStorage.setItem('archive_v7', JSON.stringify(archive));
+        localStorage.setItem('archive_v8', JSON.stringify(archive));
     }
 
     function renderArchive() {
         const list = document.getElementById('archiveList');
-        const archive = JSON.parse(localStorage.getItem('archive_v7')) || [];
+        const archive = JSON.parse(localStorage.getItem('archive_v8')) || [];
         if(archive.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888; padding:30px;'>첫 문장을 녹음해보세요!</p>"; return; }
         list.innerHTML = archive.map(a => `
             <div class="archive-card ${a.mastered ? 'mastered' : ''}" onclick="loadFromArchive(${a.id})">
