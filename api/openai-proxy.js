@@ -1,4 +1,4 @@
-// api/openai-proxy.js (최종 최적화판)
+// api/openai-proxy.js
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -14,10 +14,7 @@ export default async function handler(req, res) {
         formData.append('file', blob, 'audio.m4a');
         formData.append('model', 'whisper-1');
         
-        // 한/영 스위치 값에 따른 Whisper 설정
-        if (lang_mode === 'ko') {
-            formData.append('language', 'ko');
-        }
+        if (lang_mode === 'ko') formData.append('language', 'ko');
 
         const sttResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
             method: "POST", headers: { "Authorization": `Bearer ${API_KEY}` }, body: formData
@@ -28,19 +25,21 @@ export default async function handler(req, res) {
         let instruction = "";
 
         if (action === 'korean') {
-            const langContext = lang_mode === 'mixed' 
-                ? "사용자의 말에 한국어와 영어가 섞여 있을 수 있습니다. 맥락을 파악해 가장 세련된 영어 문장으로 번역하세요."
+            // ✨ 90% 영어 포커스 시스템 지시어 적용 (오차율 최소화)
+            const langContext = lang_mode === 'focus90' 
+                ? "[LANGUAGE FOCUS: 90% English / 10% Korean] 사용자의 발화에 한국어와 영어가 섞여 있습니다. 사용자의 의도를 파악하여 90% 원어민식 세련된 영어 표현으로 완벽히 교정하고, 나머지 10%의 한국어는 의미를 명확히 짚어주는 용도로만 사용하세요."
                 : "사용자는 오직 한국어로만 말했습니다. 이를 원어민식 영어로 번역하세요.";
 
             instruction = `
-            사용자가 다음과 같이 말했습니다: "${userSpeech}"
+            사용자의 말: "${userSpeech}"
             난이도: ${difficulty}
             ${langContext}
             
             초보자를 위한 입체적인 영어 레슨을 구성하세요. 
-            [필수 규칙 - 버그 방지]
+            [필수 규칙]
             1. "keys" 배열에는 **반드시 정확히 3개의 독립된 객체**가 있어야 합니다. 절대 하나로 합치지 마세요.
-            2. 레슨 5단계 구성 규칙 (주제 이탈 금지):
+            2. [바리에이션 강도 조절] ko_var와 en_var 생성 시 원본 문장의 구조(예: 'visiting the [amusement park]')를 최대한 유지하고, 맥락이 이어지는 선에서 핵심 단어만 변경하세요. 너무 뜬금없는 상황은 피하세요.
+            3. 레슨 5단계 구성 규칙 (주제 이탈 금지):
                - STEP 1: 원본 문장 (기본)
                - STEP 2: 원본 문장 (핵심단어 블러)
                - STEP 3: 주어/시제/상황을 비튼 변형 문장 (Variation)
@@ -75,6 +74,7 @@ export default async function handler(req, res) {
         });
 
         const gptData = await gptResponse.json();
-        res.status(200).json({ ...JSON.parse(gptData.choices[0].message.content), user_speech: userSpeech });
+        const finalResult = JSON.parse(gptData.choices[0].message.content);
+        res.status(200).json({ ...finalResult, recognized_text: userSpeech });
     } catch (error) { res.status(500).json({ error: error.message }); }
 }
