@@ -20,41 +20,33 @@ export default async function handler(req, res) {
             method: "POST", headers: { "Authorization": `Bearer ${API_KEY}` }, body: formData
         });
         const sttData = await sttResponse.json();
-        const userSpeech = sttData.text;
+        const userSpeech = sttData.text || "";
 
         let instruction = "";
 
         if (action === 'korean') {
-            // ✨ 90% 영어 포커스 시스템 지시어 적용 (오차율 최소화)
             const langContext = lang_mode === 'focus90' 
-                ? "[LANGUAGE FOCUS: 90% English / 10% Korean] 사용자의 발화에 한국어와 영어가 섞여 있습니다. 사용자의 의도를 파악하여 90% 원어민식 세련된 영어 표현으로 완벽히 교정하고, 나머지 10%의 한국어는 의미를 명확히 짚어주는 용도로만 사용하세요."
-                : "사용자는 오직 한국어로만 말했습니다. 이를 원어민식 영어로 번역하세요.";
+                ? "[LANGUAGE FOCUS: 90% English / 10% Korean] 사용자의 말에 한국어와 영어가 섞여 있습니다. 의도를 파악해 90% 세련된 영어 표현으로 교정하고, 10% 한국어는 의미 설명에만 사용하세요."
+                : "사용자는 한국어로 말했습니다. 이를 원어민식 영어로 번역하세요.";
 
             instruction = `
             사용자의 말: "${userSpeech}"
             난이도: ${difficulty}
             ${langContext}
             
-            초보자를 위한 입체적인 영어 레슨을 구성하세요. 
-            [필수 규칙]
-            1. "keys" 배열에는 **반드시 정확히 3개의 독립된 객체**가 있어야 합니다. 절대 하나로 합치지 마세요.
-            2. [바리에이션 강도 조절] ko_var와 en_var 생성 시 원본 문장의 구조(예: 'visiting the [amusement park]')를 최대한 유지하고, 맥락이 이어지는 선에서 핵심 단어만 변경하세요. 너무 뜬금없는 상황은 피하세요.
-            3. 레슨 5단계 구성 규칙 (주제 이탈 금지):
-               - STEP 1: 원본 문장 (기본)
-               - STEP 2: 원본 문장 (핵심단어 블러)
-               - STEP 3: 주어/시제/상황을 비튼 변형 문장 (Variation)
-               - STEP 4: 변형 문장 (핵심부분 블러)
-               - STEP 5: 원본 문장 (전체 공백)
+            [필수 엄수 규칙]
+            1. "keys" 배열에는 **반드시 정확히 3개의 객체**가 존재해야 합니다.
+            2. 바리에이션(ko_var, en_var)은 원본 구조를 유지하며 핵심 단어만 연관성 있게 변경하세요.
+            3. 반환은 오직 아래 JSON 구조로만 하세요.
 
-            반드시 아래 JSON 형식만 반환하세요:
             {
                 "title": "상황 요약 제목",
                 "korean": "사용자 의도를 정리한 완벽한 한글 문장",
                 "english": "세련되게 교정된 전체 영어 문장",
                 "keys": [
-                    { "word": "핵심단어1", "ko_org": "원본 한글 문장", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" },
-                    { "word": "핵심단어2", "ko_org": "원본 한글 문장", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" },
-                    { "word": "핵심단어3", "ko_org": "원본 한글 문장", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" }
+                    { "word": "핵심단어1", "ko_org": "원본 한글", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" },
+                    { "word": "핵심단어2", "ko_org": "원본 한글", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" },
+                    { "word": "핵심단어3", "ko_org": "원본 한글", "en_org": "원본 영어", "ko_var": "변형 한글", "en_var": "변형 영어" }
                 ],
                 "drills": [
                     {"step": 1, "ko": "원본 한글", "en_full": "원본 영어", "blur_part": "none"},
@@ -65,7 +57,7 @@ export default async function handler(req, res) {
                 ]
             }`;
         } else {
-            instruction = `목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 점수(0~100)와 짧은 한국어 피드백을 JSON {"score": <숫자>, "feedback": "<문장>"}으로 반환하세요.`;
+            instruction = `목표 문장: "${target_english}", 실제 발음: "${userSpeech}". 점수(0~100)와 짧은 피드백을 JSON {"score": <숫자>, "feedback": "<문장>"}으로 반환하세요.`;
         }
 
         const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
