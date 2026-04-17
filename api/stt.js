@@ -1,18 +1,22 @@
-// /api/stt.js
-// 역할: 음성 → 텍스트 변환만 담당 (Whisper STT)
-// 실행시간: 3~5초 → Vercel Hobby 10초 제한 안전
+// /api/stt.js - 음성 → 텍스트 변환 전용
 
-export const config = { maxDuration: 10 };
+export const config = {
+api: { bodyParser: { sizeLimit: ‘10mb’ } }, // 오디오 base64 크기 대응
+maxDuration: 10,
+};
 
 export default async function handler(req, res) {
 if (req.method !== ‘POST’) return res.status(405).json({ error: ‘Method not allowed’ });
 
 ```
-const { audio, mimeType, lang_mode } = req.body;
 const API_KEY = process.env.OPENAI_API_KEY;
 if (!API_KEY) return res.status(500).json({ error: "API 키 오류" });
 
 try {
+    const { audio, mimeType, lang_mode } = req.body;
+    if (!audio) return res.status(400).json({ error: "오디오 데이터 없음" });
+
+    // iOS: audio/mp4 → .m4a, Chrome: audio/webm → .webm
     const resolvedMime = mimeType || 'audio/webm';
     let fileExt = 'webm';
     if (resolvedMime.includes('mp4') || resolvedMime.includes('m4a') || resolvedMime.includes('aac')) {
@@ -35,9 +39,12 @@ try {
     });
 
     const sttData = await sttResponse.json();
-    const text = sttData.text || "";
 
-    res.status(200).json({ text });
+    if (!sttResponse.ok) {
+        return res.status(500).json({ error: `Whisper 오류: ${sttData.error?.message || sttResponse.status}` });
+    }
+
+    res.status(200).json({ text: sttData.text || "" });
 
 } catch (error) {
     res.status(500).json({ error: error.message });
