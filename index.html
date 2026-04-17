@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -18,109 +19,112 @@
         }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; position: relative; }
-        
-        @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .boing-active { animation: boing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        @keyframes glowSuccess { 0% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.5); } 100% { box-shadow: 0 0 25px rgba(0, 122, 255, 1); } }
-        .btn-next-active { animation: glowSuccess 1.2s infinite alternate !important; background: var(--ios-blue) !important; color: white !important; font-weight: 900 !important; border: 2px solid white; transform: scale(1.02); transition: 0.2s all; }
+```
+    @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    .boing-active { animation: boing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        .glow-active { box-shadow: 0 0 20px rgba(255, 59, 48, 0.7) !important; border: 2px solid var(--ios-red) !important; background: var(--ios-red) !important; color: white !important; transform: scale(1.05); transition: 0.2s all; }
-        .black-glow { box-shadow: 0 0 20px rgba(0,0,0,0.5) !important; border: 2.5px solid #1C1C1E !important; background: #1C1C1E !important; color: white !important; }
-        .black-glow .en-text-container, .black-glow .dash-label, .black-glow .bubble-ko { color: #fff !important; }
-        .black-glow .dash-label { color: #aaa !important; }
+    @keyframes glowSuccess { 0% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.5); } 100% { box-shadow: 0 0 25px rgba(0, 122, 255, 1); } }
+    .btn-next-active { animation: glowSuccess 1.2s infinite alternate !important; background: var(--ios-blue) !important; color: white !important; font-weight: 900 !important; border: 2px solid white; transform: scale(1.02); transition: 0.2s all; }
 
-        .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
-        .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
-        .tab.active { color: var(--ios-blue); border-bottom: 2.5px solid var(--ios-blue); }
+    .glow-active { box-shadow: 0 0 20px rgba(255, 59, 48, 0.7) !important; border: 2px solid var(--ios-red) !important; background: var(--ios-red) !important; color: white !important; transform: scale(1.05); transition: 0.2s all; }
+    .black-glow { box-shadow: 0 0 20px rgba(0,0,0,0.5) !important; border: 2.5px solid #1C1C1E !important; background: #1C1C1E !important; color: white !important; }
+    .black-glow .en-text-container, .black-glow .dash-label, .black-glow .bubble-ko { color: #fff !important; }
+    .black-glow .dash-label { color: #aaa !important; }
 
-        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
+    .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
+    .tab.active { color: var(--ios-blue); border-bottom: 2.5px solid var(--ios-blue); }
 
-        .bubble-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
-        .speech-bubble { background: #fff; border-radius: 20px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative; text-align: left; transition: background 0.3s, box-shadow 0.3s, color 0.3s; }
-        .bubble-ko { font-size: 20px; font-weight: 900; color: #111; line-height: 1.4; text-align: center; }
-        .dash-label { font-size: 12px; font-weight: 800; color: #888; margin-bottom: 8px; }
-        
-        .audio-bubble { background: #fff; border-radius: 16px; padding: 12px; display: flex; justify-content: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #EAEAEA; }
-        .step-badge-container { display: flex; justify-content: center; margin-bottom: 12px; }
-        .step-badge { background: var(--ios-blue); color: white; padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; letter-spacing: 0.5px; }
-        
-        .en-text-container { font-size: 28px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); text-align: left; }
-        .en-word { display: inline-block; margin-right: 6px; margin-bottom: 6px; transition: color 0.2s; cursor: pointer; }
-        .en-word.active-blue { color: var(--ios-blue) !important; }
-        .en-word.dimmed { color: #D1D1D6 !important; }
-        .en-word.blurred { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 5px; cursor: pointer; }
-        
-        .dict-link { border-bottom: 2px dashed var(--ios-blue); padding-bottom: 2px; color: var(--ios-blue); }
-        .black-glow .dict-link { border-bottom: 2px dashed #B3D4FF; color: #B3D4FF; }
+    .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
+    .section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .writing-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .writing-input { width: 100%; height: 55px; border-radius: 14px; border: 2px solid #D1D1D6; padding: 0 15px; font-size: 18px; font-weight: 700; text-align: center; outline: none; transition: 0.2s; box-sizing: border-box; }
-        .writing-input:focus { border-color: var(--ios-blue); }
+    .bubble-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+    .speech-bubble { background: #fff; border-radius: 20px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative; text-align: left; transition: background 0.3s, box-shadow 0.3s, color 0.3s; }
+    .bubble-ko { font-size: 20px; font-weight: 900; color: #111; line-height: 1.4; text-align: center; }
+    .dash-label { font-size: 12px; font-weight: 800; color: #888; margin-bottom: 8px; }
+    
+    .audio-bubble { background: #fff; border-radius: 16px; padding: 12px; display: flex; justify-content: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #EAEAEA; }
+    .step-badge-container { display: flex; justify-content: center; margin-bottom: 12px; }
+    .step-badge { background: var(--ios-blue); color: white; padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; letter-spacing: 0.5px; }
+    
+    .en-text-container { font-size: 28px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); text-align: left; }
+    .en-word { display: inline-block; margin-right: 6px; margin-bottom: 6px; transition: color 0.2s; cursor: pointer; }
+    .en-word.active-blue { color: var(--ios-blue) !important; }
+    .en-word.dimmed { color: #D1D1D6 !important; }
+    .en-word.blurred { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 5px; cursor: pointer; }
+    
+    .dict-link { border-bottom: 2px dashed var(--ios-blue); padding-bottom: 2px; color: var(--ios-blue); }
+    .black-glow .dict-link { border-bottom: 2px dashed #B3D4FF; color: #B3D4FF; }
 
-        .btn-audio-main { background: #E8F5E9; color: var(--master-green); border: none; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; padding: 0 20px; display: flex; align-items: center; justify-content: center; height: 38px; gap: 6px; }
-        .btn-audio-sub { background: #F2F2F7; color: #555; border: none; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px; gap: 6px; padding: 0 16px; }
-        
-        .diff-control { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; gap: 4px; }
-        .diff-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-        .diff-opt.active { background: #fff; color: var(--apple-navy); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .lang-opt.active { background: #E8F5E9; color: var(--master-green); }
+    .writing-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+    .writing-input { width: 100%; height: 55px; border-radius: 14px; border: 2px solid #D1D1D6; padding: 0 15px; font-size: 18px; font-weight: 700; text-align: center; outline: none; transition: 0.2s; box-sizing: border-box; }
+    .writing-input:focus { border-color: var(--ios-blue); }
 
-        .dashboard-title { font-size: 15px; font-weight: 900; margin-bottom: 12px; color: #888; display: flex; justify-content: space-between; align-items: flex-end; }
-        .progress-count { font-size: 14px; font-weight: 800; color: var(--ios-blue); }
-        
-        .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; -webkit-tap-highlight-color: transparent; transition: 0.2s; }
-        .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
+    .btn-audio-main { background: #E8F5E9; color: var(--master-green); border: none; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; padding: 0 20px; display: flex; align-items: center; justify-content: center; height: 38px; gap: 6px; }
+    .btn-audio-sub { background: #F2F2F7; color: #555; border: none; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px; gap: 6px; padding: 0 16px; }
+    
+    .diff-control { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; gap: 4px; }
+    .diff-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+    .diff-opt.active { background: #fff; color: var(--apple-navy); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .lang-opt.active { background: #E8F5E9; color: var(--master-green); }
 
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
-        .btn-red { background: var(--ios-red); color: white; }
-        .btn-blue { background: var(--ios-blue); color: white; }
-        .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
-        .btn-skip-pale { background: var(--skip-blue); color: #0056B3; font-weight: 900; }
+    .dashboard-title { font-size: 15px; font-weight: 900; margin-bottom: 12px; color: #888; display: flex; justify-content: space-between; align-items: flex-end; }
+    .progress-count { font-size: 14px; font-weight: 800; color: var(--ios-blue); }
+    
+    .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; -webkit-tap-highlight-color: transparent; transition: 0.2s; }
+    .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
 
-        .fixed-action-area { position: sticky; bottom: 10px; z-index: 999; padding-top: 10px; background: var(--ios-bg); }
-        #loadingUIMain, #loadingUIPrac { display: none; width: 100%; margin-bottom: 10px; }
-        .progress-box { background: #fff; border-radius: 16px; padding: 18px; border: 2px solid var(--ios-blue); box-shadow: 0 5px 15px rgba(0,122,255,0.15); }
-        .progress-header { display: flex; justify-content: space-between; font-weight: 900; color: var(--ios-blue); margin-bottom: 10px; font-size: 15px; }
-        .progress-bg { height: 12px; background: #E5E5EA; border-radius: 6px; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--ios-blue); width: 0%; transition: width 0.3s; }
+    .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+    .btn-red { background: var(--ios-red); color: white; }
+    .btn-blue { background: var(--ios-blue); color: white; }
+    .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
+    .btn-skip-pale { background: var(--skip-blue); color: #0056B3; font-weight: 900; }
 
-        .waveform-container { display: flex; align-items: center; gap: 3.5px; height: 40px; flex: 2; overflow: hidden; }
-        .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; }
-        .stopwatch { font-family: "Malgun Gothic", sans-serif; font-weight: 900; font-size: 22px; flex: 1; text-align: center; }
-        
-        #countdownOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
-        .countdown-num { font-size: 120px; font-weight: 900; color: var(--ios-blue); animation: popIn 1s infinite; }
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 30% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+    .fixed-action-area { position: sticky; bottom: 10px; z-index: 999; padding-top: 10px; background: var(--ios-bg); }
+    #loadingUIMain, #loadingUIPrac { display: none; width: 100%; margin-bottom: 10px; }
+    .progress-box { background: #fff; border-radius: 16px; padding: 18px; border: 2px solid var(--ios-blue); box-shadow: 0 5px 15px rgba(0,122,255,0.15); }
+    .progress-header { display: flex; justify-content: space-between; font-weight: 900; color: var(--ios-blue); margin-bottom: 10px; font-size: 15px; }
+    .progress-bg { height: 12px; background: #E5E5EA; border-radius: 6px; overflow: hidden; }
+    .progress-bar { height: 100%; background: var(--ios-blue); width: 0%; transition: width 0.3s; }
 
-        .result-bubble-container { text-align: left; margin-bottom: 15px; }
-        .score-bubble { background: #F8F8FA; border-radius: 14px; padding: 15px 20px; border: 1px solid #EAEAEA; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
-        .score-num { font-size: 40px; font-weight: 900; color: var(--ios-blue); line-height: 1; }
-        .score-msg { font-size: 15px; font-weight: 700; color: #444; line-height: 1.4; flex: 1; }
-        .ans-bubble { background: #fff; border-radius: 14px; padding: 18px; border: 1px solid #EAEAEA; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .ans-text { font-size: 16px; font-weight: 800; color: var(--apple-navy); line-height: 1.4; margin-bottom: 12px; }
-        .fb-text { font-size: 13.5px; font-weight: 700; color: #666; line-height: 1.5; border-top: 1px solid #EEE; padding-top: 12px; }
+    .waveform-container { display: flex; align-items: center; gap: 3.5px; height: 40px; flex: 2; overflow: hidden; }
+    .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; }
+    .stopwatch { font-family: "Malgun Gothic", sans-serif; font-weight: 900; font-size: 22px; flex: 1; text-align: center; }
+    
+    #countdownOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+    .countdown-num { font-size: 120px; font-weight: 900; color: var(--ios-blue); animation: popIn 1s infinite; }
+    @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 30% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
 
-        #mcqArea { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .mcq-btn { background: #F2F2F7; border: none; padding: 15px; border-radius: 14px; font-weight: 800; font-size: 16px; cursor: pointer; color: var(--apple-navy); transition: 0.2s; text-align: center;}
+    .result-bubble-container { text-align: left; margin-bottom: 15px; }
+    .score-bubble { background: #F8F8FA; border-radius: 14px; padding: 15px 20px; border: 1px solid #EAEAEA; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+    .score-num { font-size: 40px; font-weight: 900; color: var(--ios-blue); line-height: 1; }
+    .score-msg { font-size: 15px; font-weight: 700; color: #444; line-height: 1.4; flex: 1; }
+    .ans-bubble { background: #fff; border-radius: 14px; padding: 18px; border: 1px solid #EAEAEA; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+    .ans-text { font-size: 16px; font-weight: 800; color: var(--apple-navy); line-height: 1.4; margin-bottom: 12px; }
+    .fb-text { font-size: 13.5px; font-weight: 700; color: #666; line-height: 1.5; border-top: 1px solid #EEE; padding-top: 12px; }
 
-        .archive-bubble { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; -webkit-tap-highlight-color: transparent;}
-        .archive-header { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
-        .archive-title { font-size: 17px; font-weight: 900; color: var(--dial-navy); line-height: 1.3; }
+    #mcqArea { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+    .mcq-btn { background: #F2F2F7; border: none; padding: 15px; border-radius: 14px; font-weight: 800; font-size: 16px; cursor: pointer; color: var(--apple-navy); transition: 0.2s; text-align: center;}
 
-        #globalDictTooltip { 
-            display: none; position: absolute; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(10px); 
-            color: #fff; padding: 18px; border-radius: 16px; font-size: 14px; z-index: 99999; 
-            width: max-content; max-width: 300px; box-sizing: border-box; 
-            word-break: keep-all; white-space: normal; line-height: 1.5;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-        }
-        .dict-title-area { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; }
-        .dict-pos-text { color: #aaa; font-size: 12px; font-weight: 800; margin-right: 6px; }
-        .ko-context-box { background: rgba(0, 122, 255, 0.15); border-left: 3px solid var(--ios-blue); padding: 10px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13.5px; color: #ddd; font-style: italic; line-height: 1.4; }
-    </style>
+    .archive-bubble { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; -webkit-tap-highlight-color: transparent;}
+    .archive-header { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
+    .archive-title { font-size: 17px; font-weight: 900; color: var(--dial-navy); line-height: 1.3; }
+
+    #globalDictTooltip { 
+        display: none; position: absolute; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(10px); 
+        color: #fff; padding: 18px; border-radius: 16px; font-size: 14px; z-index: 99999; 
+        width: max-content; max-width: 300px; box-sizing: border-box; 
+        word-break: keep-all; white-space: normal; line-height: 1.5;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+    }
+    .dict-title-area { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; }
+    .dict-pos-text { color: #aaa; font-size: 12px; font-weight: 800; margin-right: 6px; }
+    .ko-context-box { background: rgba(0, 122, 255, 0.15); border-left: 3px solid var(--ios-blue); padding: 10px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13.5px; color: #ddd; font-style: italic; line-height: 1.4; }
+</style>
+```
+
 </head>
 <body onclick="hideDictTooltip()">
 
@@ -147,130 +151,133 @@
         <button class="tab" id="tab-archive" onclick="switchTab('archive')">STORAGE</button>
     </nav>
 
-    <div id="sec-game" class="section active">
-        <div id="introView">
-            <div class="speech-bubble" style="text-align: center; margin-bottom:20px;">
-                <div id="introMainTitle" style="font-size: 19px; font-weight: 900; margin-bottom: 25px; line-height:1.4; color:var(--dial-navy);">실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요</div>
-                
-                <div class="diff-control">
-                    <div class="diff-opt" onclick="setDifficulty('beginner', this)" id="diff-beginner">🌱 초급</div>
-                    <div class="diff-opt active" onclick="setDifficulty('intermediate', this)" id="diff-intermediate">🌿 중급</div>
-                    <div class="diff-opt" onclick="setDifficulty('advanced', this)" id="diff-advanced">🌳 상급</div>
-                </div>
-                
-                <div class="diff-control" style="background: #F2F2F7;">
-                    <div class="diff-opt lang-opt active" onclick="setLangMode('ko')" id="lang-ko">🇰🇷 한국어 모드</div>
-                    <div class="diff-opt lang-opt" onclick="setLangMode('focus90')" id="lang-focus90" style="font-size: 12px; display:flex; align-items:center; justify-content:center; gap:4px;">
-                        <span>🇺🇸 영어 혼용 모드</span>
-                    </div>
-                </div>
+```
+<div id="sec-game" class="section active">
+    <div id="introView">
+        <div class="speech-bubble" style="text-align: center; margin-bottom:20px;">
+            <div id="introMainTitle" style="font-size: 19px; font-weight: 900; margin-bottom: 25px; line-height:1.4; color:var(--dial-navy);">실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요</div>
+            
+            <div class="diff-control">
+                <div class="diff-opt" onclick="setDifficulty('beginner', this)" id="diff-beginner">🌱 초급</div>
+                <div class="diff-opt active" onclick="setDifficulty('intermediate', this)" id="diff-intermediate">🌿 중급</div>
+                <div class="diff-opt" onclick="setDifficulty('advanced', this)" id="diff-advanced">🌳 상급</div>
             </div>
             
-            <div class="fixed-action-area">
-                <div id="mainWaveContainer" style="display:none; justify-content:space-between; align-items:center; height:50px; margin-bottom:15px; background:#fff; border-radius:16px; padding:0 20px; border:2px solid var(--ios-red); box-shadow: 0 5px 15px rgba(255,59,48,0.15);">
-                    <div class="waveform-container" id="mainWaveform" style="flex:2; height:35px;">
-                        <div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div>
-                    </div>
-                    <div class="stopwatch" id="mainRecTimer" style="font-size:20px; color:var(--ios-red);">00:00</div>
-                </div>
-
-                <div id="loadingUIMain">
-                    <div class="progress-box">
-                        <div class="progress-header"><span>데이터 정밀 분석 중...</span><span id="progressTextMain">0%</span></div>
-                        <div class="progress-bg"><div class="progress-bar" id="progressBarMain"></div></div>
-                    </div>
-                </div>
-                <button id="mainRecordBtn" class="btn-apple btn-red" onclick="startMainRecording(this)" style="background: var(--ios-blue);">녹음 시작</button>
-            </div>
-        </div>
-
-        <div id="dashboardView" style="display:none;">
-            <div class="speech-bubble" id="dashMainBubble" style="margin-bottom: 20px;">
-                <div class="dash-label" id="dashLabelText">내 이야기 (교정 완료)</div>
-                <div class="en-text-container" id="dashEnText" style="font-size: 22px; margin-bottom:0; position:relative;"></div>
-                <div class="bubble-ko" id="dashKoText" style="font-size: 15px; font-weight: 700; margin-top: 8px; line-height: 1.4; border-top: 1px solid #EAEAEA; padding-top: 12px;"></div>
-            </div>
-            
-            <div class="dashboard-title"><span>1. 덩어리 8단계 훈련</span><span class="progress-count" id="keyProgress">0/0</span></div>
-            <div id="keyList"></div>
-            
-            <div class="dashboard-title" style="margin-top:20px;"><span>2. 핵심 단어 8코스</span><span class="progress-count" id="vocabProgress">0/0</span></div>
-            <div id="vocabList"></div>
-
-            <div class="dashboard-title" style="margin-top:20px;"><span>3. 전체 문장 드릴</span><span class="progress-count" id="fullProgress">0/1</span></div>
-            <div id="fullDrillCard"></div>
-            
-            <button class="btn-apple btn-gray" style="margin-top: 20px;" onclick="handleReload(this)">새로운 이야기</button>
-        </div>
-
-        <div id="practiceView" style="display:none;">
-            <div class="step-badge-container"><div class="step-badge" id="stepBadge">STEP 1</div></div>
-            
-            <div class="bubble-container">
-                <div class="speech-bubble" style="padding: 20px;">
-                    <div class="bubble-ko" id="pracKoText" style="margin: 0; border: none; padding: 0;"></div>
-                </div>
-                
-                <div class="audio-bubble">
-                    <button class="btn-audio-main" id="btnPlayTTS" onclick="handlePlayTTS(this)">🔊 음성 듣기</button>
-                    <button class="btn-audio-sub" id="btnPauseTTS" style="display:none;" onclick="handlePauseTTS(this)">일시정지</button>
-                    <button class="btn-audio-sub" onclick="handleResetTTS(this)">초기화</button>
-                </div>
-
-                <div class="speech-bubble" style="padding: 25px 20px;">
-                    <div class="en-text-container" id="pracEnText" style="margin-bottom: 0;"></div>
-                    <div class="guide-text" id="pracGuideText" style="font-size: 13px; font-weight: 800; color: var(--ios-blue); margin-top: 15px; text-align: center;">소리내어 읽어보세요</div>
+            <div class="diff-control" style="background: #F2F2F7;">
+                <div class="diff-opt lang-opt active" onclick="setLangMode('ko')" id="lang-ko">🇰🇷 한국어 모드</div>
+                <div class="diff-opt lang-opt" onclick="setLangMode('focus90')" id="lang-focus90" style="font-size: 12px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <span>🇺🇸 영어 혼용 모드</span>
                 </div>
             </div>
-
-            <div id="writingArea" class="writing-container" style="display:none; margin-bottom:15px;">
-                <input type="text" id="writingInput" class="writing-input" placeholder="정답을 영어로 적어주세요 (예: ramen)" autocomplete="off" spellcheck="false">
-                <button onclick="checkWriting(this)" class="btn-apple btn-blue" style="margin-bottom:0;">정답 제출</button>
-            </div>
-            
-            <div id="mcqArea" style="display:none;"></div>
-
-            <div id="pracResultArea" style="display:none;">
-                <div class="result-bubble-container">
-                    <div class="score-bubble">
-                        <div class="score-num" id="scoreText">85</div>
-                        <div class="score-msg" id="scoreMsg">훌륭해요! 거의 완벽합니다.</div>
-                    </div>
-                    <div class="ans-bubble" id="ansBubbleContainer">
-                        <div class="ans-text">인식된 음성: <span id="targetTextDisplay" style="color:var(--ios-blue);"></span></div>
-                        <div class="fb-text" id="feedbackText">파란색으로 표시된 단어는 정확하게 발음하셨습니다.</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="fixed-action-area">
-                <div id="loadingUIPrac">
-                    <div class="progress-box">
-                        <div class="progress-header"><span>발음 정밀 평가 중...</span><span id="progressTextPrac">0%</span></div>
-                        <div class="progress-bg"><div class="progress-bar" id="progressBarPrac"></div></div>
-                    </div>
-                </div>
-
-                <button id="pracRecordBtn" class="btn-apple btn-red" onclick="toggleQuickRecord(this)" data-recording="false">녹음 시작</button>
-                
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                    <button id="goDashboardBtn" class="btn-apple btn-gray" onclick="goDashboard(this)">← 목록</button>
-                    <button id="pracNextBtn" class="btn-apple btn-skip-pale" onclick="nextDrillStage(this)">건너뛰기 →</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="sec-archive" class="section">
-        <h2 style="font-weight: 900; color: var(--dial-navy); margin-bottom: 15px;">학습 보관소</h2>
-        <div class="diff-control" style="margin-bottom: 20px;">
-            <div class="diff-opt active" id="arc-tab-story" onclick="switchArcTab('story')">상황별 이야기</div>
-            <div class="diff-opt" id="arc-tab-vocab" onclick="switchArcTab('vocab')">핵심 단어장</div>
         </div>
         
-        <div id="archiveListStory"></div>
-        <div id="archiveListVocab" style="display:none;"></div>
+        <div class="fixed-action-area">
+            <div id="mainWaveContainer" style="display:none; justify-content:space-between; align-items:center; height:50px; margin-bottom:15px; background:#fff; border-radius:16px; padding:0 20px; border:2px solid var(--ios-red); box-shadow: 0 5px 15px rgba(255,59,48,0.15);">
+                <div class="waveform-container" id="mainWaveform" style="flex:2; height:35px;">
+                    <div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div>
+                </div>
+                <div class="stopwatch" id="mainRecTimer" style="font-size:20px; color:var(--ios-red);">00:00</div>
+            </div>
+
+            <div id="loadingUIMain">
+                <div class="progress-box">
+                    <div class="progress-header"><span>데이터 정밀 분석 중...</span><span id="progressTextMain">0%</span></div>
+                    <div class="progress-bg"><div class="progress-bar" id="progressBarMain"></div></div>
+                </div>
+            </div>
+            <button id="mainRecordBtn" class="btn-apple btn-red" onclick="startMainRecording(this)" style="background: var(--ios-blue);">녹음 시작</button>
+        </div>
     </div>
+
+    <div id="dashboardView" style="display:none;">
+        <div class="speech-bubble" id="dashMainBubble" style="margin-bottom: 20px;">
+            <div class="dash-label" id="dashLabelText">내 이야기 (교정 완료)</div>
+            <div class="en-text-container" id="dashEnText" style="font-size: 22px; margin-bottom:0; position:relative;"></div>
+            <div class="bubble-ko" id="dashKoText" style="font-size: 15px; font-weight: 700; margin-top: 8px; line-height: 1.4; border-top: 1px solid #EAEAEA; padding-top: 12px;"></div>
+        </div>
+        
+        <div class="dashboard-title"><span>1. 덩어리 8단계 훈련</span><span class="progress-count" id="keyProgress">0/0</span></div>
+        <div id="keyList"></div>
+        
+        <div class="dashboard-title" style="margin-top:20px;"><span>2. 핵심 단어 8코스</span><span class="progress-count" id="vocabProgress">0/0</span></div>
+        <div id="vocabList"></div>
+
+        <div class="dashboard-title" style="margin-top:20px;"><span>3. 전체 문장 드릴</span><span class="progress-count" id="fullProgress">0/1</span></div>
+        <div id="fullDrillCard"></div>
+        
+        <button class="btn-apple btn-gray" style="margin-top: 20px;" onclick="handleReload(this)">새로운 이야기</button>
+    </div>
+
+    <div id="practiceView" style="display:none;">
+        <div class="step-badge-container"><div class="step-badge" id="stepBadge">STEP 1</div></div>
+        
+        <div class="bubble-container">
+            <div class="speech-bubble" style="padding: 20px;">
+                <div class="bubble-ko" id="pracKoText" style="margin: 0; border: none; padding: 0;"></div>
+            </div>
+            
+            <div class="audio-bubble">
+                <button class="btn-audio-main" id="btnPlayTTS" onclick="handlePlayTTS(this)">🔊 음성 듣기</button>
+                <button class="btn-audio-sub" id="btnPauseTTS" style="display:none;" onclick="handlePauseTTS(this)">일시정지</button>
+                <button class="btn-audio-sub" onclick="handleResetTTS(this)">초기화</button>
+            </div>
+
+            <div class="speech-bubble" style="padding: 25px 20px;">
+                <div class="en-text-container" id="pracEnText" style="margin-bottom: 0;"></div>
+                <div class="guide-text" id="pracGuideText" style="font-size: 13px; font-weight: 800; color: var(--ios-blue); margin-top: 15px; text-align: center;">소리내어 읽어보세요</div>
+            </div>
+        </div>
+
+        <div id="writingArea" class="writing-container" style="display:none; margin-bottom:15px;">
+            <input type="text" id="writingInput" class="writing-input" placeholder="정답을 영어로 적어주세요 (예: ramen)" autocomplete="off" spellcheck="false">
+            <button onclick="checkWriting(this)" class="btn-apple btn-blue" style="margin-bottom:0;">정답 제출</button>
+        </div>
+        
+        <div id="mcqArea" style="display:none;"></div>
+
+        <div id="pracResultArea" style="display:none;">
+            <div class="result-bubble-container">
+                <div class="score-bubble">
+                    <div class="score-num" id="scoreText">85</div>
+                    <div class="score-msg" id="scoreMsg">훌륭해요! 거의 완벽합니다.</div>
+                </div>
+                <div class="ans-bubble" id="ansBubbleContainer">
+                    <div class="ans-text">인식된 음성: <span id="targetTextDisplay" style="color:var(--ios-blue);"></span></div>
+                    <div class="fb-text" id="feedbackText">파란색으로 표시된 단어는 정확하게 발음하셨습니다.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="fixed-action-area">
+            <div id="loadingUIPrac">
+                <div class="progress-box">
+                    <div class="progress-header"><span>발음 정밀 평가 중...</span><span id="progressTextPrac">0%</span></div>
+                    <div class="progress-bg"><div class="progress-bar" id="progressBarPrac"></div></div>
+                </div>
+            </div>
+
+            <button id="pracRecordBtn" class="btn-apple btn-red" onclick="toggleQuickRecord(this)" data-recording="false">녹음 시작</button>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                <button id="goDashboardBtn" class="btn-apple btn-gray" onclick="goDashboard(this)">← 목록</button>
+                <button id="pracNextBtn" class="btn-apple btn-skip-pale" onclick="nextDrillStage(this)">건너뛰기 →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="sec-archive" class="section">
+    <h2 style="font-weight: 900; color: var(--dial-navy); margin-bottom: 15px;">학습 보관소</h2>
+    <div class="diff-control" style="margin-bottom: 20px;">
+        <div class="diff-opt active" id="arc-tab-story" onclick="switchArcTab('story')">상황별 이야기</div>
+        <div class="diff-opt" id="arc-tab-vocab" onclick="switchArcTab('vocab')">핵심 단어장</div>
+    </div>
+    
+    <div id="archiveListStory"></div>
+    <div id="archiveListVocab" style="display:none;"></div>
+</div>
+```
+
 </div>
 
 <script>
@@ -363,6 +370,13 @@
             v.confusing_words = v.confusing_words || [v.word + "e", v.word.substring(0, Math.max(1, v.word.length-1))];
             v.example_ko = v.example_ko || v.meaning || "해석"; 
             v.example_en = v.example_en || v.word || "Text";
+            // 바리에이션 기본값
+            v.var1_en = v.var1_en || v.example_en || v.word || "Text";
+            v.var1_ko = v.var1_ko || v.example_ko || v.meaning || "해석";
+            v.var2_en = v.var2_en || v.example_en || v.word || "Text";
+            v.var2_ko = v.var2_ko || v.example_ko || v.meaning || "해석";
+            v.var3_en = v.var3_en || v.example_en || v.word || "Text";
+            v.var3_ko = v.var3_ko || v.example_ko || v.meaning || "해석";
             v.pos = v.pos || "단어"; 
             v.phonetics = v.phonetics || "";
         });
@@ -595,8 +609,13 @@
             let tempLesson = await res.json();
             
             if (tempLesson.error) { 
-                alert(tempLesson.error); 
-                location.reload(); 
+                clearInterval(progressInt);
+                loading.style.display = 'none';
+                btn.style.display = 'block';
+                btn.style.background = 'var(--ios-blue)';
+                btn.innerHTML = '↺ 다시 시도';
+                btn.onclick = () => startMainRecording(btn);
+                alert(tempLesson.error);
                 return; 
             }
             
@@ -604,12 +623,13 @@
             lessonData.id = Date.now(); 
             
             lessonData.vocab.forEach(v => { 
-                let drills = [2, 3, 4, 5, 6, 7]; 
-                for (let i = drills.length - 1; i > 0; i--) { 
+                // 새 구조: 1(발음) → 2,3,4 셔플(MCQ스펠링/MCQ뜻/받아쓰기) → 5,6,7,8 고정(예문+바리에이션)
+                let midDrills = [2, 3, 4]; 
+                for (let i = midDrills.length - 1; i > 0; i--) { 
                     const j = Math.floor(Math.random() * (i + 1)); 
-                    [drills[i], drills[j]] = [drills[j], drills[i]]; 
+                    [midDrills[i], midDrills[j]] = [midDrills[j], midDrills[i]]; 
                 } 
-                v.drillOrder = [1, ...drills, 8]; 
+                v.drillOrder = [1, ...midDrills, 5, 6, 7, 8]; 
             });
             
             saveToArchive(); 
@@ -625,8 +645,16 @@
             
         } catch (e) { 
             console.error(e); 
-            alert("데이터 분석 지연. 네트워크를 확인 후 다시 시도해주세요."); 
-            location.reload(); 
+            clearInterval(progressInt);
+            loading.style.display = 'none'; 
+            btn.style.display = 'block';
+            btn.style.background = 'var(--ios-blue)';
+            btn.innerHTML = '↺ 다시 시도';
+            btn.onclick = () => startMainRecording(btn);
+            const msg = e.message && e.message.includes('504') 
+                ? "서버 응답 시간이 초과됐습니다.\n잠시 후 다시 시도해주세요."
+                : "분석에 실패했습니다. 다시 시도해주세요.";
+            alert(msg);
         }
     }
 
@@ -937,58 +965,72 @@
             
             document.getElementById('stepBadge').innerText = `VOCAB MASTER STEP ${stepNum}/8`;
             
-            if (actualTask === 1) { 
+            if (actualTask === 1) {
+                // 단어 원본 발음
                 ko = `${v.meaning || ''} [${v.pos || ''}]`; 
                 en = v.word || ''; 
                 blurPart = "none"; 
-                currentTargetText = v.word || ''; // ✅ BUG FIX
-                document.getElementById('pracGuideText').innerText = "단어를 발음해보세요"; 
-            } else if (actualTask === 2) { 
-                ko = `${v.meaning || ''}`; 
-                en = v.word || ''; 
-                blurPart = "all"; 
-                currentTargetText = v.word || ''; // ✅ BUG FIX
-                document.getElementById('pracGuideText').innerText = "빈칸을 채워 발음해보세요\n(어려우면 터치해서 힌트 보기)"; 
-            } else if (actualTask === 3) { 
-                ko = `${v.meaning || ''}`; 
-                en = "???"; 
-                blurPart = "none"; 
-                currentTargetText = v.word || ''; // ✅ BUG FIX
-                document.getElementById('pracGuideText').innerText = "뜻을 보고 영단어를 말해보세요"; 
-            } else if (actualTask === 4) { 
-                ko = "음성을 듣고 올바른 뜻 고르기"; 
-                en = "???"; 
-                hiddenTTSWord = v.word || ''; 
-                currentTargetText = ''; // MCQ는 음성평가 없음
-                document.getElementById('pracGuideText').style.display = 'none'; 
-                renderMCQ(v.meaning, v.wrong_options); 
-            } else if (actualTask === 5) { 
-                ko = `올바른 스펠링 고르기\n(뜻: ${v.meaning || ''})`; 
-                en = "???"; 
-                hiddenTTSWord = v.word || ''; 
-                currentTargetText = ''; // MCQ는 음성평가 없음
-                document.getElementById('pracGuideText').style.display = 'none'; 
-                renderSpellingMCQ(v); 
-            } else if (actualTask === 6) { 
-                ko = `${v.meaning || ''} (쓰기)`; 
-                en = "???"; 
-                hiddenTTSWord = v.word || ''; 
-                currentTargetText = ''; // 쓰기는 음성평가 없음
-                document.getElementById('pracGuideText').style.display = 'none'; 
-                renderWritingForm("정답을 영어로 적어주세요"); 
-            } else if (actualTask === 7) { 
-                ko = `듣고 받아쓰기`; 
-                en = "???"; 
-                hiddenTTSWord = v.word || ''; 
-                currentTargetText = ''; // 받아쓰기는 음성평가 없음
-                document.getElementById('pracGuideText').style.display = 'none'; 
-                renderWritingForm("정답을 영어로 적어주세요"); 
-            } else { 
-                ko = v.example_ko || ''; 
-                en = v.example_en || ''; 
-                blurPart = "none"; 
-                currentTargetText = v.example_en || ''; // ✅ BUG FIX
-                document.getElementById('pracGuideText').innerText = "예문을 소리내어 읽어보세요"; 
+                currentTargetText = v.word || '';
+                document.getElementById('pracGuideText').innerText = "🔊 단어를 소리내어 발음해보세요";
+
+            } else if (actualTask === 2) {
+                // 스펠링 MCQ (음성 듣고 올바른 스펠링 고르기)
+                ko = `음성을 듣고 올바른 스펠링 고르기\n(뜻: ${v.meaning || ''})`;
+                en = "???";
+                hiddenTTSWord = v.word || '';
+                currentTargetText = '';
+                document.getElementById('pracGuideText').style.display = 'none';
+                renderSpellingMCQ(v);
+
+            } else if (actualTask === 3) {
+                // 음성 듣고 올바른 뜻 고르기 MCQ
+                ko = "🎧 음성을 듣고 올바른 뜻을 고르세요";
+                en = "???";
+                hiddenTTSWord = v.word || '';
+                currentTargetText = '';
+                document.getElementById('pracGuideText').style.display = 'none';
+                renderMCQ(v.meaning, v.wrong_options);
+
+            } else if (actualTask === 4) {
+                // 듣고 받아쓰기
+                ko = `🎧 음성을 듣고 영어로 받아쓰세요\n(뜻: ${v.meaning || ''})`;
+                en = "???";
+                hiddenTTSWord = v.word || '';
+                currentTargetText = '';
+                document.getElementById('pracGuideText').style.display = 'none';
+                renderWritingForm("영어 단어를 받아 적어주세요");
+
+            } else if (actualTask === 5) {
+                // 예문 발음
+                ko = v.example_ko || '';
+                en = v.example_en || '';
+                blurPart = "none";
+                currentTargetText = v.example_en || '';
+                document.getElementById('pracGuideText').innerText = "📖 예문을 소리내어 읽어보세요";
+
+            } else if (actualTask === 6) {
+                // 바리에이션 1
+                ko = v.var1_ko || v.example_ko || '';
+                en = v.var1_en || v.example_en || '';
+                blurPart = "none";
+                currentTargetText = v.var1_en || v.example_en || '';
+                document.getElementById('pracGuideText').innerText = "💬 다양한 상황 1 - 소리내어 읽어보세요";
+
+            } else if (actualTask === 7) {
+                // 바리에이션 2
+                ko = v.var2_ko || v.example_ko || '';
+                en = v.var2_en || v.example_en || '';
+                blurPart = "none";
+                currentTargetText = v.var2_en || v.example_en || '';
+                document.getElementById('pracGuideText').innerText = "💬 다양한 상황 2 - 소리내어 읽어보세요";
+
+            } else {
+                // 바리에이션 3
+                ko = v.var3_ko || v.example_ko || '';
+                en = v.var3_en || v.example_en || '';
+                blurPart = "none";
+                currentTargetText = v.var3_en || v.example_en || '';
+                document.getElementById('pracGuideText').innerText = "💬 다양한 상황 3 - 소리내어 읽어보세요";
             }
         } else {
             // 전체 문장 드릴
@@ -1141,13 +1183,15 @@
                 background: #fff !important;
                 border: 2px solid var(--ios-red) !important;
                 box-shadow: 0 5px 15px rgba(255,59,48,0.2) !important;
-                padding: 0 12px !important;
+                padding: 0 10px 0 14px !important;
                 cursor: default !important;
                 justify-content: flex-start !important;
             `;
             btn.innerHTML = `
-                <div style="display:flex; align-items:center; width:100%; gap:8px;">
-                    <div id="inlineWaveform" style="display:flex; align-items:center; gap:2.5px; flex:3; height:36px; overflow:hidden;">
+                <div style="display:flex; align-items:center; width:100%; gap:6px;">
+                    <div id="inlineWaveform" style="display:flex; align-items:center; gap:2px; flex:5; height:38px; overflow:hidden;">
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
                         <div class="wave-bar" style="background:var(--ios-red);"></div>
                         <div class="wave-bar" style="background:var(--ios-red);"></div>
                         <div class="wave-bar" style="background:var(--ios-red);"></div>
@@ -1165,8 +1209,8 @@
                         <div class="wave-bar" style="background:var(--ios-red);"></div>
                         <div class="wave-bar" style="background:var(--ios-red);"></div>
                     </div>
-                    <div id="inlineTimer" style="font-weight:900; font-size:17px; color:var(--ios-red); flex:1.2; text-align:center; white-space:nowrap;">00:00</div>
-                    <button onclick="stopInlineRecording()" style="background:var(--ios-red); color:white; border:none; border-radius:12px; padding:0 14px; height:40px; font-weight:900; font-size:14px; cursor:pointer; white-space:nowrap; flex-shrink:0;">■ 완료</button>
+                    <div id="inlineTimer" style="font-weight:900; font-size:16px; color:var(--ios-red); flex:1.5; text-align:center; white-space:nowrap;">00:00</div>
+                    <button onclick="stopInlineRecording()" style="background:var(--ios-red); color:white; border:none; border-radius:14px; padding:0 18px; height:44px; font-weight:900; font-size:15px; cursor:pointer; white-space:nowrap; flex:2; min-width:0;">■ 완료</button>
                 </div>
             `;
             
@@ -1559,5 +1603,6 @@
         } 
     }
 </script>
+
 </body>
 </html>
