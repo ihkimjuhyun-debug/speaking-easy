@@ -46,44 +46,98 @@ export default async function handler(req, res) {
                 : "고급: 학술적, 세련된 어휘";
 
             const instruction = `
-            사용자의 말: "${userSpeech}"
+            사용자의 말 (한국어): "${userSpeech}"
             현재 난이도: ${levelInstr}
             
-            [최우선 엄수 규칙]
-            1. '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요. 
-            2. "keys"는 문장 내 핵심 덩어리 표현을 반드시 정확히 3개 추출하세요. 문장이 짧아도 반드시 3개를 채우세요. 절대 3개 미만 반환 금지.
-            3. "vocab"은 훈련을 위한 핵심 단어를 반드시 정확히 3개 추출하세요. 절대 3개 미만 반환 금지.
-            4. "dictionary"는 무조건 5개 이상 작성하세요.
-            5. keys의 "phrase" 필드에는 반드시 실제 영어 표현만 들어가야 합니다. "none" 같은 값 절대 금지.
-            6. "blur_part"에는 흐리게 처리할 핵심 단어(영어, 소문자)를 넣거나, 없으면 "none"으로 설정하세요.
-            
-            반환 JSON 구조:
+            ======= 절대 엄수 규칙 =======
+
+            [규칙 A] keys 변형 문장 규칙 (가장 중요)
+            - keys의 각 항목에서 en_org, en_var1, en_var2, en_long은 반드시 동일한 핵심 키워드/표현을 공유해야 합니다.
+            - 즉, en_org의 핵심 단어(phrase)가 en_var1, en_var2, en_long에도 반드시 포함되어야 합니다.
+            - 예시: phrase = "have a desire to die" 이면,
+                en_org = "Even if I have a desire to die, I keep going."
+                en_var1 = "People sometimes have a desire to die when life feels too heavy."  ← 같은 핵심 표현 유지
+                en_var2 = "She confessed she had a desire to die after the breakup."         ← 같은 핵심 표현 유지
+                en_long = "Even though I have a desire to die sometimes, I remind myself that feelings are temporary." ← 같은 핵심 표현 유지
+            - 절대 금지: en_var1이 en_org와 완전히 다른 주제나 표현이 되는 것.
+
+            [규칙 B] vocab 단어 규칙 (두 번째로 중요)
+            - "word" 필드: 반드시 영어 단어만 입력. 절대 한국어, 한자, 일본어 불가. (예: "desire" O, "욕망" X, "데자이어" X)
+            - "meaning" 필드: 한국어 뜻만 입력. (예: "욕망, 바람" O)
+            - "phonetics" 필드: 영어 발음 기호 또는 발음 표기. (예: "/dɪˈzaɪər/" O)
+            - "wrong_options": 한국어 오답 뜻 2~3개. (예: ["두려움", "용기"])
+            - "confusing_words": 철자가 비슷한 영어 단어 2개. (예: ["desire", "desert", "desir"])
+            - vocab은 반드시 정확히 3개.
+
+            [규칙 C] 기타
+            - keys는 반드시 정확히 3개. phrase 필드에는 영어 표현만.
+            - dictionary는 5개 이상.
+            - blur_part: 해당 step에서 가릴 핵심 영어 단어(소문자). 없으면 "none".
+
+            ======= 반환 JSON 구조 =======
             {
-                "title_ko": "상황 요약",
-                "title_en": "영어 메인 제목",
-                "korean": "자연스러운 한국어",
-                "english": "원어민식 영어 문장",
+                "title_ko": "상황 한 줄 요약 (한국어)",
+                "title_en": "English title",
+                "korean": "자연스러운 한국어 전체 문장",
+                "english": "Natural native English sentence",
                 "dictionary": {
-                    "word1": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
-                    "word2": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
-                    "word3": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
-                    "word4": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "관련 단어" },
-                    "word5": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "관련 단어" }
+                    "englishword1": { "ko": "한국어뜻", "pos": "noun/verb/adj 등", "phonetics": "/발음기호/", "ko_context": "이 문장에서: [맥락 설명]" },
+                    "englishword2": { "ko": "한국어뜻", "pos": "품사", "phonetics": "/발음기호/", "ko_context": "이 문장에서: [맥락 설명]" },
+                    "englishword3": { "ko": "한국어뜻", "pos": "품사", "phonetics": "/발음기호/", "ko_context": "이 문장에서: [맥락 설명]" },
+                    "englishword4": { "ko": "한국어뜻", "pos": "품사", "phonetics": "/발음기호/", "ko_context": "관련 표현" },
+                    "englishword5": { "ko": "한국어뜻", "pos": "품사", "phonetics": "/발음기호/", "ko_context": "관련 표현" }
                 },
                 "keys": [
-                    { "phrase": "표현1", "ko_org": "해석1", "en_org": "원문1", "ko_var1": "변형1해석", "en_var1": "변형1", "ko_var2": "변형2해석", "en_var2": "변형2", "ko_long": "추가해석", "en_long": "추가영어" },
-                    { "phrase": "표현2", "ko_org": "해석2", "en_org": "원문2", "ko_var1": "변형1해석", "en_var1": "변형1", "ko_var2": "변형2해석", "en_var2": "변형2", "ko_long": "추가해석", "en_long": "추가영어" },
-                    { "phrase": "표현3", "ko_org": "해석3", "en_org": "원문3", "ko_var1": "변형1해석", "en_var1": "변형1", "ko_var2": "변형2해석", "en_var2": "변형2", "ko_long": "추가해석", "en_long": "추가영어" }
+                    {
+                        "phrase": "핵심영어표현1 (영어만, 한국어 절대 금지)",
+                        "ko_org": "원문 한국어 해석",
+                        "en_org": "원문 영어 (phrase 포함)",
+                        "ko_var1": "변형1 한국어 해석",
+                        "en_var1": "변형1 영어 (반드시 phrase와 동일한 핵심 단어 포함)",
+                        "ko_var2": "변형2 한국어 해석",
+                        "en_var2": "변형2 영어 (반드시 phrase와 동일한 핵심 단어 포함)",
+                        "ko_long": "확장 한국어 해석",
+                        "en_long": "확장 영어 (반드시 phrase와 동일한 핵심 단어 포함, 문장 좀 더 길게)"
+                    },
+                    { "phrase": "핵심영어표현2", "ko_org": "...", "en_org": "...", "ko_var1": "...", "en_var1": "...", "ko_var2": "...", "en_var2": "...", "ko_long": "...", "en_long": "..." },
+                    { "phrase": "핵심영어표현3", "ko_org": "...", "en_org": "...", "ko_var1": "...", "en_var1": "...", "ko_var2": "...", "en_var2": "...", "ko_long": "...", "en_long": "..." }
                 ],
                 "drills": [
-                    {"step": 1, "ko": "해석", "en_full": "전체문장", "blur_part": "none"},
-                    {"step": 2, "ko": "해석", "en_full": "전체문장", "blur_part": "핵심단어(소문자)"},
-                    {"step": 3, "ko": "해석", "en_full": "전체문장", "blur_part": "all"}
+                    {"step": 1, "ko": "한국어 해석", "en_full": "전체 영어 문장", "blur_part": "none"},
+                    {"step": 2, "ko": "한국어 해석", "en_full": "전체 영어 문장", "blur_part": "가릴핵심단어소문자"},
+                    {"step": 3, "ko": "한국어 해석", "en_full": "전체 영어 문장", "blur_part": "all"}
                 ],
                 "vocab": [
-                    { "word": "단어1", "meaning": "뜻1", "pos": "품사", "phonetics": "발음", "example_en": "예문", "example_ko": "해석", "wrong_options": ["오답1", "오답2"], "confusing_words": ["스펠링오답1", "스펠링오답2"] },
-                    { "word": "단어2", "meaning": "뜻2", "pos": "품사", "phonetics": "발음", "example_en": "예문", "example_ko": "해석", "wrong_options": ["오답1", "오답2"], "confusing_words": ["스펠링오답1", "스펠링오답2"] },
-                    { "word": "단어3", "meaning": "뜻3", "pos": "품사", "phonetics": "발음", "example_en": "예문", "example_ko": "해석", "wrong_options": ["오답1", "오답2"], "confusing_words": ["스펠링오답1", "스펠링오답2"] }
+                    {
+                        "word": "EnglishWord1 (영어만! 절대 한국어 금지)",
+                        "meaning": "한국어뜻1",
+                        "pos": "명사/동사/형용사 등",
+                        "phonetics": "/발음기호/",
+                        "example_en": "Example sentence in English.",
+                        "example_ko": "예문 한국어 해석",
+                        "wrong_options": ["한국어오답1", "한국어오답2"],
+                        "confusing_words": ["similrword", "simialrword"]
+                    },
+                    {
+                        "word": "EnglishWord2 (영어만! 절대 한국어 금지)",
+                        "meaning": "한국어뜻2",
+                        "pos": "품사",
+                        "phonetics": "/발음기호/",
+                        "example_en": "Example sentence.",
+                        "example_ko": "예문 해석",
+                        "wrong_options": ["한국어오답1", "한국어오답2"],
+                        "confusing_words": ["similrword", "simialrword"]
+                    },
+                    {
+                        "word": "EnglishWord3 (영어만! 절대 한국어 금지)",
+                        "meaning": "한국어뜻3",
+                        "pos": "품사",
+                        "phonetics": "/발음기호/",
+                        "example_en": "Example sentence.",
+                        "example_ko": "예문 해석",
+                        "wrong_options": ["한국어오답1", "한국어오답2"],
+                        "confusing_words": ["similrword", "simialrword"]
+                    }
                 ]
             }`;
 
