@@ -342,6 +342,23 @@
             }
             v.word = v.word || "N/A"; 
             v.meaning = v.meaning || "N/A";
+
+            // ✅ 방어 코드: AI가 word에 한국어를 넣었을 경우
+            // 한글이 포함되어 있으면 phonetics(영어 단어)와 교체 시도
+            const hasKorean = /[가-힣]/.test(v.word);
+            if (hasKorean) {
+                // phonetics에 영어 단어가 있으면 교체
+                if (v.phonetics && /[a-zA-Z]/.test(v.phonetics) && !/[가-힣]/.test(v.phonetics)) {
+                    const temp = v.word;
+                    v.word = v.phonetics.replace(/[^a-zA-Z\s'-]/g, '').trim();
+                    v.meaning = v.meaning || temp;
+                } else {
+                    // 복구 불가능하면 word를 N/A로
+                    v.meaning = v.word;
+                    v.word = "N/A";
+                }
+            }
+
             v.wrong_options = v.wrong_options || ["오답1", "오답2"]; 
             v.confusing_words = v.confusing_words || [v.word + "e", v.word.substring(0, Math.max(1, v.word.length-1))];
             v.example_ko = v.example_ko || v.meaning || "해석"; 
