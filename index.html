@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Final V29 Ultimate</title>
+    <title>PolyGlot Master: Stable V30</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
@@ -42,13 +42,13 @@
         .step-badge { background: var(--ios-blue); color: white; padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; letter-spacing: 0.5px; }
         
         .en-text-container { font-size: 28px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); text-align: left; }
-        .en-word { display: inline-block; margin-right: 6px; margin-bottom: 6px; transition: color 0.2s; }
+        .en-word { display: inline-block; margin-right: 6px; margin-bottom: 6px; transition: color 0.2s; cursor: pointer; }
         .en-word.active-blue { color: var(--ios-blue) !important; }
         .en-word.dimmed { color: #D1D1D6 !important; }
         .en-word.blurred { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 5px; cursor: pointer; }
         
-        .dict-link { cursor: pointer; border-bottom: 2px solid #E5E5EA; padding-bottom: 2px; }
-        .black-glow .dict-link { border-bottom: 2px solid #555; }
+        .dict-link { border-bottom: 2px dashed var(--ios-blue); padding-bottom: 2px; color: var(--ios-blue); }
+        .black-glow .dict-link { border-bottom: 2px dashed #B3D4FF; color: #B3D4FF; }
 
         .writing-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
         .writing-input { width: 100%; height: 55px; border-radius: 14px; border: 2px solid #D1D1D6; padding: 0 15px; font-size: 18px; font-weight: 700; text-align: center; outline: none; transition: 0.2s; box-sizing: border-box; }
@@ -104,7 +104,7 @@
         .archive-header { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
         .archive-title { font-size: 17px; font-weight: 900; color: var(--dial-navy); line-height: 1.3; }
 
-        /* ✨ 단어 툴팁 모던 디자인 */
+        /* ✨ 단어 툴팁 모던 디자인 + 한국어 뉘앙스 추가 */
         #globalDictTooltip { 
             display: none; position: absolute; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(10px); 
             color: #fff; padding: 18px; border-radius: 16px; font-size: 14px; z-index: 99999; 
@@ -112,8 +112,9 @@
             word-break: keep-all; white-space: normal; line-height: 1.5;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
         }
-        .dict-title-area { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 10px; }
-        .dict-pos-text { color: var(--skip-blue); font-size: 12px; font-weight: 800; margin-right: 6px; }
+        .dict-title-area { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; }
+        .dict-pos-text { color: #aaa; font-size: 12px; font-weight: 800; margin-right: 6px; }
+        .ko-context-box { background: rgba(0, 122, 255, 0.15); border-left: 3px solid var(--ios-blue); padding: 10px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13.5px; color: #ddd; font-style: italic; line-height: 1.4; }
     </style>
 </head>
 <body onclick="hideDictTooltip()">
@@ -127,14 +128,14 @@
     <div class="dict-title-area">
         <div>
             <div id="dictWord" style="font-size:22px; font-weight:900; color:#fff; line-height:1.2;"></div>
-            <div style="color:#aaa; font-size:13px; margin-top:2px;"><span class="dict-pos-text" id="dictPos"></span><span id="dictPhonetics"></span></div>
+            <div style="color:#aaa; font-size:13px; margin-top:4px;"><span class="dict-pos-text" id="dictPos"></span><span id="dictPhonetics"></span></div>
         </div>
         <div id="dictTTSBtn" style="cursor:pointer; background:rgba(255,255,255,0.15); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:14px; transition:0.2s;" onclick="playDictWordTTS(event)">▶</div>
     </div>
-    <div id="dictKo" style="font-weight:800; font-size:16px; margin-bottom:12px; color:#fff;"></div>
-    <div style="margin-bottom:4px;">
-        <div style="font-size:11px; color:#888; font-weight:900; margin-bottom:4px;">💡 NATIVE EXPRESSION</div>
-        <div id="dictExp" style="color:#ddd; font-style:normal; font-size:13px; border-left:3px solid var(--ios-blue); padding-left:10px; line-height:1.4;"></div>
+    <div id="dictKo" style="font-weight:800; font-size:16px; margin-bottom:4px; color:#fff;"></div>
+    
+    <div id="koContextContainer" class="ko-context-box" style="display:none;">
+        <div id="dictKoContext"></div>
     </div>
 </div>
 
@@ -171,7 +172,7 @@
 
                 <div id="loadingUIMain">
                     <div class="progress-box">
-                        <div class="progress-header"><span>문장 분석 및 단어 추출 중...</span><span id="progressTextMain">0%</span></div>
+                        <div class="progress-header"><span>단어 뉘앙스 최적화 분석 중...</span><span id="progressTextMain">0%</span></div>
                         <div class="progress-bg"><div class="progress-bar" id="progressBarMain"></div></div>
                     </div>
                 </div>
@@ -309,7 +310,6 @@
     function applyBoing(el) { if(!el) return; el.classList.remove('boing-active'); void el.offsetWidth; el.classList.add('boing-active'); }
     function handleReload(btn) { applyBoing(btn); stopMicEngine(); setTimeout(() => location.reload(), 200); }
 
-    // ✨ 난이도 설정 시 멘트(UI 텍스트) 즉시 변경 복구
     function setDifficulty(lvl, el) { 
         selectedDifficulty = lvl; 
         document.querySelectorAll('.diff-opt:not(.lang-opt):not(#arc-tab-story):not(#arc-tab-vocab)').forEach(o => o.classList.remove('active')); 
@@ -402,17 +402,25 @@
             
             saveToArchive(); clearInterval(progressInt); document.getElementById('progressBarMain').style.width = '100%'; document.getElementById('progressTextMain').innerText = '100%';
             setTimeout(() => { loading.style.display = 'none'; showDashboard(); }, 500);
-        } catch (e) { alert("분석 중 오류 발생."); location.reload(); }
+        } catch (e) { alert("서버 통신 중 오류 발생 (타임아웃). 다시 시도해주세요."); location.reload(); }
     }
 
     function showDashboard() {
         document.getElementById('introView').style.display = 'none'; document.getElementById('practiceView').style.display = 'none'; document.getElementById('dashboardView').style.display = 'block';
         document.getElementById('dashKoText').innerText = lessonData.korean;
         
+        // ✨ 추출된 핵심 뉘앙스 단어만 밑줄치고 클릭 시 툴팁 발생. 그 외 단어는 단순 클릭 시 TTS 재생
         const dashEn = document.getElementById('dashEnText');
         const wordsHtml = lessonData.english.split(' ').map(w => {
             const clean = w.toLowerCase().replace(/[^a-z]/g, '');
-            return `<span class="en-word dict-link" onclick="showDictTooltip('${clean}', '${w.replace(/['"]/g,"")}', event, this)">${w} </span>`;
+            const isDictWord = lessonData.dictionary && (lessonData.dictionary[clean] || lessonData.dictionary[w.toLowerCase()]);
+            
+            if (isDictWord) {
+                return `<span class="en-word dict-link" onclick="showDictTooltip('${clean}', '${w.replace(/['"]/g,"")}', event, this)">${w} </span>`;
+            } else {
+                // 단순 TTS 재생용 클래스
+                return `<span class="en-word" style="cursor:pointer;" onclick="playDictWordTTSOnly('${w.replace(/['"]/g,"")}', event)">${w} </span>`;
+            }
         }).join('');
         dashEn.innerHTML = wordsHtml;
 
@@ -429,19 +437,33 @@
         document.getElementById('fullDrillCard').innerHTML = `<div class="lesson-card boing-active ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">전체 문장 마스터 (3단계)</div><div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${lessonData.english}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.full ? '✅' : '▶'}</div></div>`;
     }
 
+    function playDictWordTTSOnly(word, event) {
+        event.stopPropagation(); applyBoing(event.target);
+        if(!word) return; synth.cancel(); const ut = new SpeechSynthesisUtterance(word); ut.lang = 'en-US'; synth.speak(ut);
+    }
+
     function showDictTooltip(cleanKey, originalWord, event, spanEl) {
         event.stopPropagation();
         
         let dict = lessonData.dictionary[cleanKey] || lessonData.dictionary[originalWord.toLowerCase()] || lessonData.dictionary[originalWord];
-        if(!dict) dict = { ko: "단어 확인 중", pos: "Basic", phonetics: "", expression: "사전 데이터를 생성 중입니다." };
+        if(!dict) return; // 에러 방어
 
         const tt = document.getElementById('globalDictTooltip');
         document.getElementById('dictWord').innerText = originalWord; 
-        document.getElementById('dictKo').innerText = dict.ko; 
-        document.getElementById('dictPos').innerText = dict.pos; 
+        document.getElementById('dictKo').innerText = dict.ko || ""; 
+        document.getElementById('dictPos').innerText = dict.pos || ""; 
         document.getElementById('dictPhonetics').innerText = dict.phonetics ? ` | ${dict.phonetics}` : ""; 
-        document.getElementById('dictExp').innerText = dict.expression || ""; 
         
+        const contextBox = document.getElementById('koContextContainer');
+        const contextText = document.getElementById('dictKoContext');
+        
+        if (dict.ko_context && dict.ko_context.trim() !== "") {
+            contextBox.style.display = 'block';
+            contextText.innerText = dict.ko_context;
+        } else {
+            contextBox.style.display = 'none';
+        }
+
         tt.style.display = 'block'; tt.style.transform = 'none'; 
         
         const rect = spanEl.getBoundingClientRect();
@@ -652,21 +674,20 @@
     function goDashboard(btn) { if(btn) applyBoing(btn); resetTTS(); stopMicEngine(); saveToArchive(); document.getElementById('practiceView').style.display = 'none'; showDashboard(); }
 
     function saveToArchive() {
-        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v29')) || [];
+        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v30')) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0) + lessonData.completed.vocab.filter(Boolean).length;
         const idx = arc.findIndex(a => a.id === lessonData.id);
         
         const dataToSave = { id: lessonData.id, date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), title_ko: lessonData.title_ko || "나의 이야기", title_en: lessonData.title_en || "My Story", mastered: (pr === 7), data: lessonData };
         if (idx !== -1) { dataToSave.starred = arc[idx].starred; arc[idx] = dataToSave; } else { dataToSave.starred = false; arc.unshift(dataToSave); }
-        localStorage.setItem('archive_poly_v29', JSON.stringify(arc));
+        localStorage.setItem('archive_poly_v30', JSON.stringify(arc));
     }
 
-    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v29')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v29', JSON.stringify(arc)); renderArchive(); }
-    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v29')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v29', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
+    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v30')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v30', JSON.stringify(arc)); renderArchive(); }
+    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v30')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v30', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
 
-    // ✨ 스토리지 뷰: 한국어 소제목을 위로, 영어 메인 제목을 아래로 (요청사항 완벽 반영)
     function renderArchive() {
-        const listStory = document.getElementById('archiveListStory'); const listVocab = document.getElementById('archiveListVocab'); let arc = JSON.parse(localStorage.getItem('archive_poly_v29')) || [];
+        const listStory = document.getElementById('archiveListStory'); const listVocab = document.getElementById('archiveListVocab'); let arc = JSON.parse(localStorage.getItem('archive_poly_v30')) || [];
         if(arc.length === 0) { listStory.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; listVocab.innerHTML = "<p style='text-align:center; color:#888;'>저장된 단어가 없습니다.</p>"; return; }
         arc.sort((a, b) => { if (a.starred && !b.starred) return -1; if (!a.starred && b.starred) return 1; return 0; });
 
@@ -689,8 +710,8 @@
         listVocab.innerHTML = vocabHtml;
     }
     
-    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v29')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
-    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v29')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
+    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v30')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v30')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
 
 </script>
 </body>
