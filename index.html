@@ -597,38 +597,57 @@
         btn.style.display = 'none'; 
         loading.style.display = 'block';
         
-        let w = 0; 
-        clearInterval(progressInt); 
-        document.getElementById('progressTextMain').innerText = "0%"; 
-        
-        progressInt = setInterval(() => { 
-            w += Math.floor(Math.random() * 5) + 1; 
-            if(w > 96) w = 96; 
-            document.getElementById('progressBarMain').style.width = w + '%'; 
-            document.getElementById('progressTextMain').innerText = w + '%'; 
-        }, 300);
-        
+        clearInterval(progressInt);
+        let w = 0;
+        const progBar = document.getElementById('progressBarMain');
+        const progText = document.getElementById('progressTextMain');
+
         const b64 = await getBase64Audio(); 
-        stopMicEngine(); 
+        stopMicEngine();
 
         try {
-            const res = await fetch("/api/openai-proxy", { 
-                method: "POST", 
-                headers: {"Content-Type": "application/json"}, 
-                body: JSON.stringify({
-                    audio: b64,
-                    mimeType: currentMimeType,
-                    action: 'korean', 
-                    difficulty: selectedDifficulty, 
-                    lang_mode: currentLangMode
-                }) 
+            // ─── 1단계: 음성 → 텍스트 (STT, ~3~5초) ───
+            progText.innerText = "음성 변환 중...";
+            progressInt = setInterval(() => {
+                w += 3; if (w > 45) w = 45;
+                progBar.style.width = w + '%';
+            }, 200);
+
+            const sttRes = await fetch("/api/stt", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ audio: b64, mimeType: currentMimeType, lang_mode: currentLangMode })
             });
-            
-            if (!res.ok) throw new Error(`서버 에러: ${res.status}`);
-            
-            let tempLesson = await res.json();
-            
-            if (tempLesson.error) { 
+            if (!sttRes.ok) throw new Error(`STT 에러: ${sttRes.status}`);
+            const sttData = await sttRes.json();
+            const userText = sttData.text || "";
+
+            // 환각/빈값 체크
+            const lowerText = userText.toLowerCase();
+            const jpRegex = /[\u3040-\u30ff\u4e00-\u9fff]/;
+            const isHallucination = lowerText.includes("mbc") || lowerText.includes("amara") || jpRegex.test(userText) || userText.trim().length < 2;
+            if (isHallucination) {
+                throw new Error("음성이 명확히 인식되지 않았습니다. 조용한 곳에서 다시 말씀해주세요!");
+            }
+
+            // ─── 2단계: 텍스트 → 학습 데이터 (GPT 분석, ~5~9초) ───
+            clearInterval(progressInt);
+            w = 48;
+            progText.innerText = "AI 분석 중...";
+            progressInt = setInterval(() => {
+                w += 2; if (w > 95) w = 95;
+                progBar.style.width = w + '%';
+            }, 250);
+
+            const analyzeRes = await fetch("/api/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: userText, difficulty: selectedDifficulty, lang_mode: currentLangMode })
+            });
+            if (!analyzeRes.ok) throw new Error(`분석 에러: ${analyzeRes.status}`);
+            let tempLesson = await analyzeRes.json();
+
+            if (tempLesson.error) {
                 clearInterval(progressInt);
                 loading.style.display = 'none';
                 btn.style.display = 'block';
@@ -636,44 +655,43 @@
                 btn.innerHTML = '↺ 다시 시도';
                 btn.onclick = () => startMainRecording(btn);
                 alert(tempLesson.error);
-                return; 
+                return;
             }
-            
-            lessonData = normalizeLessonData(tempLesson); 
-            lessonData.id = Date.now(); 
-            
-            lessonData.vocab.forEach(v => { 
-                // 새 구조: 1(발음) → 2,3,4 셔플(MCQ스펠링/MCQ뜻/받아쓰기) → 5,6,7,8 고정(예문+바리에이션)
-                let midDrills = [2, 3, 4]; 
-                for (let i = midDrills.length - 1; i > 0; i--) { 
-                    const j = Math.floor(Math.random() * (i + 1)); 
-                    [midDrills[i], midDrills[j]] = [midDrills[j], midDrills[i]]; 
-                } 
-                v.drillOrder = [1, ...midDrills, 5, 6, 7, 8]; 
+
+            lessonData = normalizeLessonData(tempLesson);
+            lessonData.id = Date.now();
+
+            lessonData.vocab.forEach(v => {
+                let midDrills = [2, 3, 4];
+                for (let i = midDrills.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [midDrills[i], midDrills[j]] = [midDrills[j], midDrills[i]];
+                }
+                v.drillOrder = [1, ...midDrills, 5, 6, 7, 8];
             });
-            
-            saveToArchive(); 
-            
-            clearInterval(progressInt); 
-            document.getElementById('progressBarMain').style.width = '100%'; 
-            document.getElementById('progressTextMain').innerText = '100%';
-            
-            setTimeout(() => { 
-                loading.style.display = 'none'; 
-                showDashboard(); 
-            }, 500);
-            
-        } catch (e) { 
-            console.error(e); 
+
+            saveToArchive();
+
             clearInterval(progressInt);
-            loading.style.display = 'none'; 
+            progBar.style.width = '100%';
+            progText.innerText = '100%';
+
+            setTimeout(() => {
+                loading.style.display = 'none';
+                showDashboard();
+            }, 500);
+
+        } catch (e) {
+            console.error(e);
+            clearInterval(progressInt);
+            loading.style.display = 'none';
             btn.style.display = 'block';
             btn.style.background = 'var(--ios-blue)';
             btn.innerHTML = '↺ 다시 시도';
             btn.onclick = () => startMainRecording(btn);
-            const msg = e.message && e.message.includes('504') 
-                ? "서버 응답 시간이 초과됐습니다.\n잠시 후 다시 시도해주세요."
-                : "분석에 실패했습니다. 다시 시도해주세요.";
+            const msg = e.message && (e.message.includes('504') || e.message.includes('에러'))
+                ? `오류: ${e.message}\n다시 시도해주세요.`
+                : e.message || "분석에 실패했습니다. 다시 시도해주세요.";
             alert(msg);
         }
     }
