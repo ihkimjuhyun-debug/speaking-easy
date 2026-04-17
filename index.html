@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Dynamic V33</title>
+    <title>PolyGlot Master: Architect V34</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
@@ -278,32 +278,51 @@
     let synth = window.speechSynthesis, progressInt, timerInt, recSeconds = 0;
     let hiddenTTSWord = ""; 
 
+    // NEW: 과거 구형 데이터나 손상된 데이터를 완벽히 복원/채워넣는 궁극의 방어 로직 (스토리지 드릴 크래시 원천 차단)
     function normalizeLessonData(data) {
         if (!data) return null;
+        
+        // 1. 전체 문장 드릴(drills) 복구
         if (!data.drills || data.drills.length === 0) {
             data.drills = [
-                {step: 1, ko: data.korean, en_full: data.english, blur_part: "none"},
-                {step: 2, ko: data.korean, en_full: data.english, blur_part: data.keys?.[0]?.phrase || "some"},
-                {step: 3, ko: data.korean, en_full: data.english, blur_part: "all"}
+                {step: 1, ko: data.korean || "", en_full: data.english || "", blur_part: "none"},
+                {step: 2, ko: data.korean || "", en_full: data.english || "", blur_part: (data.keys && data.keys[0]) ? data.keys[0].phrase : "some"},
+                {step: 3, ko: data.korean || "", en_full: data.english || "", blur_part: "all"}
             ];
         }
-        if (data.keys) {
-            data.keys.forEach(k => {
-                k.ko_var1 = k.ko_var1 || k.ko_var || k.ko_org || "해석 없음"; k.en_var1 = k.en_var1 || k.en_var || k.en_org || "No text";
-                k.ko_var2 = k.ko_var2 || k.ko_var || k.ko_org || "해석 없음"; k.en_var2 = k.en_var2 || k.en_var || k.en_org || "No text";
-                k.ko_long = k.ko_long || k.ko_org || "해석 없음"; k.en_long = k.en_long || k.en_org || "No text";
-                k.phrase = k.phrase || k.en_org || "";
-            });
+        
+        // 2. 덩어리 8단계 훈련(keys) 복구
+        if (!data.keys || data.keys.length === 0) {
+            data.keys = [{}, {}, {}]; // 최소 3개 빈 객체 생성
         }
-        if (data.vocab) {
-            data.vocab.forEach(v => {
-                if (!v.drillOrder) v.drillOrder = [1, 2, 3, 4, 5, 6, 7, 8];
-                v.wrong_options = v.wrong_options || ["오답1", "오답2"];
-                v.confusing_words = v.confusing_words || [v.word + "e", v.word.substring(0, v.word.length-1 > 0 ? v.word.length-1 : 1)];
-                v.example_ko = v.example_ko || v.meaning; v.example_en = v.example_en || v.word;
-            });
+        data.keys.forEach(k => {
+            k.phrase = k.phrase || k.en_org || "Error";
+            k.ko_org = k.ko_org || data.korean || "해석 없음"; k.en_org = k.en_org || data.english || "No text";
+            k.ko_var1 = k.ko_var1 || k.ko_var || k.ko_org; k.en_var1 = k.en_var1 || k.en_var || k.en_org;
+            k.ko_var2 = k.ko_var2 || k.ko_var || k.ko_org; k.en_var2 = k.en_var2 || k.en_var || k.en_org;
+            k.ko_long = k.ko_long || k.ko_org; k.en_long = k.en_long || k.en_org;
+        });
+
+        // 3. 핵심 단어장(vocab) 복구
+        if (!data.vocab || data.vocab.length === 0) {
+            data.vocab = [{word: "Error", meaning: "에러", pos: "N/A"}, {word: "Error", meaning: "에러", pos: "N/A"}, {word: "Error", meaning: "에러", pos: "N/A"}];
         }
-        if(!data.completed) data.completed = { keys: [false, false, false], full: false, vocab: [false, false, false] };
+        data.vocab.forEach(v => {
+            if (!v.drillOrder || v.drillOrder.length < 8) v.drillOrder = [1, 2, 3, 4, 5, 6, 7, 8];
+            v.wrong_options = v.wrong_options || ["오답1", "오답2"];
+            v.confusing_words = v.confusing_words || [v.word + "e", v.word.substring(0, v.word.length > 1 ? v.word.length-1 : 1)];
+            v.example_ko = v.example_ko || v.meaning || ""; v.example_en = v.example_en || v.word || "";
+            v.pos = v.pos || "단어"; v.phonetics = v.phonetics || "";
+        });
+
+        // 4. 완료 상태(completed) 복구
+        if(!data.completed || !Array.isArray(data.completed.keys)) {
+            data.completed = { keys: [false, false, false], full: false, vocab: [false, false, false] };
+        }
+        
+        // 5. Dictionary 복구
+        if(!data.dictionary) data.dictionary = {};
+
         return data;
     }
 
@@ -419,7 +438,7 @@
         const mainB = document.getElementById('dashMainBubble'); mainB.style.background = '#fff'; mainB.classList.remove('black-glow');
         if(totalProg < 7) mainB.style.background = ['#fff', '#F2F2F7', '#FFFBE6', '#E8F5E9', '#E6F2FF', '#D2DAE2', '#F3E5F5'][totalProg]; else { mainB.classList.add('black-glow'); }
         
-        document.getElementById('keyList').innerHTML = lessonData.keys.map((k, idx) => `<div class="lesson-card boing-active ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">${k.ko_org}</div><div class="en" style="font-size:18px; font-weight:900; margin-top:4px;">${k.phrase || k.en_org}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.keys[idx] ? '✅' : '▶'}</div></div>`).join('');
+        document.getElementById('keyList').innerHTML = lessonData.keys.map((k, idx) => `<div class="lesson-card boing-active ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">${k.ko_org}</div><div class="en" style="font-size:18px; font-weight:900; margin-top:4px;">${k.phrase}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.keys[idx] ? '✅' : '▶'}</div></div>`).join('');
         document.getElementById('vocabList').innerHTML = lessonData.vocab.map((v, idx) => `<div class="lesson-card boing-active ${lessonData.completed.vocab[idx] ? 'mastered' : ''}" onclick="startPractice('vocab_${idx}_1', this)"><div style="flex:1;"><div class="ko" style="font-size:13px; color:#888;">${v.pos} | ${v.phonetics}</div><div class="en" style="font-size:20px; font-weight:900; margin-top:2px;">${v.word}</div><div class="ko" style="font-size:15px; color:#444; margin-top:2px; font-weight:800;">${v.meaning}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.vocab[idx] ? '✅' : '▶'}</div></div>`).join('');
         document.getElementById('fullDrillCard').innerHTML = `<div class="lesson-card boing-active ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">전체 문장 마스터 (3단계)</div><div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${lessonData.english}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.full ? '✅' : '▶'}</div></div>`;
     }
@@ -463,14 +482,16 @@
     function pauseTTS() { synth.cancel(); ttsIsPlaying = false; updateTTSUI(); }
     function resetTTS() { synth.cancel(); ttsIsPlaying = false; ttsGlobalIndex = 0; updateTTSUI(); document.querySelectorAll('.en-word').forEach(el => { el.classList.remove('active-blue', 'dimmed'); }); }
 
+    // NEW: 세이프 렌더링 방어 로직이 적용된 드릴 실행 함수
     function startPractice(mode, cardEl) { 
         try {
             if(cardEl) applyBoing(cardEl); resetTTS(); stopMicEngine();
+            if(!lessonData) throw new Error("데이터가 준비되지 않았습니다.");
             document.getElementById('dashboardView').style.display = 'none'; document.getElementById('practiceView').style.display = 'block'; currentPracticeMode = mode; 
             setupPracticeUI(); 
         } catch (e) {
             console.error("Practice Loading Error:", e);
-            alert("이전 데이터 구조가 호환되지 않습니다. 다시 시도하거나 스토리를 새로 생성해주세요.");
+            alert("저장된 훈련 데이터를 여는 중 문제가 발생했습니다. 스토리를 다시 만들어주세요.");
             goDashboard();
         }
     }
@@ -577,20 +598,19 @@
 
     function goDashboard(btn) { if(btn) applyBoing(btn); resetTTS(); stopMicEngine(); saveToArchive(); document.getElementById('practiceView').style.display = 'none'; showDashboard(); }
 
-    // 🌟 V33 스토리지 연동
     function saveToArchive() {
-        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v33')) || [];
+        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v34')) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0) + lessonData.completed.vocab.filter(Boolean).length;
         const idx = arc.findIndex(a => a.id === lessonData.id);
         const dataToSave = { id: lessonData.id, date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), title_ko: lessonData.title_ko || "나의 이야기", title_en: lessonData.title_en || "My Story", mastered: (pr === 7), data: lessonData };
-        if (idx !== -1) { dataToSave.starred = arc[idx].starred; arc[idx] = dataToSave; } else { dataToSave.starred = false; arc.unshift(dataToSave); } localStorage.setItem('archive_poly_v33', JSON.stringify(arc));
+        if (idx !== -1) { dataToSave.starred = arc[idx].starred; arc[idx] = dataToSave; } else { dataToSave.starred = false; arc.unshift(dataToSave); } localStorage.setItem('archive_poly_v34', JSON.stringify(arc));
     }
 
-    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v33')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v33', JSON.stringify(arc)); renderArchive(); }
-    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v33')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v33', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
+    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v34')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v34', JSON.stringify(arc)); renderArchive(); }
+    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v34')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v34', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
 
     function renderArchive() {
-        const listStory = document.getElementById('archiveListStory'); const listVocab = document.getElementById('archiveListVocab'); let arc = JSON.parse(localStorage.getItem('archive_poly_v33')) || [];
+        const listStory = document.getElementById('archiveListStory'); const listVocab = document.getElementById('archiveListVocab'); let arc = JSON.parse(localStorage.getItem('archive_poly_v34')) || [];
         if(arc.length === 0) { listStory.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; listVocab.innerHTML = "<p style='text-align:center; color:#888;'>저장된 단어가 없습니다.</p>"; return; }
         arc.sort((a, b) => { if (a.starred && !b.starred) return -1; if (!a.starred && b.starred) return 1; return 0; });
 
@@ -613,8 +633,9 @@
         listVocab.innerHTML = vocabHtml;
     }
     
-    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v33')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = normalizeLessonData(item.data); setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
-    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v33')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = normalizeLessonData(item.data); setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
+    // NEW: 구형 데이터 호환 및 안정성을 극대화한 load 로직 적용
+    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v34')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = normalizeLessonData(item.data); setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v34')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = normalizeLessonData(item.data); setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
 
 </script>
 </body>
