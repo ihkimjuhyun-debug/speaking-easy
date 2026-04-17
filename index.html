@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Stable V37</title>
+    <title>PolyGlot Master: Indestructible V38</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
@@ -270,8 +270,8 @@
 </div>
 
 <script>
-    // 안정화된 V37 스토리지. (이전 데이터도 자동으로 살려냅니다)
-    const STORAGE_KEY = 'archive_poly_v37';
+    // 🌟 완전 무결점 스토리지 키 (깨끗하고 터지지 않는 공간 확정)
+    const STORAGE_KEY = 'archive_poly_v38';
 
     let lessonData = null, currentPracticeMode = null;
     let selectedDifficulty = 'intermediate', currentLangMode = 'ko'; 
@@ -281,23 +281,22 @@
     let synth = window.speechSynthesis, progressInt, timerInt, recSeconds = 0;
     let hiddenTTSWord = ""; 
 
-    // 🌟 [핵심 수리] AI가 아무리 개떡같이 데이터를 줘도, 스토리지에 망가진 데이터가 있어도 찰떡같이 복구해내는 궁극의 함수
+    // 🌟 [핵심 수리 1] null 반환 절대 불가, 없으면 무조건 더미 객체라도 생성
     function normalizeLessonData(data) {
-        if (!data) return null;
+        if (!data || typeof data !== 'object') {
+            data = { korean: "오류가 복구된 데이터입니다.", english: "Recovered from error." };
+        }
         
-        // 1. drills 배열 보장
         if (!data.drills || !Array.isArray(data.drills) || data.drills.length === 0) {
             data.drills = [
                 {step: 1, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: "none"},
-                {step: 2, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: (data.keys && data.keys[0]) ? data.keys[0].phrase : "some"},
+                {step: 2, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: "some"},
                 {step: 3, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: "all"}
             ];
         }
 
-        // 2. keys (덩어리) 동적 적응: 데이터가 아예 없으면 최소 1개는 가짜로 만들어줌
-        if (!data.keys || !Array.isArray(data.keys)) data.keys = [];
-        if (data.keys.length === 0) {
-            data.keys.push({ phrase: data.english || "Text", ko_org: data.korean || "해석", en_org: data.english || "Text" });
+        if (!data.keys || !Array.isArray(data.keys) || data.keys.length === 0) {
+            data.keys = [{ phrase: data.english || "Text", ko_org: data.korean || "해석", en_org: data.english || "Text" }];
         }
         data.keys.forEach(k => {
             if(!k) k = {};
@@ -308,21 +307,20 @@
             k.ko_long = k.ko_long || k.ko_org; k.en_long = k.en_long || k.en_org;
         });
 
-        // 3. vocab (단어) 동적 적응
-        if (!data.vocab || !Array.isArray(data.vocab)) data.vocab = [];
-        if (data.vocab.length === 0) {
-            data.vocab.push({ word: "N/A", meaning: "데이터 없음", pos: "N/A" });
+        if (!data.vocab || !Array.isArray(data.vocab) || data.vocab.length === 0) {
+            data.vocab = [{ word: "N/A", meaning: "데이터 없음", pos: "N/A" }];
         }
         data.vocab.forEach(v => {
+            if(!v) v = {};
             if (!v.drillOrder || v.drillOrder.length < 8) v.drillOrder = [1, 2, 3, 4, 5, 6, 7, 8];
+            v.word = v.word || "N/A"; v.meaning = v.meaning || "N/A";
             v.wrong_options = v.wrong_options || ["오답1", "오답2"]; 
             v.confusing_words = v.confusing_words || [v.word + "e", v.word.substring(0, v.word.length > 1 ? v.word.length-1 : 1)];
             v.example_ko = v.example_ko || v.meaning || "해석"; v.example_en = v.example_en || v.word || "Text";
             v.pos = v.pos || "단어"; v.phonetics = v.phonetics || "";
         });
 
-        // 4. 완료 상태 (동적 길이에 무조건 맞춤)
-        if(!data.completed) data.completed = {};
+        if(!data.completed || typeof data.completed !== 'object') data.completed = {};
         if(!Array.isArray(data.completed.keys) || data.completed.keys.length !== data.keys.length) {
             data.completed.keys = new Array(data.keys.length).fill(false);
         }
@@ -331,7 +329,8 @@
         }
         data.completed.full = !!data.completed.full;
 
-        if(!data.dictionary) data.dictionary = {};
+        if(!data.dictionary || typeof data.dictionary !== 'object') data.dictionary = {};
+        
         return data;
     }
 
@@ -427,11 +426,12 @@
     }
 
     function showDashboard() {
+        if (!lessonData) return;
         document.getElementById('introView').style.display = 'none'; document.getElementById('practiceView').style.display = 'none'; document.getElementById('dashboardView').style.display = 'block';
-        document.getElementById('dashKoText').innerText = lessonData.korean;
+        document.getElementById('dashKoText').innerText = lessonData.korean || "해석 없음";
         
         const dashEn = document.getElementById('dashEnText');
-        const wordsHtml = lessonData.english.split(' ').map(w => {
+        const wordsHtml = (lessonData.english || "").split(' ').map(w => {
             const clean = w.toLowerCase().replace(/[^a-z]/g, '');
             const isDictWord = lessonData.dictionary && (lessonData.dictionary[clean] || lessonData.dictionary[w.toLowerCase()]);
             if (isDictWord) { return `<span class="en-word dict-link" onclick="showDictTooltip('${clean}', '${w.replace(/['"]/g,"")}', event, this)">${w} </span>`; } 
@@ -439,12 +439,11 @@
         }).join('');
         dashEn.innerHTML = wordsHtml;
 
-        // 🌟 수정: AI가 생성한 실제 개수만큼만 진척도 분모 표시 (유동적 UI)
-        const totalKeys = lessonData.keys.length;
-        const totalVocab = lessonData.vocab.length;
-        const keysC = lessonData.completed.keys.filter(Boolean).length; 
+        const totalKeys = lessonData.keys ? lessonData.keys.length : 0;
+        const totalVocab = lessonData.vocab ? lessonData.vocab.length : 0;
+        const keysC = (lessonData.completed.keys || []).filter(Boolean).length; 
         const fullC = lessonData.completed.full ? 1 : 0; 
-        const vocabC = lessonData.completed.vocab.filter(Boolean).length;
+        const vocabC = (lessonData.completed.vocab || []).filter(Boolean).length;
         const totalProg = keysC + fullC + vocabC; 
 
         document.getElementById('keyProgress').innerText = `${keysC}/${totalKeys}`; 
@@ -455,16 +454,16 @@
         const totalItems = totalKeys + totalVocab + 1;
         if(totalProg < totalItems) mainB.style.background = '#F2F2F7'; else { mainB.classList.add('black-glow'); }
         
-        // 🌟 수정: 실제 있는 데이터만큼만 카드 렌더링
-        document.getElementById('keyList').innerHTML = lessonData.keys.map((k, idx) => `<div class="lesson-card boing-active ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">${k.ko_org}</div><div class="en" style="font-size:18px; font-weight:900; margin-top:4px;">${k.phrase}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.keys[idx] ? '✅' : '▶'}</div></div>`).join('');
-        document.getElementById('vocabList').innerHTML = lessonData.vocab.map((v, idx) => `<div class="lesson-card boing-active ${lessonData.completed.vocab[idx] ? 'mastered' : ''}" onclick="startPractice('vocab_${idx}_1', this)"><div style="flex:1;"><div class="ko" style="font-size:13px; color:#888;">${v.pos} | ${v.phonetics}</div><div class="en" style="font-size:20px; font-weight:900; margin-top:2px;">${v.word}</div><div class="ko" style="font-size:15px; color:#444; margin-top:2px; font-weight:800;">${v.meaning}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.vocab[idx] ? '✅' : '▶'}</div></div>`).join('');
-        document.getElementById('fullDrillCard').innerHTML = `<div class="lesson-card boing-active ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">전체 문장 마스터 (3단계)</div><div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${lessonData.english}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.full ? '✅' : '▶'}</div></div>`;
+        document.getElementById('keyList').innerHTML = (lessonData.keys || []).map((k, idx) => `<div class="lesson-card boing-active ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">${k.ko_org}</div><div class="en" style="font-size:18px; font-weight:900; margin-top:4px;">${k.phrase}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.keys[idx] ? '✅' : '▶'}</div></div>`).join('');
+        document.getElementById('vocabList').innerHTML = (lessonData.vocab || []).map((v, idx) => `<div class="lesson-card boing-active ${lessonData.completed.vocab[idx] ? 'mastered' : ''}" onclick="startPractice('vocab_${idx}_1', this)"><div style="flex:1;"><div class="ko" style="font-size:13px; color:#888;">${v.pos} | ${v.phonetics}</div><div class="en" style="font-size:20px; font-weight:900; margin-top:2px;">${v.word}</div><div class="ko" style="font-size:15px; color:#444; margin-top:2px; font-weight:800;">${v.meaning}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.vocab[idx] ? '✅' : '▶'}</div></div>`).join('');
+        document.getElementById('fullDrillCard').innerHTML = `<div class="lesson-card boing-active ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">전체 문장 마스터 (3단계)</div><div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${lessonData.english || "Text"}</div></div><div style="font-size:24px; color:#aaa;">${lessonData.completed.full ? '✅' : '▶'}</div></div>`;
     }
 
     function playDictWordTTSOnly(word, event) { event.stopPropagation(); applyBoing(event.target); if(!word) return; synth.cancel(); const ut = new SpeechSynthesisUtterance(word); ut.lang = 'en-US'; synth.speak(ut); }
 
     function showDictTooltip(cleanKey, originalWord, event, spanEl) {
         event.stopPropagation();
+        if(!lessonData || !lessonData.dictionary) return;
         let dict = lessonData.dictionary[cleanKey] || lessonData.dictionary[originalWord.toLowerCase()] || lessonData.dictionary[originalWord];
         if(!dict) return; 
 
@@ -508,7 +507,7 @@
             setupPracticeUI(); 
         } catch (e) {
             console.error(e);
-            alert("앱을 보호하기 위해 훈련을 종료합니다. 목록으로 돌아갑니다.");
+            alert("안전을 위해 목록으로 돌아갑니다.");
             goDashboard();
         }
     }
@@ -629,54 +628,82 @@
 
     function saveToArchive() {
         if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0) + lessonData.completed.vocab.filter(Boolean).length;
+        const pr = (lessonData.completed.keys || []).filter(Boolean).length + (lessonData.completed.full ? 1 : 0) + (lessonData.completed.vocab || []).filter(Boolean).length;
+        const totalItems = (lessonData.keys ? lessonData.keys.length : 0) + (lessonData.vocab ? lessonData.vocab.length : 0) + 1;
         const idx = arc.findIndex(a => a.id === lessonData.id);
-        const dataToSave = { id: lessonData.id, date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), title_ko: lessonData.title_ko || "나의 이야기", title_en: lessonData.title_en || "My Story", mastered: (pr === lessonData.keys.length + lessonData.vocab.length + 1), data: lessonData };
+        const dataToSave = { id: lessonData.id, date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), title_ko: lessonData.title_ko || "나의 이야기", title_en: lessonData.title_en || "My Story", mastered: (pr >= totalItems), data: lessonData };
         if (idx !== -1) { dataToSave.starred = arc[idx].starred; arc[idx] = dataToSave; } else { dataToSave.starred = false; arc.unshift(dataToSave); } localStorage.setItem(STORAGE_KEY, JSON.stringify(arc));
     }
 
     function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem(STORAGE_KEY, JSON.stringify(arc)); renderArchive(); }
     function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem(STORAGE_KEY, JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
 
-    // 🌟 [핵심 수리] 스토리지 렌더링 시 "미리" 데이터 병합/치료를 진행하여 에러 원천 차단
+    // 🌟 [핵심 수리 2] 스토리지 렌더링 중 에러 나도 전체 폭파 안 되게 무적 방어막(try-catch) 추가
     function renderArchive() {
-        const listStory = document.getElementById('archiveListStory'); const listVocab = document.getElementById('archiveListVocab'); 
-        let rawArc = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        
-        // 지뢰(불량 데이터)를 화면에 그리기 전에 모두 치료합니다.
-        let arc = rawArc.map(a => { a.data = normalizeLessonData(a.data); return a; });
-
-        if(arc.length === 0) { listStory.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; listVocab.innerHTML = "<p style='text-align:center; color:#888;'>저장된 단어가 없습니다.</p>"; return; }
-        arc.sort((a, b) => { if (a.starred && !b.starred) return -1; if (!a.starred && b.starred) return 1; return 0; });
-
-        listStory.innerHTML = arc.map(a => {
-            const totalItems = a.data.keys.length + a.data.vocab.length + 1;
-            const keysC = a.data.completed.keys.filter(Boolean).length;
-            const fullC = a.data.completed.full ? 1 : 0;
-            const vocabC = a.data.completed.vocab.filter(Boolean).length;
-            const pr = keysC + fullC + vocabC;
-            const isMastered = (pr === totalItems);
-
-            let textCol = '#D1D1D6'; let bgCol = '#fff'; let exClass = '';
-            const ratio = pr / totalItems;
-            if(ratio > 0 && ratio <= 0.3) { textCol='#8E8E93'; bgCol='#F2F2F7'; } 
-            else if(ratio > 0.3 && ratio <= 0.6) { textCol='#FFD60A'; bgCol='#FFFBE6'; } 
-            else if(ratio > 0.6 && ratio < 1) { textCol='#34C759'; bgCol='#E8F5E9'; } 
-            else if(isMastered) { textCol='#fff'; bgCol='#1C1C1E'; exClass='black-glow'; } 
+        try {
+            const listStory = document.getElementById('archiveListStory'); 
+            const listVocab = document.getElementById('archiveListVocab'); 
+            let rawArc = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
             
-            return `<div class="archive-bubble boing-active ${exClass}" onclick="loadFromArchive(${a.id}, this)" style="background:${bgCol};">
-                <div class="archive-header">
-                    <div><span style="color:${isMastered?'#aaa':'#555'};">${a.date}</span><span style="color:${textCol}; font-weight:900; margin-left:8px;">${isMastered?'🏆 완벽 정복':'⏳ 진행 중'}(${pr}/${totalItems})</span></div>
-                    <div style="display:flex; gap: 12px; align-items:center;"><span class="icon-btn" onclick="toggleStar(event, ${a.id})">${a.starred ? '⭐' : '☆'}</span><span class="icon-btn" onclick="deleteArchive(event, ${a.id})" style="opacity: 0.6;">🗑️</span></div>
-                </div>
-                <div style="font-size:13px; color:${isMastered?'#aaa':'#888'}; font-weight:800; margin-bottom: 2px; margin-top: 8px;">${a.title_ko}</div>
-                <div class="archive-title" style="font-size:18px; ${isMastered?'color:#fff;':''}">${a.title_en}</div>
-            </div>`;
-        }).join('');
+            // 1. 유령 데이터 필터링: 아예 객체가 아니거나 id가 없는 경우 삭제
+            let validArc = rawArc.filter(a => a && typeof a === 'object' && a.id);
 
-        let vocabHtml = '';
-        arc.forEach(a => { if(a.data && a.data.vocab) { a.data.vocab.forEach((v, vIdx) => { const isMastered = a.data.completed.vocab[vIdx]; vocabHtml += `<div class="lesson-card boing-active ${isMastered ? 'mastered' : ''}" onclick="loadVocabFromArchive(${a.id}, ${vIdx}, this)" style="margin-bottom:0;"><div style="flex:1;"><div class="ko" style="font-size:13px; color:#888;">${v.pos} | ${v.phonetics}</div><div class="en" style="font-size:20px; font-weight:900; margin-top:2px;">${v.word}</div><div class="ko" style="font-size:15px; color:#444; margin-top:2px; font-weight:800;">${v.meaning}</div></div><div style="font-size:24px;">${isMastered ? '✅' : '▶'}</div></div>`; }); } });
-        listVocab.innerHTML = vocabHtml;
+            // 2. 무결성 정규화 (치료)
+            let arc = validArc.map(a => { a.data = normalizeLessonData(a.data); return a; });
+
+            if(arc.length === 0) { 
+                listStory.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; 
+                listVocab.innerHTML = "<p style='text-align:center; color:#888;'>저장된 단어가 없습니다.</p>"; 
+                return; 
+            }
+            arc.sort((a, b) => { if (a.starred && !b.starred) return -1; if (!a.starred && b.starred) return 1; return 0; });
+
+            listStory.innerHTML = arc.map(a => {
+                try { // 개별 렌더링 에러가 전체 리스트를 날리지 않도록 보호
+                    const totalKeys = a.data.keys ? a.data.keys.length : 0;
+                    const totalVocab = a.data.vocab ? a.data.vocab.length : 0;
+                    const totalItems = totalKeys + totalVocab + 1;
+
+                    const keysC = (a.data.completed.keys || []).filter(Boolean).length;
+                    const fullC = a.data.completed.full ? 1 : 0;
+                    const vocabC = (a.data.completed.vocab || []).filter(Boolean).length;
+                    const pr = keysC + fullC + vocabC;
+                    const isMastered = (pr >= totalItems);
+
+                    let textCol = '#D1D1D6'; let bgCol = '#fff'; let exClass = '';
+                    const ratio = totalItems > 0 ? pr / totalItems : 0;
+                    if(ratio > 0 && ratio <= 0.3) { textCol='#8E8E93'; bgCol='#F2F2F7'; } 
+                    else if(ratio > 0.3 && ratio <= 0.6) { textCol='#FFD60A'; bgCol='#FFFBE6'; } 
+                    else if(ratio > 0.6 && ratio < 1) { textCol='#34C759'; bgCol='#E8F5E9'; } 
+                    else if(isMastered) { textCol='#fff'; bgCol='#1C1C1E'; exClass='black-glow'; } 
+                    
+                    return `<div class="archive-bubble boing-active ${exClass}" onclick="loadFromArchive(${a.id}, this)" style="background:${bgCol};">
+                        <div class="archive-header">
+                            <div><span style="color:${isMastered?'#aaa':'#555'};">${a.date || ''}</span><span style="color:${textCol}; font-weight:900; margin-left:8px;">${isMastered?'🏆 완벽 정복':'⏳ 진행 중'}(${pr}/${totalItems})</span></div>
+                            <div style="display:flex; gap: 12px; align-items:center;"><span class="icon-btn" onclick="toggleStar(event, ${a.id})">${a.starred ? '⭐' : '☆'}</span><span class="icon-btn" onclick="deleteArchive(event, ${a.id})" style="opacity: 0.6;">🗑️</span></div>
+                        </div>
+                        <div style="font-size:13px; color:${isMastered?'#aaa':'#888'}; font-weight:800; margin-bottom: 2px; margin-top: 8px;">${a.title_ko || '상황 요약'}</div>
+                        <div class="archive-title" style="font-size:18px; ${isMastered?'color:#fff;':''}">${a.title_en || 'My Story'}</div>
+                    </div>`;
+                } catch (innerErr) { return ''; } // 폭탄 데이터는 무시하고 패스
+            }).join('');
+
+            let vocabHtml = '';
+            arc.forEach(a => { 
+                if(a.data && a.data.vocab) { 
+                    a.data.vocab.forEach((v, vIdx) => { 
+                        try {
+                            const isMastered = a.data.completed.vocab ? a.data.completed.vocab[vIdx] : false; 
+                            vocabHtml += `<div class="lesson-card boing-active ${isMastered ? 'mastered' : ''}" onclick="loadVocabFromArchive(${a.id}, ${vIdx}, this)" style="margin-bottom:0;"><div style="flex:1;"><div class="ko" style="font-size:13px; color:#888;">${v.pos || '단어'} | ${v.phonetics || ''}</div><div class="en" style="font-size:20px; font-weight:900; margin-top:2px;">${v.word || 'N/A'}</div><div class="ko" style="font-size:15px; color:#444; margin-top:2px; font-weight:800;">${v.meaning || '해석'}</div></div><div style="font-size:24px;">${isMastered ? '✅' : '▶'}</div></div>`; 
+                        } catch(innerErr2) {}
+                    }); 
+                } 
+            });
+            listVocab.innerHTML = vocabHtml;
+        } catch (err) {
+            console.error("스토리지 렌더링 중 오류 복구:", err);
+            // 최악의 경우에도 화면이 뻗지 않도록 최소한의 UI를 유지
+        }
     }
     
     function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = normalizeLessonData(item.data); setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
