@@ -3,7 +3,10 @@
 // korean 분석은 /api/stt + /api/analyze 로 분리됨
 // 실행시간: 4~7초 → Vercel Hobby 10초 안전
 
-export const config = { maxDuration: 10 };
+export const config = {
+api: { bodyParser: { sizeLimit: ‘10mb’ } },
+maxDuration: 10,
+};
 
 export default async function handler(req, res) {
 if (req.method !== ‘POST’) return res.status(405).json({ error: ‘Method not allowed’ });
