@@ -6,16 +6,27 @@ export default async function handler(req, res) {
 if (req.method !== ‘POST’) return res.status(405).json({ error: ‘Method not allowed’ });
 
 ```
-const { audio, action, target_english, difficulty, lang_mode } = req.body;
+const { audio, action, target_english, difficulty, lang_mode, mimeType } = req.body;
 const API_KEY = process.env.OPENAI_API_KEY;
 
 if (!API_KEY) return res.status(500).json({ error: "API 키 오류" });
 
 try {
     const audioBuffer = Buffer.from(audio, 'base64');
-    const blob = new Blob([audioBuffer], { type: 'audio/webm' });
+
+    // ✅ iOS 호환: MIME 타입에 맞는 파일 확장자 결정
+    // iOS Safari → audio/mp4 → .m4a, Chrome → audio/webm → .webm
+    const resolvedMime = mimeType || 'audio/webm';
+    let fileExt = 'webm';
+    if (resolvedMime.includes('mp4') || resolvedMime.includes('m4a') || resolvedMime.includes('aac')) {
+        fileExt = 'm4a';
+    } else if (resolvedMime.includes('ogg')) {
+        fileExt = 'ogg';
+    }
+
+    const blob = new Blob([audioBuffer], { type: resolvedMime });
     const formData = new FormData();
-    formData.append('file', blob, 'audio.webm');
+    formData.append('file', blob, `audio.${fileExt}`);
     formData.append('model', 'whisper-1');
     
     if (action === 'evaluate') formData.append('language', 'en');
