@@ -14,6 +14,7 @@ export default async function handler(req, res) {
         formData.append('file', blob, 'audio.webm');
         formData.append('model', 'whisper-1');
         
+        // 연습 모드일 땐 영어를, 한국어 모드일 땐 한국어 위주로 강제 세팅
         if (action === 'evaluate') {
             formData.append('language', 'en');
         } else if (lang_mode === 'ko') {
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
         const lowerSpeech = userSpeech.toLowerCase();
         const jpRegex = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/;
         
-        // 🚨 핵심 픽스: '연습 모드(evaluate)'에서는 짧은 단어도 인식해야 하므로 길이 제한 삭제
+        // 🚨 연습 모드에서는 1~2글자의 짧은 단어도 인식해야 하므로 메인 녹음에만 길이 제한 적용
         let isHallucination = lowerSpeech.includes("mbc") || lowerSpeech.includes("amara") || lowerSpeech.includes("thank you") || jpRegex.test(userSpeech);
         if (action === 'korean' && userSpeech.trim().length < 2) isHallucination = true;
 
@@ -42,20 +43,23 @@ export default async function handler(req, res) {
         }
 
         if (action === 'korean') {
-            const levelInstr = difficulty === "beginner" ? "초급(기초 단어 위주)" : difficulty === "intermediate" ? "중급(실용/비즈니스 위주)" : "고급(전문/철학/학술 위주)";
-            
+            let levelInstr = "";
+            if (difficulty === "beginner") levelInstr = "초급(Beginner): 아주 기초적인 단어와 간단한 1형식/3형식 문장 위주로 구성. 어려운 숙어 배제.";
+            else if (difficulty === "intermediate") levelInstr = "중급(Intermediate): 실생활과 비즈니스에서 가장 많이 쓰이는 자연스러운 원어민 표현 및 연어(Collocation) 적극 사용.";
+            else levelInstr = "고급(Advanced): 전문적이고 학술적이거나 깊이 있는 철학적 표현, 세련된 고급 어휘 및 복잡한 문장 구조 사용.";
+
             const instruction = `
             사용자의 말: "${userSpeech}"
-            난이도 설정: ${levelInstr}
+            현재 난이도: ${levelInstr}
             
-            [최우선 엄수 규칙]
-            1. '원어민이 실생활에서 쓰는 가장 자연스러운 문장'으로 번역하세요.
-            2. "keys"는 문장 내 핵심 덩어리 표현을 **정확히 3개** 추출하세요. 
-               - 각 key마다 [원문(org), 변형1(var1), 변형2(var2), 부사추가(long)] 데이터를 모두 생성해야 합니다.
-            3. "vocab"은 8단계 훈련을 위한 단어 3개 (한글 뜻 오답 2개, 스펠링 헷갈리는 영어 오답 2개 반드시 포함).
-            4. "dictionary"는 생성된 "english" 문장에 쓰인 **단어 100% 모조리** 추출하여 원어민 뉘앙스와 연어를 깊이 있게 작성하세요. (Key값은 특수기호를 제거한 소문자로 작성. 예: don't -> dont)
+            [최우선 엄수 규칙: 심호흡을 하고 최대한 꼼꼼하게 작성하세요]
+            1. 현재 난이도 수준에 정확히 맞춰서 '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요.
+            2. "keys"는 문장 내 핵심 덩어리 표현을 무조건 **정확히 3개** 추출하세요. 
+               - 각 표현마다 [원문(org), 변형1(var1), 변형2(var2), 부사추가 긴 문장(long)] 데이터를 모두 생성하세요.
+            3. "vocab"은 난이도에 맞는 핵심 단어 3개 (한글 뜻 오답 2개, 스펠링 헷갈리는 영어 오답 2개 반드시 포함).
+            4. "dictionary"는 생성된 "english" 문장에 쓰인 **단어 100% 빠짐없이 모조리** 추출하여 뉘앙스와 자주 쓰이는 표현(Collocation)을 깊이 있게 작성하세요. (Key값은 특수기호를 제거한 소문자로 작성. 예: don't -> dont)
             
-            반환은 오직 아래 JSON 구조로만 하세요.
+            반환 JSON 구조:
             {
                 "title_ko": "짧은 상황 요약",
                 "title_en": "세련된 영어 메인 제목",
@@ -65,14 +69,14 @@ export default async function handler(req, res) {
                     "dont": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "expression": "원어민 뉘앙스 및 연어 설명" }
                 },
                 "keys": [
-                    { "phrase": "표현1", "ko_org": "해석", "en_org": "영어", "ko_var1": "변형1해석", "en_var1": "변형1영어", "ko_var2": "변형2해석", "en_var2": "변형2영어", "ko_long": "추가해석", "en_long": "추가영어" },
-                    { "phrase": "표현2", "ko_org": "해석", "en_org": "영어", "ko_var1": "변형1해석", "en_var1": "변형1영어", "ko_var2": "변형2해석", "en_var2": "변형2영어", "ko_long": "추가해석", "en_long": "추가영어" },
-                    { "phrase": "표현3", "ko_org": "해석", "en_org": "영어", "ko_var1": "변형1해석", "en_var1": "변형1영어", "ko_var2": "변형2해석", "en_var2": "변형2영어", "ko_long": "추가해석", "en_long": "추가영어" }
+                    { "phrase": "표현1", "ko_org": "원문해석", "en_org": "원문영어", "ko_var1": "변형1해석", "en_var1": "변형1영어", "ko_var2": "변형2해석", "en_var2": "변형2영어", "ko_long": "추가해석", "en_long": "추가영어" },
+                    { "phrase": "표현2", "ko_org": "원문해석", "en_org": "원문영어", "ko_var1": "변형1해석", "en_var1": "변형1영어", "ko_var2": "변형2해석", "en_var2": "변형2영어", "ko_long": "추가해석", "en_long": "추가영어" },
+                    { "phrase": "표현3", "ko_org": "원문해석", "en_org": "원문영어", "ko_var1": "변형1해석", "en_var1": "변형1영어", "ko_var2": "변형2해석", "en_var2": "변형2영어", "ko_long": "추가해석", "en_long": "추가영어" }
                 ],
                 "drills": [
-                    {"step": 1, "ko": "해석", "en_full": "문장", "blur_part": "none"},
-                    {"step": 2, "ko": "해석", "en_full": "문장", "blur_part": "핵심표현"},
-                    {"step": 3, "ko": "해석", "en_full": "문장", "blur_part": "all"}
+                    {"step": 1, "ko": "해석", "en_full": "전체 문장", "blur_part": "none"},
+                    {"step": 2, "ko": "해석", "en_full": "전체 문장", "blur_part": "핵심표현"},
+                    {"step": 3, "ko": "해석", "en_full": "전체 문장", "blur_part": "all"}
                 ],
                 "vocab": [
                     { "word": "단어", "meaning": "뜻", "pos": "품사", "phonetics": "발음", "example_en": "예문", "example_ko": "해석", "wrong_options": ["오답1", "오답2"], "confusing_words": ["스펠링오답1", "스펠링오답2"] }
