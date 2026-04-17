@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Architect V35</title>
+    <title>PolyGlot Master: Stable V36</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
@@ -270,8 +270,8 @@
 </div>
 
 <script>
-    // NEW: V35 스토리지 전용 키 (데이터 호환 오류 원천 차단을 위한 새 메커니즘)
-    const STORAGE_KEY = 'archive_poly_v35';
+    // 🌟 스토리지 꼬임 방지를 위한 최신 V36 독립 키 사용 (이전 데이터 자동 땜질 포함)
+    const STORAGE_KEY = 'archive_poly_v36';
 
     let lessonData = null, currentPracticeMode = null;
     let selectedDifficulty = 'intermediate', currentLangMode = 'ko'; 
@@ -281,29 +281,40 @@
     let synth = window.speechSynthesis, progressInt, timerInt, recSeconds = 0;
     let hiddenTTSWord = ""; 
 
+    // 🌟 [핵심 수리] AI가 오류를 내도 무조건 화면이 열리게 만드는 최강의 방어 로직
     function normalizeLessonData(data) {
         if (!data) return null;
         if (!data.drills || data.drills.length === 0) {
             data.drills = [
-                {step: 1, ko: data.korean || "", en_full: data.english || "", blur_part: "none"},
-                {step: 2, ko: data.korean || "", en_full: data.english || "", blur_part: (data.keys && data.keys[0]) ? data.keys[0].phrase : "some"},
-                {step: 3, ko: data.korean || "", en_full: data.english || "", blur_part: "all"}
+                {step: 1, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: "none"},
+                {step: 2, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: (data.keys && data.keys[0]) ? data.keys[0].phrase : "some"},
+                {step: 3, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: "all"}
             ];
         }
         if (!data.keys || data.keys.length === 0) { data.keys = [{}, {}, {}]; }
+        
+        // 덩어리 훈련(keys)의 모든 필드를 빈칸(undefined)이 없도록 무조건 텍스트로 채움
         data.keys.forEach(k => {
-            k.phrase = k.phrase || k.en_org || "Error"; k.ko_org = k.ko_org || data.korean || "해석 없음"; k.en_org = k.en_org || data.english || "No text";
-            k.ko_var1 = k.ko_var1 || k.ko_var || k.ko_org; k.en_var1 = k.en_var1 || k.en_var || k.en_org;
-            k.ko_var2 = k.ko_var2 || k.ko_var || k.ko_org; k.en_var2 = k.en_var2 || k.en_var || k.en_org;
-            k.ko_long = k.ko_long || k.ko_org; k.en_long = k.en_long || k.en_org;
+            if(!k) k = {};
+            k.phrase = k.phrase || k.en_org || "Missing Data"; 
+            k.ko_org = k.ko_org || data.korean || "해석 없음"; 
+            k.en_org = k.en_org || data.english || "Missing Data";
+            k.ko_var1 = k.ko_var1 || k.ko_var || k.ko_org; 
+            k.en_var1 = k.en_var1 || k.en_var || k.en_org;
+            k.ko_var2 = k.ko_var2 || k.ko_var || k.ko_org; 
+            k.en_var2 = k.en_var2 || k.en_var || k.en_org;
+            k.ko_long = k.ko_long || k.ko_org; 
+            k.en_long = k.en_long || k.en_org;
         });
+
         if (!data.vocab || data.vocab.length === 0) { data.vocab = [{word: "Error", meaning: "에러", pos: "N/A"}, {word: "Error", meaning: "에러", pos: "N/A"}, {word: "Error", meaning: "에러", pos: "N/A"}]; }
         data.vocab.forEach(v => {
             if (!v.drillOrder || v.drillOrder.length < 8) v.drillOrder = [1, 2, 3, 4, 5, 6, 7, 8];
             v.wrong_options = v.wrong_options || ["오답1", "오답2"]; v.confusing_words = v.confusing_words || [v.word + "e", v.word.substring(0, v.word.length > 1 ? v.word.length-1 : 1)];
-            v.example_ko = v.example_ko || v.meaning || ""; v.example_en = v.example_en || v.word || "";
+            v.example_ko = v.example_ko || v.meaning || "예문 해석"; v.example_en = v.example_en || v.word || "Example";
             v.pos = v.pos || "단어"; v.phonetics = v.phonetics || "";
         });
+
         if(!data.completed || !Array.isArray(data.completed.keys)) { data.completed = { keys: [false, false, false], full: false, vocab: [false, false, false] }; }
         if(!data.dictionary) data.dictionary = {};
         return data;
@@ -468,12 +479,12 @@
     function startPractice(mode, cardEl) { 
         try {
             if(cardEl) applyBoing(cardEl); resetTTS(); stopMicEngine();
-            if(!lessonData) throw new Error("데이터가 준비되지 않았습니다.");
+            if(!lessonData) throw new Error("데이터 누락 오류");
             document.getElementById('dashboardView').style.display = 'none'; document.getElementById('practiceView').style.display = 'block'; currentPracticeMode = mode; 
             setupPracticeUI(); 
         } catch (e) {
-            console.error("Practice Loading Error:", e);
-            alert("훈련 데이터를 불러오는 중 문제가 발생했습니다.");
+            console.error(e);
+            alert("망가진 데이터를 복구하는 중입니다. 안전을 위해 스토리를 새로 생성해주세요.");
             goDashboard();
         }
     }
@@ -494,14 +505,20 @@
         if (currentPracticeMode.startsWith('key_')) {
             const p = currentPracticeMode.split('_'); const idx = parseInt(p[1]); stepNum = parseInt(p[2]); const k = lessonData.keys[idx];
             
-            if(stepNum === 1) { ko = k.ko_org; en = k.en_org; blurPart = "none"; }
-            else if(stepNum === 2) { ko = k.ko_org; en = k.en_org; blurPart = k.phrase; }
-            else if(stepNum === 3) { ko = k.ko_var1; en = k.en_var1; blurPart = "none"; }
-            else if(stepNum === 4) { ko = k.ko_var1; en = k.en_var1; blurPart = k.phrase; }
-            else if(stepNum === 5) { ko = k.ko_var2; en = k.en_var2; blurPart = "none"; }
-            else if(stepNum === 6) { ko = k.ko_var2; en = k.en_var2; blurPart = k.phrase; }
-            else if(stepNum === 7) { ko = k.ko_long; en = k.en_long; blurPart = "none"; }
-            else if(stepNum === 8) { ko = k.ko_long; en = k.en_long; blurPart = k.phrase; }
+            // 데이터가 비어있어도 무조건 열리도록 대비
+            const safeKo = k.ko_org || "해석 없음"; const safeEn = k.en_org || "Missing Text"; const safeBlur = k.phrase || "none";
+            const safeKoV1 = k.ko_var1 || safeKo; const safeEnV1 = k.en_var1 || safeEn;
+            const safeKoV2 = k.ko_var2 || safeKo; const safeEnV2 = k.en_var2 || safeEn;
+            const safeKoLong = k.ko_long || safeKo; const safeEnLong = k.en_long || safeEn;
+
+            if(stepNum === 1) { ko = safeKo; en = safeEn; blurPart = "none"; }
+            else if(stepNum === 2) { ko = safeKo; en = safeEn; blurPart = safeBlur; }
+            else if(stepNum === 3) { ko = safeKoV1; en = safeEnV1; blurPart = "none"; }
+            else if(stepNum === 4) { ko = safeKoV1; en = safeEnV1; blurPart = safeBlur; }
+            else if(stepNum === 5) { ko = safeKoV2; en = safeEnV2; blurPart = "none"; }
+            else if(stepNum === 6) { ko = safeKoV2; en = safeEnV2; blurPart = safeBlur; }
+            else if(stepNum === 7) { ko = safeKoLong; en = safeEnLong; blurPart = "none"; }
+            else if(stepNum === 8) { ko = safeKoLong; en = safeEnLong; blurPart = safeBlur; }
             
             document.getElementById('stepBadge').innerText = `PHRASE MASTER STEP ${stepNum}/8`; document.getElementById('pracGuideText').innerText = "소리내어 읽어보세요";
         } else if (currentPracticeMode.startsWith('vocab_')) {
@@ -518,17 +535,28 @@
             else if (actualTask === 7) { ko = `듣고 받아쓰기`; en = "???"; hiddenTTSWord = v.word; document.getElementById('pracGuideText').style.display = 'none'; renderWritingForm("정답을 영어로 적어주세요 (예: ramen)"); }
             else { ko = v.example_ko; en = v.example_en; blurPart = "none"; document.getElementById('pracGuideText').innerText = "예문을 소리내어 읽어보세요"; }
         } else {
-            stepNum = parseInt(currentPracticeMode.split('_')[1]); const d = lessonData.drills[stepNum - 1]; ko = d.ko; en = d.en_full; blurPart = d.blur_part;
+            stepNum = parseInt(currentPracticeMode.split('_')[1]); const d = lessonData.drills[stepNum - 1]; 
+            ko = d.ko || "해석 없음"; en = d.en_full || "Missing Text"; blurPart = d.blur_part || "none";
             document.getElementById('stepBadge').innerText = `SENTENCE DRILL STEP ${stepNum}/3`; document.getElementById('pracGuideText').innerText = "소리내어 읽어보세요";
         }
-        document.getElementById('pracKoText').innerText = ko; renderInteractiveWords(en, blurPart);
+        
+        // 최종 렌더링 전 마지막 널 체크
+        document.getElementById('pracKoText').innerText = ko || "해석 없음"; 
+        renderInteractiveWords((en || "Missing Text"), blurPart);
     }
 
+    // 🌟 [핵심 수리] toLowerCase 에러 원천 차단
     function renderInteractiveWords(text, blurMode = "") {
-        const cont = document.getElementById('pracEnText'); cont.innerHTML = ""; currentEnWordsArray = text.split(" "); 
+        const cont = document.getElementById('pracEnText'); cont.innerHTML = ""; 
+        if(!text) return; currentEnWordsArray = text.split(" "); 
+        
+        // blurMode가 아예 비어있거나 null이어도 문자열로 강제 변환하여 크래시 방지
+        const safeBlurMode = blurMode ? String(blurMode).toLowerCase() : "none";
+
         currentEnWordsArray.forEach((w, idx) => {
-            const span = document.createElement('span'); span.className = "en-word"; span.innerText = w + " "; span.id = `word-${idx}`; const clean = w.replace(/[^a-zA-Z]/g, '').toLowerCase();
-            if (blurMode === "all" || (blurMode !== "none" && blurMode.toLowerCase().includes(clean) && clean.length > 0)) span.classList.add('blurred');
+            const span = document.createElement('span'); span.className = "en-word"; span.innerText = w + " "; span.id = `word-${idx}`; 
+            const clean = w.replace(/[^a-zA-Z]/g, '').toLowerCase();
+            if (safeBlurMode === "all" || (safeBlurMode !== "none" && safeBlurMode.includes(clean) && clean.length > 0)) span.classList.add('blurred');
             if (w.includes("?")) span.style.color = '#D1D1D6';
             span.onclick = () => { if (span.classList.contains('blurred')) { span.classList.remove('blurred'); span.style.color = 'var(--ios-blue)'; span.style.background = 'transparent'; } resetTTS(); ttsGlobalIndex = idx; playTTS(); }; cont.appendChild(span);
         });
@@ -580,7 +608,6 @@
 
     function goDashboard(btn) { if(btn) applyBoing(btn); resetTTS(); stopMicEngine(); saveToArchive(); document.getElementById('practiceView').style.display = 'none'; showDashboard(); }
 
-    // NEW: 완전히 새롭고 충돌 없는 데이터베이스 메커니즘 (STORAGE_KEY 사용)
     function saveToArchive() {
         if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0) + lessonData.completed.vocab.filter(Boolean).length;
@@ -616,7 +643,6 @@
         listVocab.innerHTML = vocabHtml;
     }
     
-    // NEW: 완전히 독립된 저장소에서 안전하게 데이터 로드 (충돌 원천 차단)
     function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = normalizeLessonData(item.data); setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
     function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = normalizeLessonData(item.data); setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
 
