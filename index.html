@@ -212,7 +212,7 @@
                 </div>
                 
                 <div class="audio-bubble">
-                    <button class="btn-audio-main" id="btnPlayTTS" onclick="handlePlayTTS(this)">듣기</button>
+                    <button class="btn-audio-main" id="btnPlayTTS" onclick="handlePlayTTS(this)">🔊 음성 듣기</button>
                     <button class="btn-audio-sub" id="btnPauseTTS" style="display:none;" onclick="handlePauseTTS(this)">일시정지</button>
                     <button class="btn-audio-sub" onclick="handleResetTTS(this)">초기화</button>
                 </div>
@@ -244,13 +244,6 @@
             </div>
             
             <div class="fixed-action-area">
-                <div id="pracWaveContainer" style="display:none; justify-content:space-between; align-items:center; height:50px; margin-bottom:15px; background:#fff; border-radius:16px; padding:0 20px; border:2px solid var(--ios-red); box-shadow: 0 5px 15px rgba(255,59,48,0.15);">
-                    <div class="waveform-container" id="pracWaveform" style="flex:2; height:35px;">
-                        <div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div>
-                    </div>
-                    <div class="stopwatch" id="pracRecTimer" style="font-size:20px; color:var(--ios-red);">00:00</div>
-                </div>
-
                 <div id="loadingUIPrac">
                     <div class="progress-box">
                         <div class="progress-header"><span>발음 정밀 평가 중...</span><span id="progressTextPrac">0%</span></div>
@@ -1022,10 +1015,14 @@
             
             span.onclick = () => { 
                 if (span.classList.contains('blurred')) { 
+                    // ✅ 첫 클릭: 블러 해제만, TTS 재생 안 함
                     span.classList.remove('blurred'); 
                     span.style.color = 'var(--ios-blue)'; 
-                    span.style.background = 'transparent'; 
+                    span.style.background = 'transparent';
+                    span.dataset.unblurred = 'true';
+                    return; 
                 } 
+                // 두 번째 클릭부터: TTS 재생
                 resetTTS(); 
                 ttsGlobalIndex = idx; 
                 playTTS(); 
@@ -1095,53 +1092,84 @@
         } 
     }
 
+    function restoreRecordBtn(btn) {
+        btn.dataset.recording = "false";
+        btn.style.cssText = "";
+        btn.className = "btn-apple btn-red";
+        btn.innerHTML = "녹음 시작";
+        btn.onclick = function() { toggleQuickRecord(this); };
+    }
+
+    function stopInlineRecording() {
+        if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+    }
+
     async function toggleQuickRecord(btn) {
-        if (btn.dataset.recording === "true") { 
-            applyBoing(btn); 
-            btn.dataset.recording = "false"; 
-            btn.innerHTML = "녹음 시작"; 
-            btn.classList.remove('glow-active'); 
-            if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop(); 
-            return; 
-        }
+        if (btn.dataset.recording === "true") return;
         
         stopMicEngine(); 
         applyBoing(btn); 
-        btn.classList.add('glow-active'); 
         resetTTS(); 
         
         btn.dataset.recording = "true"; 
-        btn.innerHTML = "■ 완료"; 
         document.getElementById('pracResultArea').style.display = 'none'; 
         
         try { 
-            activeStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-            document.getElementById('pracWaveContainer').style.display = 'flex'; 
+            activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // ✅ 3번: 버튼 자체를 [파형 | 스톱워치 | 완료] 레이아웃으로 변신
+            btn.style.cssText = `
+                background: #fff !important;
+                border: 2px solid var(--ios-red) !important;
+                box-shadow: 0 5px 15px rgba(255,59,48,0.2) !important;
+                padding: 0 14px !important;
+                cursor: default !important;
+            `;
+            btn.innerHTML = `
+                <div style="display:flex; align-items:center; width:100%; gap:10px;">
+                    <div id="inlineWaveform" style="display:flex; align-items:center; gap:3px; flex:2; height:36px; overflow:hidden;">
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                        <div class="wave-bar" style="background:var(--ios-red);"></div>
+                    </div>
+                    <div id="inlineTimer" style="font-weight:900; font-size:17px; color:var(--ios-red); min-width:48px; text-align:center;">00:00</div>
+                    <button onclick="stopInlineRecording()" style="background:var(--ios-red); color:white; border:none; border-radius:12px; padding:0 16px; height:40px; font-weight:900; font-size:14px; cursor:pointer; white-space:nowrap; flex-shrink:0;">■ 완료</button>
+                </div>
+            `;
+            
             recSeconds = 0; 
             clearInterval(timerInt); 
-            document.getElementById('pracRecTimer').innerText = "00:00"; 
-            
             timerInt = setInterval(() => { 
                 recSeconds++; 
                 const m = String(Math.floor(recSeconds/60)).padStart(2,'0');
                 const s = String(recSeconds%60).padStart(2,'0');
-                document.getElementById('pracRecTimer').innerText = `${m}:${s}`; 
+                const el = document.getElementById('inlineTimer');
+                if (el) el.innerText = `${m}:${s}`; 
             }, 1000); 
             
-            initMicWithStream(activeStream, processPracticeAI, document.getElementById('pracWaveform').querySelectorAll('.wave-bar')); 
+            initMicWithStream(activeStream, processPracticeAI, document.getElementById('inlineWaveform').querySelectorAll('.wave-bar')); 
         } catch(e) { 
             alert("마이크 권한 필요"); 
-            btn.dataset.recording="false"; 
-            btn.innerHTML="녹음 시작"; 
-            btn.classList.remove('glow-active'); 
+            restoreRecordBtn(btn);
         }
     }
 
     async function processPracticeAI() {
-        document.getElementById('pracWaveContainer').style.display = 'none'; 
+        document.getElementById('pracWaveContainer') && (document.getElementById('pracWaveContainer').style.display = 'none');
         const loading = document.getElementById('loadingUIPrac'); 
         const recBtn = document.getElementById('pracRecordBtn'); 
         
+        // ✅ 버튼 원상복원 후 숨김
+        restoreRecordBtn(recBtn);
         recBtn.style.display = 'none'; 
         loading.style.display = 'block';
         
