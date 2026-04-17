@@ -40,19 +40,21 @@ export default async function handler(req, res) {
         if (action === 'korean') {
             let levelInstr = difficulty === "beginner" ? "초급: 쉬운 단어 위주" : difficulty === "intermediate" ? "중급: 실생활/비즈니스 자연스러운 표현" : "고급: 학술적, 세련된 어휘";
 
-            // 🌟 1. 데이터 과부하 방지를 위한 핵심 단어(3~4개) 타겟팅
-            // 🌟 2. happen to / accidentally 강도 차이 등 디테일한 뉘앙스 룰 적용
+            // 🌟 아키텍트 지침 변경: 사전 추출 시 "기본 3개 + 문장 길이에 비례한 추가 단어" 동적 할당
             const instruction = `
             사용자의 말: "${userSpeech}"
             현재 난이도: ${levelInstr}
             
             [최우선 엄수 규칙]
-            1. '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요. (주의: 의도치 않은 우연을 표현할 때 'accidentally'보다 'happen to'의 문법적/어감적 강도가 더 높다는 점 등 미묘한 뉘앙스 차이를 엄격히 반영하세요).
-            2. "keys"는 문장 내 핵심 덩어리 표현을 정확히 3개 추출. (각 8단계 변형 포함: org, var1, var2, long)
-            3. "vocab"은 훈련을 위한 3개 단어 (오답 포함).
-            4. "dictionary"는 한국어에서 영어로 번역할 때 까다로운 뉘앙스(예: 이것저것, 막상, happen to 등)나 원어민 핵심 단어 **최대 3~4개만** 선별하세요. 
-               - 각 단어의 'ko_context'에는 사용자가 말했던 한국어 맥락을 반드시 포함하세요. (형식: "한국어로 이렇게 말했어요: 나는 [이것저것] 구경했어!")
-               - Key값은 특수기호를 제거한 소문자로 작성 (예: don't -> dont).
+            1. '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요. 
+               - 🚨 (중요) 의도치 않은 우연을 표현할 때 단순 부사 'accidentally'보다 동사구 'happen to'의 문법적/어감적 강도가 더 높다는 점 등 미묘한 뉘앙스 차이를 엄격히 반영하세요.
+            2. "keys"는 문장 내 핵심 덩어리 표현을 정확히 3개 추출. (각 8단계 변형 포함)
+            3. "vocab"은 훈련을 위한 핵심 단어 3개 추출 (오답 포함).
+            4. 🌟 "dictionary"는 생성된 문장에 포함된 단어들을 사전화합니다.
+               - 무조건 "vocab"에서 뽑은 3개의 핵심 단어를 포함하세요.
+               - 문장 길이에 비례하여 난이도가 있거나 까다로운 단어들을 추가로 추출하세요. (비율 예시: 문장 전체 분량이 약 5줄 분량의 길이라면 기본 3개 + 추가 2개 = 총 5개. 10줄 분량이라면 기본 3개 + 추가 7개 = 총 10개 수준으로 유동적이고 넉넉하게 뽑아주세요).
+               - 각 단어의 'ko_context'에는 사용자가 원래 한국어로 말했던 맥락을 반드시 포함하세요. (형식: "한국어로 이렇게 말했어요: 나는 [이것저것] 구경했어!")
+               - Key값은 특수기호를 제거한 소문자로 작성.
             
             반환 JSON 구조:
             {
@@ -61,7 +63,7 @@ export default async function handler(req, res) {
                 "korean": "자연스러운 한국어",
                 "english": "원어민식 영어 문장",
                 "dictionary": {
-                    "stuff": { "ko": "이것저것, 물건", "pos": "명사", "phonetics": "/stʌf/", "ko_context": "한국어로 이렇게 말했어요: 나는 [이것저것] 샀어!" }
+                    "happen": { "ko": "우연히 ~하다", "pos": "동사", "phonetics": "/ˈhæpən/", "ko_context": "한국어로 이렇게 말했어요: 나는 [우연히] 마주쳤어!" }
                 },
                 "keys": [
                     { "phrase": "표현1", "ko_org": "해석", "en_org": "원문", "ko_var1": "변형1해석", "en_var1": "변형1", "ko_var2": "변형2해석", "en_var2": "변형2", "ko_long": "추가해석", "en_long": "추가영어" }
@@ -78,7 +80,6 @@ export default async function handler(req, res) {
 
             const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-                // 🌟 max_tokens 확장을 통해 JSON이 짤리는 현상 완벽 차단
                 body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" }, max_tokens: 3000 })
             });
             const gptData = await gptResponse.json();
