@@ -3,57 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Stable V41</title>
+    <title>PolyGlot Master: V42 Final</title>
+    <script>
+        // 에러 발생 시 알림은 띄우되 앱이 죽지 않게 보호
+        window.onerror = function(msg, url, line) {
+            console.error("에러 발생:", msg, "라인:", line);
+            return true;
+        };
+    </script>
     <style>
-        :root { 
-            --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
-            --ios-bg: #F2F2F7; --dial-navy: #002D5E; --master-green: #34C759;
-            --skip-blue: #B3D4FF; 
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
+        :root { --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; --ios-bg: #F2F2F7; --master-green: #34C759; --skip-blue: #B3D4FF; }
+        body { font-family: -apple-system, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
         .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; }
-        
         .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
         .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; }
         .tab.active { color: var(--ios-blue); border-bottom: 2.5px solid var(--ios-blue); }
-
         .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         .speech-bubble { background: #fff; border-radius: 20px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
-        .bubble-ko { font-size: 20px; font-weight: 900; text-align: center; line-height: 1.4; }
+        .bubble-ko { font-size: 19px; font-weight: 900; text-align: center; line-height: 1.4; }
         .en-text-container { font-size: 24px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); }
-        .en-word { display: inline-block; margin-right: 6px; margin-bottom: 6px; cursor: pointer; }
-        .en-word.active-blue { color: var(--ios-blue) !important; }
-        .en-word.dimmed { color: #D1D1D6 !important; }
-        .en-word.blurred { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 5px; }
-
-        .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
-
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: 0.2s; }
         .btn-red { background: var(--ios-red); color: white; }
         .btn-blue { background: var(--ios-blue); color: white; }
         .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
         .btn-skip-pale { background: var(--skip-blue); color: #0056B3; font-weight: 900; }
-
-        @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .boing-active { animation: boing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
         .fixed-action-area { position: sticky; bottom: 10px; z-index: 999; padding-top: 10px; background: var(--ios-bg); }
-        .waveform-container { display: flex; align-items: center; gap: 3.5px; height: 40px; flex: 2; overflow: hidden; }
-        .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; }
-        
-        #globalDictTooltip { display: none; position: absolute; background: rgba(28, 28, 30, 0.95); color: #fff; padding: 18px; border-radius: 16px; z-index: 99999; width: max-content; max-width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     </style>
 </head>
-<body onclick="hideDictTooltip()">
-
-<div id="globalDictTooltip" onclick="event.stopPropagation();">
-    <div id="dictWord" style="font-size:22px; font-weight:900;"></div>
-    <div id="dictKo" style="font-weight:800; font-size:16px; margin-top:5px; color:#fff;"></div>
-</div>
+<body>
 
 <div class="container">
     <nav class="nav-bar">
@@ -63,34 +44,37 @@
 
     <div id="sec-game" class="section active">
         <div id="introView">
-            <div class="speech-bubble">
-                <div class="bubble-ko">실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요</div>
-            </div>
-            <button id="mainRecordBtn" class="btn-apple btn-blue" onclick="startMainRecording(this)">녹음 시작</button>
+            <div class="speech-bubble"><div class="bubble-ko">실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요</div></div>
+            <button id="mainRecordBtn" class="btn-apple btn-blue" onclick="handleMainRecording(this)">녹음 시작</button>
         </div>
 
         <div id="dashboardView" style="display:none;">
             <div class="speech-bubble">
                 <div class="en-text-container" id="dashEnText"></div>
-                <div id="dashKoText" style="margin-top:10px; font-weight:700; color:#666;"></div>
+                <div id="dashKoText" style="margin-top:10px; font-weight:700; color:#666; font-size:15px;"></div>
             </div>
-            <div class="dashboard-title">1. 덩어리 훈련 <span id="keyProgress">0/3</span></div>
+            <div style="font-weight:900; color:#888; margin-bottom:10px;">1. 덩어리 훈련 <span id="keyProgress" style="color:var(--ios-blue);">0/3</span></div>
             <div id="keyList"></div>
-            <div class="dashboard-title" style="margin-top:20px;">2. 핵심 단어 <span id="vocabProgress">0/3</span></div>
+            <div style="font-weight:900; color:#888; margin:20px 0 10px;">2. 핵심 단어 <span id="vocabProgress" style="color:var(--ios-blue);">0/3</span></div>
             <div id="vocabList"></div>
-            <button class="btn-apple btn-gray" onclick="location.reload()">새로운 이야기</button>
+            <button class="btn-apple btn-gray" style="margin-top:20px;" onclick="location.reload()">새로운 이야기</button>
         </div>
 
         <div id="practiceView" style="display:none;">
             <div class="speech-bubble">
                 <div class="bubble-ko" id="pracKoText"></div>
-                <div class="en-text-container" id="pracEnText" style="margin-top:20px;"></div>
+                <div class="en-text-container" id="pracEnText" style="margin-top:20px; text-align:center;"></div>
+            </div>
+            <div id="resultArea" style="display:none; margin-bottom:20px; padding:15px; background:#fff; border-radius:15px; border:1px solid #ddd;">
+                <div style="font-size:24px; font-weight:900; color:var(--ios-blue);" id="scoreDisplay">0</div>
+                <div id="feedbackDisplay" style="font-size:14px; margin-top:5px; color:#555;"></div>
+                <div style="font-size:13px; color:#999; margin-top:5px;">인식된 발음: <span id="recTextDisplay" style="color:var(--ios-red);"></span></div>
             </div>
             <div class="fixed-action-area">
-                <button id="pracRecordBtn" class="btn-apple btn-red" onclick="togglePracRecording(this)">녹음 시작</button>
+                <button id="pracRecordBtn" class="btn-apple btn-red" onclick="handlePracRecording(this)">녹음 시작</button>
                 <div style="display:flex; gap:10px;">
                     <button class="btn-apple btn-gray" onclick="goDashboard()">← 목록</button>
-                    <button id="nextBtn" class="btn-apple btn-skip-pale" onclick="nextStep()" style="display:none;">다음 단계 →</button>
+                    <button id="nextBtn" class="btn-apple btn-skip-pale" onclick="goDashboard()" style="display:none;">다음 단계 →</button>
                 </div>
             </div>
         </div>
@@ -103,12 +87,15 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'archive_poly_v41';
-    let lessonData = null, currentMode = null, currentStep = 1;
-    let mediaRecorder, chunks = [], synth = window.speechSynthesis;
-    let isRecording = false;
+    const STORAGE_KEY = 'archive_poly_v42';
+    let lessonData = null, currentMode = null, isRecording = false;
+    let mediaRecorder, chunks = [];
 
-    // 🌟 핵심 수리: 음성 인식 정밀화 로직
+    // 🌟 [핵심 수리] toLowerCase() 에러 방지 함수
+    function safeLower(str) {
+        return (str || "").toString().toLowerCase().trim();
+    }
+
     async function processSpeechAI(action, targetText = "") {
         const b64 = await getBase64Audio();
         try {
@@ -117,109 +104,111 @@
                 body: JSON.stringify({ audio: b64, action, target_english: targetText, difficulty: 'intermediate' })
             });
             const data = await res.json();
+            
             if (action === 'korean') {
                 lessonData = data;
                 lessonData.id = Date.now();
-                lessonData.completed = { keys: [false, false, false], vocab: [false, false, false] };
+                // 덩어리가 부족해도 강제로 3개 슬롯 생성
+                lessonData.completed = { 
+                    keys: new Array(lessonData.keys.length).fill(false), 
+                    vocab: new Array(lessonData.vocab.length).fill(false) 
+                };
                 saveArchive();
                 showDashboard();
             } else {
-                showResult(data);
+                renderResult(data);
             }
-        } catch (e) { alert("연결 오류"); }
+        } catch (e) { alert("서버 분석 오류가 발생했습니다."); }
+    }
+
+    function renderResult(data) {
+        document.getElementById('resultArea').style.display = 'block';
+        document.getElementById('scoreDisplay').innerText = data.score || 0;
+        document.getElementById('feedbackDisplay').innerText = data.feedback || "";
+        // 🌟 에러가 났던 지점: recognized_text가 없어도 빈 문자열로 처리
+        document.getElementById('recTextDisplay').innerText = data.recognized_text || "인식 실패";
+        
+        if (data.score >= 70) {
+            lessonData.completed[currentMode.type][currentMode.idx] = true;
+            document.getElementById('nextBtn').style.display = 'flex';
+            saveArchive();
+        }
     }
 
     function showDashboard() {
         document.getElementById('introView').style.display = 'none';
         document.getElementById('practiceView').style.display = 'none';
         document.getElementById('dashboardView').style.display = 'block';
-        
         document.getElementById('dashEnText').innerText = lessonData.english;
         document.getElementById('dashKoText').innerText = lessonData.korean;
         
-        renderList('keyList', lessonData.keys, 'key');
+        renderList('keyList', lessonData.keys, 'keys');
         renderList('vocabList', lessonData.vocab, 'vocab');
         
-        document.getElementById('keyProgress').innerText = `${lessonData.completed.keys.filter(Boolean).length}/3`;
-        document.getElementById('vocabProgress').innerText = `${lessonData.completed.vocab.filter(Boolean).length}/3`;
+        document.getElementById('keyProgress').innerText = `${lessonData.completed.keys.filter(Boolean).length}/${lessonData.keys.length}`;
+        document.getElementById('vocabProgress').innerText = `${lessonData.completed.vocab.filter(Boolean).length}/${lessonData.vocab.length}`;
     }
 
     function renderList(id, items, type) {
         const container = document.getElementById(id);
         container.innerHTML = items.map((item, idx) => `
             <div class="lesson-card ${lessonData.completed[type][idx] ? 'mastered' : ''}" onclick="startPractice('${type}', ${idx})">
-                <div>
-                    <div style="font-weight:800; font-size:18px;">${item.phrase || item.word}</div>
-                    <div style="font-size:14px; color:#888;">${item.ko_org || item.meaning}</div>
+                <div style="flex:1;">
+                    <div style="font-weight:900; font-size:18px;">${item.phrase || item.word}</div>
+                    <div style="font-size:14px; color:#888; margin-top:2px;">${item.ko_org || item.meaning}</div>
                 </div>
-                <div>${lessonData.completed[type][idx] ? '✅' : '▶'}</div>
+                <div style="font-size:22px;">${lessonData.completed[type][idx] ? '✅' : '▶'}</div>
             </div>
         `).join('');
     }
 
     function startPractice(type, idx) {
         currentMode = { type, idx };
-        currentStep = 1;
         document.getElementById('dashboardView').style.display = 'none';
         document.getElementById('practiceView').style.display = 'block';
-        setupPracUI();
-    }
-
-    function setupPracUI() {
-        const item = lessonData[currentMode.type][currentMode.idx];
+        document.getElementById('resultArea').style.display = 'none';
+        document.getElementById('nextBtn').style.display = 'none';
+        
+        const item = lessonData[type][idx];
         document.getElementById('pracKoText').innerText = item.ko_org || item.meaning;
         document.getElementById('pracEnText').innerText = item.phrase || item.word;
-        document.getElementById('nextBtn').style.display = 'none';
-        document.getElementById('pracRecordBtn').innerText = "녹음 시작";
     }
 
-    async function togglePracRecording(btn) {
+    function handleMainRecording(btn) {
         if (!isRecording) {
-            isRecording = true;
-            btn.innerText = "■ 종료 (인식 중...)";
-            btn.classList.add('glow-active');
-            startMic();
+            isRecording = true; btn.innerText = "말을 끝내고 누르세요"; startMic();
         } else {
-            isRecording = false;
-            btn.innerText = "분석 중...";
-            btn.classList.remove('glow-active');
-            stopMic(() => {
-                const target = lessonData[currentMode.type][currentMode.idx].phrase || lessonData[currentMode.type][currentMode.idx].word;
-                processSpeechAI('evaluate', target);
-            });
+            isRecording = false; btn.innerText = "분석 중..."; stopMic(() => processSpeechAI('korean'));
         }
     }
 
-    function showResult(data) {
-        alert(`점수: ${data.score}\n인식내용: ${data.recognized_text}\n${data.feedback}`);
-        if (data.score >= 70) {
-            lessonData.completed[currentMode.type][currentMode.idx] = true;
-            document.getElementById('nextBtn').style.display = 'block';
-            saveArchive();
+    function handlePracRecording(btn) {
+        if (!isRecording) {
+            isRecording = true; btn.innerText = "■ 녹음 중단"; startMic();
+        } else {
+            isRecording = false; btn.innerText = "평가 중...";
+            const target = lessonData[currentMode.type][currentMode.idx].phrase || lessonData[currentMode.type][currentMode.idx].word;
+            stopMic(() => processSpeechAI('evaluate', target));
         }
     }
 
-    function nextStep() {
-        goDashboard();
-    }
-
-    function goDashboard() {
-        showDashboard();
-    }
-
-    // 마이크 로직
+    // 마이크 제어
     async function startMic() {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        chunks = [];
-        mediaRecorder.ondataavailable = e => chunks.push(e.data);
-        mediaRecorder.start();
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            chunks = [];
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.start();
+        } catch(e) { alert("마이크 권한을 허용해주세요."); }
     }
 
     function stopMic(callback) {
-        mediaRecorder.onstop = callback;
-        mediaRecorder.stop();
-        mediaRecorder.stream.getTracks().forEach(t => t.stop());
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+            mediaRecorder.onstop = callback;
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(t => t.stop());
+        }
     }
 
     async function getBase64Audio() {
@@ -238,18 +227,6 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(arc));
     }
 
-    function startMainRecording(btn) {
-        if (!isRecording) {
-            isRecording = true;
-            btn.innerText = "말씀을 끝내고 버튼을 눌러주세요";
-            startMic();
-        } else {
-            isRecording = false;
-            btn.innerText = "분석 중...";
-            stopMic(() => processSpeechAI('korean'));
-        }
-    }
-
     function switchTab(tab) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.getElementById('tab-' + tab).classList.add('active');
@@ -262,7 +239,10 @@
         const arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
         document.getElementById('archiveList').innerHTML = arc.map(a => `
             <div class="lesson-card" onclick="loadArchive(${a.id})">
-                <div><b>${a.title_ko}</b><br><small>${a.english}</small></div>
+                <div style="flex:1;">
+                    <div style="font-weight:900;">${a.title_ko || '상황 요약'}</div>
+                    <div style="font-size:13px; color:#888;">${a.english.substring(0, 40)}...</div>
+                </div>
             </div>
         `).join('');
     }
@@ -273,6 +253,8 @@
         switchTab('game');
         showDashboard();
     }
+
+    function goDashboard() { showDashboard(); }
 </script>
 </body>
 </html>
