@@ -26,7 +26,6 @@ export default async function handler(req, res) {
         const lowerSpeech = userSpeech.toLowerCase();
         const jpRegex = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/;
         
-        // 연습/평가 모드에서는 짧은 발음도 허용
         let isHallucination = lowerSpeech.includes("mbc") || lowerSpeech.includes("amara") || lowerSpeech.includes("thank you") || jpRegex.test(userSpeech);
         if (action === 'korean' && userSpeech.trim().length < 2) isHallucination = true;
 
@@ -41,17 +40,18 @@ export default async function handler(req, res) {
         if (action === 'korean') {
             let levelInstr = difficulty === "beginner" ? "초급: 쉬운 단어 위주" : difficulty === "intermediate" ? "중급: 실생활/비즈니스 자연스러운 표현" : "고급: 학술적, 세련된 어휘";
 
-            // 🚨 핵심 변경: 100% 단어 스캔을 버리고, '이것저것' 같은 핵심 뉘앙스 단어만 추출
+            // 🌟 1. 데이터 과부하 방지를 위한 핵심 단어(3~4개) 타겟팅
+            // 🌟 2. happen to / accidentally 강도 차이 등 디테일한 뉘앙스 룰 적용
             const instruction = `
             사용자의 말: "${userSpeech}"
             현재 난이도: ${levelInstr}
             
             [최우선 엄수 규칙]
-            1. '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요.
+            1. '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요. (주의: 의도치 않은 우연을 표현할 때 'accidentally'보다 'happen to'의 문법적/어감적 강도가 더 높다는 점 등 미묘한 뉘앙스 차이를 엄격히 반영하세요).
             2. "keys"는 문장 내 핵심 덩어리 표현을 정확히 3개 추출. (각 8단계 변형 포함: org, var1, var2, long)
             3. "vocab"은 훈련을 위한 3개 단어 (오답 포함).
-            4. 🌟 "dictionary"는 모든 단어가 아닙니다! 한국어에서 영어로 번역할 때 까다로운 뉘앙스(예: 이것저것, 막상, 왠지 등)나 원어민이 잘 쓰는 핵심 단어 **최대 3~4개만** 선별하세요.
-               - 선별된 각 단어에는 'ko_context' 항목에 사용자가 원래 한국어로 말했던 맥락을 넣어주세요. (형식: "한국어로 이렇게 말했어요: 나는 [이것저것] 구경했어!")
+            4. "dictionary"는 한국어에서 영어로 번역할 때 까다로운 뉘앙스(예: 이것저것, 막상, happen to 등)나 원어민 핵심 단어 **최대 3~4개만** 선별하세요. 
+               - 각 단어의 'ko_context'에는 사용자가 말했던 한국어 맥락을 반드시 포함하세요. (형식: "한국어로 이렇게 말했어요: 나는 [이것저것] 구경했어!")
                - Key값은 특수기호를 제거한 소문자로 작성 (예: don't -> dont).
             
             반환 JSON 구조:
@@ -78,7 +78,8 @@ export default async function handler(req, res) {
 
             const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" } })
+                // 🌟 max_tokens 확장을 통해 JSON이 짤리는 현상 완벽 차단
+                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" }, max_tokens: 3000 })
             });
             const gptData = await gptResponse.json();
             return res.status(200).json(JSON.parse(gptData.choices[0].message.content));
