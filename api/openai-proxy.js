@@ -40,29 +40,30 @@ export default async function handler(req, res) {
         if (action === 'korean') {
             let levelInstr = difficulty === "beginner" ? "초급: 쉬운 단어 위주" : difficulty === "intermediate" ? "중급: 실생활/비즈니스 자연스러운 표현" : "고급: 학술적, 세련된 어휘";
 
-            // NEW: 단어 백과사전 분량을 AI가 절대 무시할 수 없도록 수학적 계산(문장수+3) 규칙 강제
+            // 🌟 수정: AI가 대충 1~2개만 만들고 끝내지 못하도록, JSON 예시 포맷 자체에 5개의 단어 슬롯을 강제함
             const instruction = `
             사용자의 말: "${userSpeech}"
             현재 난이도: ${levelInstr}
             
             [최우선 엄수 규칙]
             1. '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요. 
-               - 🚨 (중요) 의도치 않은 우연을 표현할 때 단순 부사 'accidentally'보다 동사구 'happen to'의 문법적/어감적 강도가 더 높다는 점 등 미묘한 뉘앙스 차이를 엄격히 반영하세요.
-            2. "keys"는 문장 내 핵심 덩어리 표현을 정확히 3개 추출. (각 8단계 변형 포함: org, var1, var2, long)
+               - 🚨 (중요) 의도치 않은 우연을 표현할 때 단순 부사 'accidentally'보다 동사구 'happen to'의 강도가 더 높다는 점을 엄격히 반영하세요.
+            2. "keys"는 문장 내 핵심 덩어리 표현을 정확히 3개 추출. (각 8단계 변형 포함. null이나 빈칸은 절대 허용하지 않음)
             3. "vocab"은 훈련을 위한 핵심 단어 3개 (오답 포함).
-            4. 🌟 "dictionary"는 생성된 영어 문장에 포함된 단어들을 사전화합니다.
-               - "vocab"에서 뽑은 핵심 단어 3개는 무조건 100% 사전에 포함하세요.
-               - [절대 규칙: 수량 강제] 생성된 영어 문장의 마침표(.) 갯수를 세어보세요. "최소 3개 + 문장 갯수" 만큼의 단어를 무조건 사전에 생성해야 합니다. (예: 문장이 4줄이라면, 최소 7개의 단어 데이터가 사전에 있어야 합니다). 대충 건너뛰지 말고 이 할당량을 무조건 채우세요!
-               - 각 단어의 'ko_context'에는 사용자가 말했던 원래의 한국어 맥락을 반드시 포함하세요. (형식: "한국어로 이렇게 말했어요: 나는 [이것저것] 구경했어!")
+            4. 🌟 "dictionary"는 무조건 최소 5개 이상을 작성하세요! (vocab의 3개 + 문장 내 난이도 있는 단어 2개 이상). 단어가 1~2개만 생성되는 것은 심각한 오류입니다.
             
-            반환 JSON 구조:
+            반환 JSON 구조를 반드시 아래와 같이 꽉 채워주세요:
             {
-                "title_ko": "짧은 상황 요약",
-                "title_en": "세련된 영어 메인 제목",
+                "title_ko": "상황 요약",
+                "title_en": "영어 메인 제목",
                 "korean": "자연스러운 한국어",
                 "english": "원어민식 영어 문장",
                 "dictionary": {
-                    "happen": { "ko": "우연히 ~하다", "pos": "동사", "phonetics": "/ˈhæpən/", "ko_context": "한국어로 이렇게 말했어요: 나는 [우연히] 마주쳤어!" }
+                    "word1": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
+                    "word2": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
+                    "word3": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
+                    "word4": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
+                    "word5": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" }
                 },
                 "keys": [
                     { "phrase": "표현1", "ko_org": "해석", "en_org": "원문", "ko_var1": "변형1해석", "en_var1": "변형1", "ko_var2": "변형2해석", "en_var2": "변형2", "ko_long": "추가해석", "en_long": "추가영어" }
@@ -79,8 +80,7 @@ export default async function handler(req, res) {
 
             const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-                // 토큰 넉넉하게 확장하여 데이터 잘림 현상 방지
-                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" }, max_tokens: 4000 })
+                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" }, max_tokens: 3500 })
             });
             const gptData = await gptResponse.json();
             return res.status(200).json(JSON.parse(gptData.choices[0].message.content));
