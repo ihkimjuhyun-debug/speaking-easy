@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Final V19</title>
+    <title>PolyGlot Master: Final V20 Ultimate</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
@@ -105,7 +105,6 @@
         .icon-btn { font-size: 18px; cursor: pointer; padding: 4px; opacity: 0.8; transition: transform 0.1s; }
         .icon-btn:active { transform: scale(0.8); }
 
-        /* ✨ 툴팁 CSS 수정: 절대적인 잘림 방지 (word-break: break-word) */
         #globalDictTooltip { 
             display: none; position: absolute; background: rgba(0,0,0,0.88); backdrop-filter: blur(5px); 
             color: #fff; padding: 16px 20px; border-radius: 16px; font-size: 14px; z-index: 99999; 
@@ -357,7 +356,6 @@
             lessonData = tempLesson; lessonData.id = Date.now(); 
             lessonData.completed = { keys: [false, false, false], full: false, vocab: [false, false, false] };
             
-            // ✨ 8단계 훈련 순서 셔플 로직
             lessonData.vocab.forEach(v => {
                 let drills = [2, 3, 4, 5, 6, 7];
                 for (let i = drills.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [drills[i], drills[j]] = [drills[j], drills[i]]; }
@@ -391,15 +389,14 @@
         
         document.getElementById('keyList').innerHTML = lessonData.keys.map((k, idx) => `<div class="lesson-card boing-active ${lessonData.completed.keys[idx] ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">${k.ko_org}</div><div class="en" style="font-size:18px; font-weight:900; margin-top:4px;">${k.phrase || k.en_org}</div></div><div style="font-size:24px;">${lessonData.completed.keys[idx] ? '✅' : '▶'}</div></div>`).join('');
         document.getElementById('vocabList').innerHTML = lessonData.vocab.map((v, idx) => `<div class="lesson-card boing-active ${lessonData.completed.vocab[idx] ? 'mastered' : ''}" onclick="startPractice('vocab_${idx}_1', this)"><div style="flex:1;"><div class="ko" style="font-size:13px; color:#888;">${v.pos} | ${v.phonetics}</div><div class="en" style="font-size:20px; font-weight:900; margin-top:2px;">${v.word}</div><div class="ko" style="font-size:15px; color:#444; margin-top:2px; font-weight:800;">${v.meaning}</div></div><div style="font-size:24px;">${lessonData.completed.vocab[idx] ? '✅' : '📝'}</div></div>`).join('');
-        document.getElementById('fullDrillCard').innerHTML = `<div class="lesson-card boing-active ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">전체 문장 마스터</div><div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${lessonData.english}</div></div><div style="font-size:24px;">${lessonData.completed.full ? '✅' : '➡️'}</div></div>`;
+        document.getElementById('fullDrillCard').innerHTML = `<div class="lesson-card boing-active ${lessonData.completed.full ? 'mastered' : ''}" onclick="startPractice('full_1', this)"><div style="flex:1;"><div class="ko" style="font-size:14px; color:#666;">전체 문장 마스터 (3단계)</div><div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${lessonData.english}</div></div><div style="font-size:24px;">${lessonData.completed.full ? '✅' : '➡️'}</div></div>`;
     }
 
-    /* ✨ 툴팁 UI 글자 잘림 완벽 해결 (JS 동적 위치 보정) */
     function showDictTooltip(word, event, spanEl) {
         event.stopPropagation();
         let dict = null;
         if(lessonData.dictionary) dict = lessonData.dictionary[word] || lessonData.dictionary[word.toLowerCase()];
-        if(!dict) dict = { ko: "기본 단어", pos: "Basic", phonetics: "", expression: "사전 데이터 확인 중", other_forms: "" };
+        if(!dict) dict = { ko: "기초 단어", pos: "Basic", phonetics: "", expression: "사전 데이터 정리 중", other_forms: "" };
 
         const tt = document.getElementById('globalDictTooltip');
         document.getElementById('dictWord').innerText = word; 
@@ -410,13 +407,12 @@
         document.getElementById('dictForms').innerText = dict.other_forms || "";
         
         tt.style.display = 'block';
-        tt.style.transform = 'none'; // 초기화 후 계산
+        tt.style.transform = 'none'; 
         
         const rect = spanEl.getBoundingClientRect();
         let topPos = rect.bottom + window.scrollY;
         let leftPos = rect.left + (rect.width / 2);
         
-        // 툴팁을 중앙에 배치하되, 화면 너비를 넘어가면 밀어넣기
         let finalLeft = leftPos - (tt.offsetWidth / 2);
         if (finalLeft < 10) finalLeft = 10;
         if (finalLeft + tt.offsetWidth > window.innerWidth - 10) {
@@ -436,25 +432,49 @@
         const ut = new SpeechSynthesisUtterance(word); ut.lang = 'en-US'; synth.speak(ut);
     }
 
+    /* ✨ TTS 하이라이팅 버그 수정 로직 */
     function handlePlayTTS(btn) { applyBoing(btn); playTTS(); }
     function handlePauseTTS(btn) { applyBoing(btn); pauseTTS(); }
     function handleResetTTS(btn) { applyBoing(btn); resetTTS(); }
     function updateTTSUI() { const playBtn = document.getElementById('btnPlayTTS'); const pauseBtn = document.getElementById('btnPauseTTS'); if (ttsIsPlaying) { playBtn.style.display = 'none'; pauseBtn.style.display = 'flex'; } else { playBtn.style.display = 'flex'; pauseBtn.style.display = 'none'; document.getElementById('playBtnText').innerText = ttsGlobalIndex > 0 ? "이어 듣기" : "영어 듣기"; } }
+    
     function playTTS() {
         if (ttsIsPlaying) return; synth.cancel();
         const textToSpeak = hiddenTTSWord || currentEnWordsArray.slice(ttsGlobalIndex).join(" ");
         if (!textToSpeak || textToSpeak.includes("?")) return;
-        const ut = new SpeechSynthesisUtterance(textToSpeak); ut.lang = 'en-US'; ut.rate = 0.85; window.currentUtterance = ut; 
+        
+        const ut = new SpeechSynthesisUtterance(textToSpeak); 
+        ut.lang = 'en-US'; ut.rate = 0.85; window.currentUtterance = ut; 
+        
         if (!hiddenTTSWord) {
             ut.onboundary = (e) => {
                 if (e.name === 'word') {
-                    const actIdx = ttsGlobalIndex + (textToSpeak.substring(0, e.charIndex).trim().split(/\s+/)[0]===""?0:textToSpeak.substring(0, e.charIndex).trim().split(/\s+/).length);
-                    document.querySelectorAll('.en-word').forEach((span, i) => { if (!span.classList.contains('blurred')) { if (i <= actIdx) span.classList.add('active-blue'); else span.classList.remove('active-blue'); } });
+                    // 정확한 띄어쓰기 인덱스 계산을 통해 어긋남 방지
+                    const spokenSoFar = textToSpeak.substring(0, e.charIndex);
+                    const wordsSpoken = spokenSoFar.split(/\s+/).filter(x => x.length > 0).length;
+                    const actIdx = ttsGlobalIndex + wordsSpoken;
+                    
+                    document.querySelectorAll('.en-word').forEach((span, i) => { 
+                        if (!span.classList.contains('blurred')) { 
+                            if (i <= actIdx) span.classList.add('active-blue'); 
+                            else span.classList.remove('active-blue'); 
+                        } 
+                    });
                 }
             };
         }
-        ut.onend = () => { ttsIsPlaying = false; if (!hiddenTTSWord && ttsGlobalIndex >= currentEnWordsArray.length - 1) { ttsGlobalIndex = 0; document.querySelectorAll('.en-word').forEach(span => { if (!span.classList.contains('blurred')) span.classList.add('active-blue'); }); } updateTTSUI(); };
-        ut.onerror = () => { ttsIsPlaying = false; updateTTSUI(); }; ttsIsPlaying = true; updateTTSUI(); synth.speak(ut);
+        ut.onend = () => { 
+            ttsIsPlaying = false; 
+            if (!hiddenTTSWord && ttsGlobalIndex >= currentEnWordsArray.length - 1) { 
+                ttsGlobalIndex = 0; 
+                document.querySelectorAll('.en-word').forEach(span => { 
+                    if (!span.classList.contains('blurred')) span.classList.add('active-blue'); 
+                }); 
+            } 
+            updateTTSUI(); 
+        };
+        ut.onerror = () => { ttsIsPlaying = false; updateTTSUI(); }; 
+        ttsIsPlaying = true; updateTTSUI(); synth.speak(ut);
     }
     function pauseTTS() { synth.cancel(); ttsIsPlaying = false; updateTTSUI(); }
     function resetTTS() { synth.cancel(); ttsIsPlaying = false; ttsGlobalIndex = 0; updateTTSUI(); document.querySelectorAll('.en-word').forEach(el => { el.classList.remove('active-blue', 'dimmed'); }); }
@@ -488,14 +508,14 @@
             else if (actualTask === 2) { ko = `${v.meaning}`; en = v.word; blurPart = "all"; document.getElementById('pracGuideText').innerText = "빈칸을 채워 발음해보세요 🎙️\n(어려우면 터치해서 힌트 보기)"; }
             else if (actualTask === 3) { ko = `${v.meaning}`; en = "???"; blurPart = "none"; document.getElementById('pracGuideText').innerText = "뜻을 보고 영단어를 말해보세요 🎙️"; }
             else if (actualTask === 4) { ko = "음성을 듣고 올바른 뜻 고르기"; en = "???"; hiddenTTSWord = v.word; document.getElementById('pracGuideText').style.display = 'none'; renderMCQ(v.meaning, v.wrong_options); }
-            // ✨ 8단계 훈련: 헷갈리는 스펠링 맞추기
             else if (actualTask === 5) { ko = `올바른 스펠링 고르기\n(뜻: ${v.meaning})`; en = "???"; hiddenTTSWord = v.word; document.getElementById('pracGuideText').style.display = 'none'; renderSpellingMCQ(v); }
             else if (actualTask === 6) { ko = `${v.meaning} (쓰기)`; en = "???"; hiddenTTSWord = v.word; document.getElementById('pracGuideText').style.display = 'none'; renderWritingForm("한글 뜻을 보고 영어 단어 적기"); }
             else if (actualTask === 7) { ko = `듣고 받아쓰기 (Dictation)`; en = "???"; hiddenTTSWord = v.word; document.getElementById('pracGuideText').style.display = 'none'; renderWritingForm("음성을 듣고 영어 단어 적기"); }
             else { ko = v.example_ko; en = v.example_en; blurPart = "none"; document.getElementById('pracGuideText').innerText = "예문을 소리내어 읽어보세요 🎙️"; }
         } else {
+            // ✨ 전체 드릴을 3단계로 단축
             stepNum = parseInt(currentPracticeMode.split('_')[1]); const d = lessonData.drills[stepNum - 1]; ko = d.ko; en = d.en_full; blurPart = d.blur_part;
-            document.getElementById('stepBadge').innerText = `SENTENCE DRILL STEP ${stepNum}/5`; document.getElementById('pracGuideText').innerText = "영어를 소리내어 읽어보세요 🎙️";
+            document.getElementById('stepBadge').innerText = `SENTENCE DRILL STEP ${stepNum}/3`; document.getElementById('pracGuideText').innerText = "영어를 소리내어 읽어보세요 🎙️";
         }
         document.getElementById('pracKoText').innerText = ko; renderInteractiveWords(en, blurPart);
     }
@@ -525,7 +545,6 @@
 
     function renderMCQ(correct, wrongs) { document.getElementById('pracRecordBtn').style.display = 'none'; const area = document.getElementById('mcqArea'); area.style.display = 'flex'; const opts = [correct, ...wrongs].sort(() => Math.random() - 0.5); area.innerHTML = opts.map(o => `<button class="mcq-btn" onclick="checkMCQ('${o}', '${correct}', this)">${o}</button>`).join(''); }
     
-    /* ✨ 헷갈리는 스펠링 렌더링 폼 */
     function renderSpellingMCQ(v) { 
         document.getElementById('pracRecordBtn').style.display = 'none'; const area = document.getElementById('mcqArea'); area.style.display = 'flex'; 
         const confWords = v.confusing_words || [v.word + "e", v.word.substring(0, v.word.length-1)];
@@ -539,7 +558,6 @@
         else { btn.style.background = 'var(--ios-red)'; btn.style.color = 'white'; }
     }
 
-    /* ✨ 드릴 녹음 타이머 & 로직 수정본 */
     async function toggleQuickRecord(btn) {
         if (btn.dataset.recording === "true") {
             applyBoing(btn); btn.dataset.recording = "false"; btn.innerHTML = "발음 녹음하기"; btn.classList.remove('glow-active');
@@ -581,7 +599,10 @@
         setTimeout(() => {
             document.getElementById('loadingUI').style.display = 'none'; document.getElementById('pracGuideText').style.display = 'none';
             if (!targetText.includes("?")) highlightAccurateWords(currentEnWordsArray, data.recognized_text);
-            showResultArea(data.score, data.feedback, data.recognized_text || "인식 불가", "파란색으로 표시된 단어는 정확합니다.");
+            
+            // ✨ 점수 파싱 버그 완벽 수리
+            const safeScore = parseInt(data.score) || 0;
+            showResultArea(safeScore, data.feedback, data.recognized_text || "인식 불가", "파란색으로 표시된 단어는 정확합니다.");
             document.getElementById('pracRecordBtn').style.display = 'block'; 
         }, 300);
     }
@@ -589,8 +610,14 @@
     function showResultArea(score, msg, targetText, feedback) {
         document.getElementById('pracResultArea').style.display = 'block';
         document.getElementById('scoreText').innerText = score; document.getElementById('scoreMsg').innerText = msg; document.getElementById('targetTextDisplay').innerText = targetText; document.getElementById('feedbackText').innerText = feedback;
-        if (parseInt(score) >= 70) { const nextBtn = document.getElementById('pracNextBtn'); nextBtn.className = 'btn-apple btn-blue btn-glow boing-active'; nextBtn.innerHTML = '다음 단계 ➡️'; } 
-        else { document.getElementById('pracRetryBtn').style.display = 'block'; }
+        if (score >= 70) { 
+            const nextBtn = document.getElementById('pracNextBtn'); nextBtn.className = 'btn-apple btn-blue btn-glow boing-active'; nextBtn.innerHTML = '다음 단계 ➡️'; 
+        } else { 
+            // 점수가 낮으면 다시하기 버튼 등장 (버튼 초기화)
+            const recBtn = document.getElementById('pracRecordBtn');
+            recBtn.dataset.recording = "false"; recBtn.innerHTML = "발음 녹음하기"; recBtn.classList.remove('glow-active');
+            document.getElementById('pracRetryBtn').style.display = 'block'; 
+        }
     }
 
     function highlightAccurateWords(targets, recognized) {
@@ -607,16 +634,17 @@
         if(btn) applyBoing(btn); resetTTS(); stopMicEngine();
         const p = currentPracticeMode.split('_'); const ns = parseInt(p[p.length - 1]) + 1;
         if (currentPracticeMode.startsWith('key_')) { if(ns > 5) { lessonData.completed.keys[parseInt(p[1])] = true; goDashboard(); } else { currentPracticeMode = `key_${p[1]}_${ns}`; setupPracticeUI(); } } 
-        // ✨ 8단계 검증
         else if (currentPracticeMode.startsWith('vocab_')) { if(ns > 8) { lessonData.completed.vocab[parseInt(p[1])] = true; goDashboard(); } else { currentPracticeMode = `vocab_${p[1]}_${ns}`; setupPracticeUI(); } } 
-        else { if(ns > 5) { lessonData.completed.full = true; goDashboard(); } else { currentPracticeMode = `full_${ns}`; setupPracticeUI(); } }
+        else { 
+            // ✨ 전체 문장 3단계 조건
+            if(ns > 3) { lessonData.completed.full = true; goDashboard(); } else { currentPracticeMode = `full_${ns}`; setupPracticeUI(); } 
+        }
     }
 
     function goDashboard(btn) { if(btn) applyBoing(btn); resetTTS(); stopMicEngine(); saveToArchive(); document.getElementById('practiceView').style.display = 'none'; showDashboard(); }
 
-    /* ✨ 스토리지 v19 (안전 호환성) */
     function saveToArchive() {
-        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v19')) || [];
+        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0) + lessonData.completed.vocab.filter(Boolean).length;
         const idx = arc.findIndex(a => a.id === lessonData.id);
         
@@ -630,15 +658,15 @@
         };
 
         if (idx !== -1) { dataToSave.starred = arc[idx].starred; arc[idx] = dataToSave; } else { dataToSave.starred = false; arc.unshift(dataToSave); }
-        localStorage.setItem('archive_poly_v19', JSON.stringify(arc));
+        localStorage.setItem('archive_poly_v20', JSON.stringify(arc));
     }
 
-    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v19')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v19', JSON.stringify(arc)); renderArchive(); }
-    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v19')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v19', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
+    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v20', JSON.stringify(arc)); renderArchive(); }
+    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v20', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
 
     function renderArchive() {
         const listStory = document.getElementById('archiveListStory'); const listVocab = document.getElementById('archiveListVocab');
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v19')) || [];
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || [];
         if(arc.length === 0) { listStory.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; listVocab.innerHTML = "<p style='text-align:center; color:#888;'>저장된 단어가 없습니다.</p>"; return; }
         arc.sort((a, b) => { if (a.starred && !b.starred) return -1; if (!a.starred && b.starred) return 1; return 0; });
 
@@ -665,8 +693,8 @@
         listVocab.innerHTML = vocabHtml;
     }
     
-    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v19')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
-    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v19')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
+    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
 
     function initMicWithStream(stream, cb, barsElements) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); audioCtx.createMediaStreamSource(stream).connect(analyser); analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount); mediaRecorder = new MediaRecorder(stream); chunks = []; mediaRecorder.ondataavailable = e => chunks.push(e.data); mediaRecorder.onstop = cb; mediaRecorder.start(); drawWaveSpecific(barsElements); }
     function drawWaveSpecific(bars) { animationId = requestAnimationFrame(() => drawWaveSpecific(bars)); analyser.getByteFrequencyData(dataArray); bars.forEach((bar, i) => { bar.style.height = Math.max(4, (dataArray[i % dataArray.length] / 128.0) * (bars.length > 20 ? 45 : 25)) + 'px'; }); }
