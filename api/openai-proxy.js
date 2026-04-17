@@ -40,19 +40,18 @@ export default async function handler(req, res) {
         if (action === 'korean') {
             let levelInstr = difficulty === "beginner" ? "초급: 쉬운 단어 위주" : difficulty === "intermediate" ? "중급: 실생활/비즈니스 자연스러운 표현" : "고급: 학술적, 세련된 어휘";
 
-            // 🌟 수정: AI가 대충 1~2개만 만들고 끝내지 못하도록, JSON 예시 포맷 자체에 5개의 단어 슬롯을 강제함
+            // 🌟 수정: 문장이 짧아도 유의어/파생어를 동원해 무조건 개수를 채우도록 강제
             const instruction = `
             사용자의 말: "${userSpeech}"
             현재 난이도: ${levelInstr}
             
             [최우선 엄수 규칙]
-            1. '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요. 
-               - 🚨 (중요) 의도치 않은 우연을 표현할 때 단순 부사 'accidentally'보다 동사구 'happen to'의 강도가 더 높다는 점을 엄격히 반영하세요.
-            2. "keys"는 문장 내 핵심 덩어리 표현을 정확히 3개 추출. (각 8단계 변형 포함. null이나 빈칸은 절대 허용하지 않음)
-            3. "vocab"은 훈련을 위한 핵심 단어 3개 (오답 포함).
-            4. 🌟 "dictionary"는 무조건 최소 5개 이상을 작성하세요! (vocab의 3개 + 문장 내 난이도 있는 단어 2개 이상). 단어가 1~2개만 생성되는 것은 심각한 오류입니다.
+            1. '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요. ('accidentally'보다 'happen to' 강도 반영)
+            2. [수량 강제] "keys"는 문장 내 핵심 덩어리 표현을 "무조건 3개" 추출하세요. 만약 문장이 너무 짧아서 3개가 안 나오면, 해당 상황에 쓰일 법한 관련 덩어리 표현이라도 지어내서 반드시 3개를 채우세요. (null 금지)
+            3. [수량 강제] "vocab"은 훈련을 위한 핵심 단어를 "무조건 3개" 추출하세요. 문장이 짧으면 관련된 유의어나 파생어를 추가해서라도 3개를 만드세요.
+            4. [수량 강제] "dictionary"는 "무조건 5개 이상" 작성하세요. (vocab 3개 + 추가 2개 이상). 
             
-            반환 JSON 구조를 반드시 아래와 같이 꽉 채워주세요:
+            반환 JSON 구조:
             {
                 "title_ko": "상황 요약",
                 "title_en": "영어 메인 제목",
@@ -62,11 +61,12 @@ export default async function handler(req, res) {
                     "word1": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
                     "word2": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
                     "word3": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
-                    "word4": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" },
-                    "word5": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "한국어로 이렇게 말했어요: [맥락]" }
+                    "word4": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "관련 유의어/추가단어" },
+                    "word5": { "ko": "뜻", "pos": "품사", "phonetics": "발음", "ko_context": "관련 유의어/추가단어" }
                 },
                 "keys": [
                     { "phrase": "표현1", "ko_org": "해석", "en_org": "원문", "ko_var1": "변형1해석", "en_var1": "변형1", "ko_var2": "변형2해석", "en_var2": "변형2", "ko_long": "추가해석", "en_long": "추가영어" }
+                    // ... 반드시 3개 객체 꽉 채울 것
                 ],
                 "drills": [
                     {"step": 1, "ko": "해석", "en_full": "전체", "blur_part": "none"},
@@ -75,6 +75,7 @@ export default async function handler(req, res) {
                 ],
                 "vocab": [
                     { "word": "단어", "meaning": "뜻", "pos": "품사", "phonetics": "발음", "example_en": "예문", "example_ko": "해석", "wrong_options": ["오답1", "오답2"], "confusing_words": ["스펠링오답1", "스펠링오답2"] }
+                    // ... 반드시 3개 객체 꽉 채울 것
                 ]
             }`;
 
