@@ -3,13 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: V40</title>
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            alert("앱 실행 중 오류가 발생했습니다!\n\n이 메시지를 캡처해주세요:\n" + message + "\n줄 번호: " + lineno);
-            return true;
-        };
-    </script>
+    <title>PolyGlot Master: Stable V41</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
@@ -17,128 +11,48 @@
             --skip-blue: #B3D4FF; 
         }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
-        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; position: relative; }
+        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; }
         
-        @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .boing-active { animation: boing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-        @keyframes glowSuccess { 0% { box-shadow: 0 0 5px rgba(0, 122, 255, 0.5); } 100% { box-shadow: 0 0 25px rgba(0, 122, 255, 1); } }
-        .btn-next-active { animation: glowSuccess 1.2s infinite alternate !important; background: var(--ios-blue) !important; color: white !important; font-weight: 900 !important; border: 2px solid white; transform: scale(1.02); transition: 0.2s all; }
-
-        .glow-active { box-shadow: 0 0 20px rgba(255, 59, 48, 0.7) !important; border: 2px solid var(--ios-red) !important; background: var(--ios-red) !important; color: white !important; transform: scale(1.05); transition: 0.2s all; }
-        .black-glow { box-shadow: 0 0 20px rgba(0,0,0,0.5) !important; border: 2.5px solid #1C1C1E !important; background: #1C1C1E !important; color: white !important; }
-        .black-glow .en-text-container, .black-glow .dash-label, .black-glow .bubble-ko { color: #fff !important; }
-        .black-glow .dash-label { color: #aaa !important; }
-
         .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
-        .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; transition: 0.3s; }
+        .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; }
         .tab.active { color: var(--ios-blue); border-bottom: 2.5px solid var(--ios-blue); }
 
         .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .bubble-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
-        .speech-bubble { background: #fff; border-radius: 20px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative; text-align: left; transition: background 0.3s, box-shadow 0.3s, color 0.3s; }
-        .bubble-ko { font-size: 20px; font-weight: 900; color: #111; line-height: 1.4; text-align: center; }
-        .dash-label { font-size: 12px; font-weight: 800; color: #888; margin-bottom: 8px; }
-        
-        .audio-bubble { background: #fff; border-radius: 16px; padding: 12px; display: flex; justify-content: center; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #EAEAEA; }
-        .step-badge-container { display: flex; justify-content: center; margin-bottom: 12px; }
-        .step-badge { background: var(--ios-blue); color: white; padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; letter-spacing: 0.5px; }
-        
-        .en-text-container { font-size: 28px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); text-align: left; }
-        .en-word { display: inline-block; margin-right: 6px; margin-bottom: 6px; transition: color 0.2s; cursor: pointer; }
+        .speech-bubble { background: #fff; border-radius: 20px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
+        .bubble-ko { font-size: 20px; font-weight: 900; text-align: center; line-height: 1.4; }
+        .en-text-container { font-size: 24px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); }
+        .en-word { display: inline-block; margin-right: 6px; margin-bottom: 6px; cursor: pointer; }
         .en-word.active-blue { color: var(--ios-blue) !important; }
         .en-word.dimmed { color: #D1D1D6 !important; }
-        .en-word.blurred { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 5px; cursor: pointer; }
-        
-        .dict-link { border-bottom: 2px dashed var(--ios-blue); padding-bottom: 2px; color: var(--ios-blue); }
-        .black-glow .dict-link { border-bottom: 2px dashed #B3D4FF; color: #B3D4FF; }
+        .en-word.blurred { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 5px; }
 
-        .writing-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .writing-input { width: 100%; height: 55px; border-radius: 14px; border: 2px solid #D1D1D6; padding: 0 15px; font-size: 18px; font-weight: 700; text-align: center; outline: none; transition: 0.2s; box-sizing: border-box; }
-        .writing-input:focus { border-color: var(--ios-blue); }
-
-        .btn-audio-main { background: #E8F5E9; color: var(--master-green); border: none; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; padding: 0 20px; display: flex; align-items: center; justify-content: center; height: 38px; gap: 6px; }
-        .btn-audio-sub { background: #F2F2F7; color: #555; border: none; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; height: 38px; gap: 6px; padding: 0 16px; }
-        
-        .diff-control { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; gap: 4px; }
-        .diff-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-        .diff-opt.active { background: #fff; color: var(--apple-navy); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .lang-opt.active { background: #E8F5E9; color: var(--master-green); }
-
-        .dashboard-title { font-size: 15px; font-weight: 900; margin-bottom: 12px; color: #888; display: flex; justify-content: space-between; align-items: flex-end; }
-        .progress-count { font-size: 14px; font-weight: 800; color: var(--ios-blue); }
-        
-        .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; -webkit-tap-highlight-color: transparent; transition: 0.2s; }
+        .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
         .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
 
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
         .btn-red { background: var(--ios-red); color: white; }
         .btn-blue { background: var(--ios-blue); color: white; }
         .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
         .btn-skip-pale { background: var(--skip-blue); color: #0056B3; font-weight: 900; }
 
-        .fixed-action-area { position: sticky; bottom: 10px; z-index: 999; padding-top: 10px; background: var(--ios-bg); }
-        #loadingUIMain, #loadingUIPrac { display: none; width: 100%; margin-bottom: 10px; }
-        .progress-box { background: #fff; border-radius: 16px; padding: 18px; border: 2px solid var(--ios-blue); box-shadow: 0 5px 15px rgba(0,122,255,0.15); }
-        .progress-header { display: flex; justify-content: space-between; font-weight: 900; color: var(--ios-blue); margin-bottom: 10px; font-size: 15px; }
-        .progress-bg { height: 12px; background: #E5E5EA; border-radius: 6px; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--ios-blue); width: 0%; transition: width 0.3s; }
+        @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .boing-active { animation: boing 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
+        .fixed-action-area { position: sticky; bottom: 10px; z-index: 999; padding-top: 10px; background: var(--ios-bg); }
         .waveform-container { display: flex; align-items: center; gap: 3.5px; height: 40px; flex: 2; overflow: hidden; }
         .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; }
-        .stopwatch { font-family: "Malgun Gothic", sans-serif; font-weight: 900; font-size: 22px; flex: 1; text-align: center; }
         
-        #countdownOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
-        .countdown-num { font-size: 120px; font-weight: 900; color: var(--ios-blue); animation: popIn 1s infinite; }
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 30% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
-
-        .result-bubble-container { text-align: left; margin-bottom: 15px; }
-        .score-bubble { background: #F8F8FA; border-radius: 14px; padding: 15px 20px; border: 1px solid #EAEAEA; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
-        .score-num { font-size: 40px; font-weight: 900; color: var(--ios-blue); line-height: 1; }
-        .score-msg { font-size: 15px; font-weight: 700; color: #444; line-height: 1.4; flex: 1; }
-        .ans-bubble { background: #fff; border-radius: 14px; padding: 18px; border: 1px solid #EAEAEA; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .ans-text { font-size: 16px; font-weight: 800; color: var(--apple-navy); line-height: 1.4; margin-bottom: 12px; }
-        .fb-text { font-size: 13.5px; font-weight: 700; color: #666; line-height: 1.5; border-top: 1px solid #EEE; padding-top: 12px; }
-
-        #mcqArea { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .mcq-btn { background: #F2F2F7; border: none; padding: 15px; border-radius: 14px; font-weight: 800; font-size: 16px; cursor: pointer; color: var(--apple-navy); transition: 0.2s; text-align: center;}
-
-        .archive-bubble { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s; border: 2px solid transparent; -webkit-tap-highlight-color: transparent;}
-        .archive-header { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
-        .archive-title { font-size: 17px; font-weight: 900; color: var(--dial-navy); line-height: 1.3; }
-
-        #globalDictTooltip { 
-            display: none; position: absolute; background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(10px); 
-            color: #fff; padding: 18px; border-radius: 16px; font-size: 14px; z-index: 99999; 
-            width: max-content; max-width: 300px; box-sizing: border-box; 
-            word-break: keep-all; white-space: normal; line-height: 1.5;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-        }
-        .dict-title-area { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; }
-        .dict-pos-text { color: #aaa; font-size: 12px; font-weight: 800; margin-right: 6px; }
-        .ko-context-box { background: rgba(0, 122, 255, 0.15); border-left: 3px solid var(--ios-blue); padding: 10px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13.5px; color: #ddd; font-style: italic; line-height: 1.4; }
+        #globalDictTooltip { display: none; position: absolute; background: rgba(28, 28, 30, 0.95); color: #fff; padding: 18px; border-radius: 16px; z-index: 99999; width: max-content; max-width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body onclick="hideDictTooltip()">
 
-<div id="countdownOverlay">
-    <div style="font-size: 20px; font-weight: 800; color: #888; margin-bottom: 20px;">준비하세요</div>
-    <div class="countdown-num" id="countdownNumber">3</div>
-</div>
-
 <div id="globalDictTooltip" onclick="event.stopPropagation();">
-    <div class="dict-title-area">
-        <div>
-            <div id="dictWord" style="font-size:22px; font-weight:900; color:#fff; line-height:1.2;"></div>
-            <div style="color:#aaa; font-size:13px; margin-top:4px;"><span class="dict-pos-text" id="dictPos"></span><span id="dictPhonetics"></span></div>
-        </div>
-        <div id="dictTTSBtn" style="cursor:pointer; background:rgba(255,255,255,0.15); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:14px; transition:0.2s;" onclick="playDictWordTTS(event)">▶</div>
-    </div>
-    <div id="dictKo" style="font-weight:800; font-size:16px; margin-bottom:4px; color:#fff;"></div>
-    <div id="koContextContainer" class="ko-context-box" style="display:none;"><div id="dictKoContext"></div></div>
+    <div id="dictWord" style="font-size:22px; font-weight:900;"></div>
+    <div id="dictKo" style="font-weight:800; font-size:16px; margin-top:5px; color:#fff;"></div>
 </div>
 
 <div class="container">
@@ -149,1352 +63,215 @@
 
     <div id="sec-game" class="section active">
         <div id="introView">
-            <div class="speech-bubble" style="text-align: center; margin-bottom:20px;">
-                <div id="introMainTitle" style="font-size: 19px; font-weight: 900; margin-bottom: 25px; line-height:1.4; color:var(--dial-navy);">실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요</div>
-                
-                <div class="diff-control">
-                    <div class="diff-opt" onclick="setDifficulty('beginner', this)" id="diff-beginner">🌱 초급</div>
-                    <div class="diff-opt active" onclick="setDifficulty('intermediate', this)" id="diff-intermediate">🌿 중급</div>
-                    <div class="diff-opt" onclick="setDifficulty('advanced', this)" id="diff-advanced">🌳 상급</div>
-                </div>
-                
-                <div class="diff-control" style="background: #F2F2F7;">
-                    <div class="diff-opt lang-opt active" onclick="setLangMode('ko')" id="lang-ko">🇰🇷 한국어 모드</div>
-                    <div class="diff-opt lang-opt" onclick="setLangMode('focus90')" id="lang-focus90" style="font-size: 12px; display:flex; align-items:center; justify-content:center; gap:4px;">
-                        <span>🇺🇸 영어 혼용 모드</span>
-                    </div>
-                </div>
+            <div class="speech-bubble">
+                <div class="bubble-ko">실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요</div>
             </div>
-            
-            <div class="fixed-action-area">
-                <div id="mainWaveContainer" style="display:none; justify-content:space-between; align-items:center; height:50px; margin-bottom:15px; background:#fff; border-radius:16px; padding:0 20px; border:2px solid var(--ios-red); box-shadow: 0 5px 15px rgba(255,59,48,0.15);">
-                    <div class="waveform-container" id="mainWaveform" style="flex:2; height:35px;">
-                        <div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div>
-                    </div>
-                    <div class="stopwatch" id="mainRecTimer" style="font-size:20px; color:var(--ios-red);">00:00</div>
-                </div>
-
-                <div id="loadingUIMain">
-                    <div class="progress-box">
-                        <div class="progress-header"><span>데이터 정밀 분석 중...</span><span id="progressTextMain">0%</span></div>
-                        <div class="progress-bg"><div class="progress-bar" id="progressBarMain"></div></div>
-                    </div>
-                </div>
-                <button id="mainRecordBtn" class="btn-apple btn-red" onclick="startMainRecording(this)" style="background: var(--ios-blue);">녹음 시작</button>
-            </div>
+            <button id="mainRecordBtn" class="btn-apple btn-blue" onclick="startMainRecording(this)">녹음 시작</button>
         </div>
 
         <div id="dashboardView" style="display:none;">
-            <div class="speech-bubble" id="dashMainBubble" style="margin-bottom: 20px;">
-                <div class="dash-label" id="dashLabelText">내 이야기 (교정 완료)</div>
-                <div class="en-text-container" id="dashEnText" style="font-size: 22px; margin-bottom:0; position:relative;"></div>
-                <div class="bubble-ko" id="dashKoText" style="font-size: 15px; font-weight: 700; margin-top: 8px; line-height: 1.4; border-top: 1px solid #EAEAEA; padding-top: 12px;"></div>
+            <div class="speech-bubble">
+                <div class="en-text-container" id="dashEnText"></div>
+                <div id="dashKoText" style="margin-top:10px; font-weight:700; color:#666;"></div>
             </div>
-            
-            <div class="dashboard-title"><span>1. 덩어리 8단계 훈련</span><span class="progress-count" id="keyProgress">0/0</span></div>
+            <div class="dashboard-title">1. 덩어리 훈련 <span id="keyProgress">0/3</span></div>
             <div id="keyList"></div>
-            
-            <div class="dashboard-title" style="margin-top:20px;"><span>2. 핵심 단어 8코스</span><span class="progress-count" id="vocabProgress">0/0</span></div>
+            <div class="dashboard-title" style="margin-top:20px;">2. 핵심 단어 <span id="vocabProgress">0/3</span></div>
             <div id="vocabList"></div>
-
-            <div class="dashboard-title" style="margin-top:20px;"><span>3. 전체 문장 드릴</span><span class="progress-count" id="fullProgress">0/1</span></div>
-            <div id="fullDrillCard"></div>
-            
-            <button class="btn-apple btn-gray" style="margin-top: 20px;" onclick="handleReload(this)">새로운 이야기</button>
+            <button class="btn-apple btn-gray" onclick="location.reload()">새로운 이야기</button>
         </div>
 
         <div id="practiceView" style="display:none;">
-            <div class="step-badge-container"><div class="step-badge" id="stepBadge">STEP 1</div></div>
-            
-            <div class="bubble-container">
-                <div class="speech-bubble" style="padding: 20px;">
-                    <div class="bubble-ko" id="pracKoText" style="margin: 0; border: none; padding: 0;"></div>
-                </div>
-                
-                <div class="audio-bubble">
-                    <button class="btn-audio-main" id="btnPlayTTS" onclick="handlePlayTTS(this)">듣기</button>
-                    <button class="btn-audio-sub" id="btnPauseTTS" style="display:none;" onclick="handlePauseTTS(this)">일시정지</button>
-                    <button class="btn-audio-sub" onclick="handleResetTTS(this)">초기화</button>
-                </div>
-
-                <div class="speech-bubble" style="padding: 25px 20px;">
-                    <div class="en-text-container" id="pracEnText" style="margin-bottom: 0;"></div>
-                    <div class="guide-text" id="pracGuideText" style="font-size: 13px; font-weight: 800; color: var(--ios-blue); margin-top: 15px; text-align: center;">소리내어 읽어보세요</div>
-                </div>
+            <div class="speech-bubble">
+                <div class="bubble-ko" id="pracKoText"></div>
+                <div class="en-text-container" id="pracEnText" style="margin-top:20px;"></div>
             </div>
-
-            <div id="writingArea" class="writing-container" style="display:none; margin-bottom:15px;">
-                <input type="text" id="writingInput" class="writing-input" placeholder="정답을 영어로 적어주세요 (예: ramen)" autocomplete="off" spellcheck="false">
-                <button onclick="checkWriting(this)" class="btn-apple btn-blue" style="margin-bottom:0;">정답 제출</button>
-            </div>
-            
-            <div id="mcqArea" style="display:none;"></div>
-
-            <div id="pracResultArea" style="display:none;">
-                <div class="result-bubble-container">
-                    <div class="score-bubble">
-                        <div class="score-num" id="scoreText">85</div>
-                        <div class="score-msg" id="scoreMsg">훌륭해요! 거의 완벽합니다.</div>
-                    </div>
-                    <div class="ans-bubble" id="ansBubbleContainer">
-                        <div class="ans-text">인식된 음성: <span id="targetTextDisplay" style="color:var(--ios-blue);"></span></div>
-                        <div class="fb-text" id="feedbackText">파란색으로 표시된 단어는 정확하게 발음하셨습니다.</div>
-                    </div>
-                </div>
-            </div>
-            
             <div class="fixed-action-area">
-                <div id="pracWaveContainer" style="display:none; justify-content:space-between; align-items:center; height:50px; margin-bottom:15px; background:#fff; border-radius:16px; padding:0 20px; border:2px solid var(--ios-red); box-shadow: 0 5px 15px rgba(255,59,48,0.15);">
-                    <div class="waveform-container" id="pracWaveform" style="flex:2; height:35px;">
-                        <div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div><div class="wave-bar" style="background:var(--ios-red);"></div>
-                    </div>
-                    <div class="stopwatch" id="pracRecTimer" style="font-size:20px; color:var(--ios-red);">00:00</div>
-                </div>
-
-                <div id="loadingUIPrac">
-                    <div class="progress-box">
-                        <div class="progress-header"><span>발음 정밀 평가 중...</span><span id="progressTextPrac">0%</span></div>
-                        <div class="progress-bg"><div class="progress-bar" id="progressBarPrac"></div></div>
-                    </div>
-                </div>
-
-                <button id="pracRecordBtn" class="btn-apple btn-red" onclick="toggleQuickRecord(this)" data-recording="false">녹음 시작</button>
-                
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
-                    <button id="goDashboardBtn" class="btn-apple btn-gray" onclick="goDashboard(this)">← 목록</button>
-                    <button id="pracNextBtn" class="btn-apple btn-skip-pale" onclick="nextDrillStage(this)">건너뛰기 →</button>
+                <button id="pracRecordBtn" class="btn-apple btn-red" onclick="togglePracRecording(this)">녹음 시작</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-apple btn-gray" onclick="goDashboard()">← 목록</button>
+                    <button id="nextBtn" class="btn-apple btn-skip-pale" onclick="nextStep()" style="display:none;">다음 단계 →</button>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div id="sec-archive" class="section">
-        <h2 style="font-weight: 900; color: var(--dial-navy); margin-bottom: 15px;">학습 보관소</h2>
-        <div class="diff-control" style="margin-bottom: 20px;">
-            <div class="diff-opt active" id="arc-tab-story" onclick="switchArcTab('story')">상황별 이야기</div>
-            <div class="diff-opt" id="arc-tab-vocab" onclick="switchArcTab('vocab')">핵심 단어장</div>
-        </div>
-        
-        <div id="archiveListStory"></div>
-        <div id="archiveListVocab" style="display:none;"></div>
+        <h2 style="font-weight:900;">학습 보관소</h2>
+        <div id="archiveList"></div>
     </div>
 </div>
 
 <script>
-    // 변수 선언
-    const STORAGE_KEY = 'archive_poly_v40';
-    let lessonData = null;
-    let currentPracticeMode = null;
-    let selectedDifficulty = 'intermediate';
-    let currentLangMode = 'ko'; 
-    let currentEnWordsArray = [];
-    let ttsGlobalIndex = 0;
-    let ttsIsPlaying = false;
-    let mediaRecorder, chunks = [], audioCtx, analyser, dataArray, animationId;
-    let activeStream = null; 
-    let synth = window.speechSynthesis;
-    let progressInt, timerInt, recSeconds = 0;
-    let hiddenTTSWord = ""; 
+    const STORAGE_KEY = 'archive_poly_v41';
+    let lessonData = null, currentMode = null, currentStep = 1;
+    let mediaRecorder, chunks = [], synth = window.speechSynthesis;
+    let isRecording = false;
 
-    // 안전한 스토리지 접근
-    function getSafeStorage() {
+    // 🌟 핵심 수리: 음성 인식 정밀화 로직
+    async function processSpeechAI(action, targetText = "") {
+        const b64 = await getBase64Audio();
         try {
-            const dataStr = localStorage.getItem(STORAGE_KEY);
-            if (!dataStr) return [];
-            const data = JSON.parse(dataStr);
-            if (Array.isArray(data)) {
-                return data;
+            const res = await fetch("/api/openai-proxy", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ audio: b64, action, target_english: targetText, difficulty: 'intermediate' })
+            });
+            const data = await res.json();
+            if (action === 'korean') {
+                lessonData = data;
+                lessonData.id = Date.now();
+                lessonData.completed = { keys: [false, false, false], vocab: [false, false, false] };
+                saveArchive();
+                showDashboard();
             } else {
-                return [];
+                showResult(data);
             }
-        } catch (e) {
-            console.error("스토리지 파싱 에러:", e);
-            return []; 
-        }
-    }
-
-    // 어떤 불량 데이터가 들어와도 빈 값(null/undefined)을 강제로 채워넣는 방어 코드
-    function normalizeLessonData(data) {
-        if (!data || typeof data !== 'object') {
-            data = { korean: "데이터 형식 오류", english: "Data Format Error" };
-        }
-        
-        if (!data.drills || !Array.isArray(data.drills) || data.drills.length === 0) {
-            data.drills = [
-                {step: 1, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: "none"},
-                {step: 2, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: "some"},
-                {step: 3, ko: data.korean || "해석", en_full: data.english || "Text", blur_part: "all"}
-            ];
-        }
-
-        if (!data.keys || !Array.isArray(data.keys) || data.keys.length === 0) {
-            data.keys = [{ phrase: data.english || "Text", ko_org: data.korean || "해석", en_org: data.english || "Text" }];
-        }
-        data.keys.forEach(k => {
-            if(!k) k = {};
-            k.phrase = k.phrase || k.en_org || "Missing"; 
-            k.ko_org = k.ko_org || data.korean || "해석 없음"; 
-            k.en_org = k.en_org || data.english || "Missing Text";
-            k.ko_var1 = k.ko_var1 || k.ko_org; 
-            k.en_var1 = k.en_var1 || k.en_org;
-            k.ko_var2 = k.ko_var2 || k.ko_org; 
-            k.en_var2 = k.en_var2 || k.en_org;
-            k.ko_long = k.ko_long || k.ko_org; 
-            k.en_long = k.en_long || k.en_org;
-        });
-
-        if (!data.vocab || !Array.isArray(data.vocab) || data.vocab.length === 0) {
-            data.vocab = [{ word: "N/A", meaning: "데이터 없음", pos: "N/A" }];
-        }
-        data.vocab.forEach(v => {
-            if(!v) v = {};
-            if (!v.drillOrder || v.drillOrder.length < 8) {
-                v.drillOrder = [1, 2, 3, 4, 5, 6, 7, 8];
-            }
-            v.word = v.word || "N/A"; 
-            v.meaning = v.meaning || "N/A";
-            v.wrong_options = v.wrong_options || ["오답1", "오답2"]; 
-            v.confusing_words = v.confusing_words || [v.word + "e", v.word.substring(0, Math.max(1, v.word.length-1))];
-            v.example_ko = v.example_ko || v.meaning || "해석"; 
-            v.example_en = v.example_en || v.word || "Text";
-            v.pos = v.pos || "단어"; 
-            v.phonetics = v.phonetics || "";
-        });
-
-        if(!data.completed || typeof data.completed !== 'object') {
-            data.completed = {};
-        }
-        if(!Array.isArray(data.completed.keys)) {
-            data.completed.keys = new Array(data.keys.length).fill(false);
-        }
-        if(!Array.isArray(data.completed.vocab)) {
-            data.completed.vocab = new Array(data.vocab.length).fill(false);
-        }
-        data.completed.full = !!data.completed.full;
-
-        if(!data.dictionary || typeof data.dictionary !== 'object') {
-            data.dictionary = {};
-        }
-        
-        return data;
-    }
-
-    function stopMicEngine() {
-        if (activeStream) { 
-            activeStream.getTracks().forEach(track => track.stop()); 
-            activeStream = null; 
-        }
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.stop();
-        }
-        if (audioCtx && audioCtx.state !== 'closed') {
-            audioCtx.close();
-        }
-        clearInterval(timerInt); 
-        cancelAnimationFrame(animationId);
-    }
-
-    function switchTab(tab) {
-        resetTTS(); 
-        hideDictTooltip(); 
-        stopMicEngine();
-        
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(`sec-${tab}`).classList.add('active');
-        document.getElementById(`tab-${tab}`).classList.add('active');
-        
-        if(tab === 'archive') {
-            renderArchive();
-        }
-    }
-
-    function switchArcTab(tab) {
-        document.getElementById('arc-tab-story').classList.toggle('active', tab === 'story');
-        document.getElementById('arc-tab-vocab').classList.toggle('active', tab === 'vocab');
-        
-        const listStory = document.getElementById('archiveListStory');
-        const listVocab = document.getElementById('archiveListVocab');
-        
-        if (tab === 'story') {
-            listStory.style.display = 'block';
-            listVocab.style.display = 'none';
-        } else {
-            listStory.style.display = 'none';
-            listVocab.style.display = 'flex'; 
-            listVocab.style.flexDirection = 'column'; 
-            listVocab.style.gap = '10px';
-        }
-        renderArchive();
-    }
-
-    function applyBoing(el) { 
-        if(!el) return; 
-        el.classList.remove('boing-active'); 
-        void el.offsetWidth; 
-        el.classList.add('boing-active'); 
-    }
-
-    function handleReload(btn) { 
-        applyBoing(btn); 
-        stopMicEngine(); 
-        setTimeout(() => location.reload(), 200); 
-    }
-
-    function setDifficulty(lvl, el) { 
-        selectedDifficulty = lvl; 
-        document.querySelectorAll('.diff-opt:not(.lang-opt):not(#arc-tab-story):not(#arc-tab-vocab)').forEach(o => o.classList.remove('active')); 
-        if (el) el.classList.add('active'); 
-        
-        const titleEl = document.getElementById('introMainTitle');
-        if(lvl === 'beginner') {
-            titleEl.innerHTML = "기초 단어를 사용해서<br>쉬운 일상을 말해보세요";
-        } else if(lvl === 'intermediate') {
-            titleEl.innerHTML = "실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요";
-        } else {
-            titleEl.innerHTML = "전문적이거나 학술적인<br>깊이 있는 주제를 말해보세요";
-        }
-    }
-
-    function setLangMode(mode) { 
-        currentLangMode = mode; 
-        document.querySelectorAll('.lang-opt').forEach(el => el.classList.remove('active')); 
-        document.getElementById(`lang-${mode}`).classList.add('active'); 
-    }
-
-    async function showCountdown() {
-        return new Promise(resolve => {
-            const overlay = document.getElementById('countdownOverlay');
-            const num = document.getElementById('countdownNumber');
-            overlay.style.display = 'flex'; 
-            let count = 3;
-            
-            const cntInt = setInterval(() => { 
-                num.innerText = count; 
-                if(count === 0) { 
-                    clearInterval(cntInt); 
-                    overlay.style.display = 'none'; 
-                    resolve(); 
-                } 
-                count--; 
-            }, 1000);
-            num.innerText = count--; 
-        });
-    }
-
-    function initMicWithStream(stream, cb, barsElements) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
-        analyser = audioCtx.createAnalyser(); 
-        audioCtx.createMediaStreamSource(stream).connect(analyser); 
-        analyser.fftSize = 64; 
-        dataArray = new Uint8Array(analyser.frequencyBinCount); 
-        mediaRecorder = new MediaRecorder(stream); 
-        chunks = []; 
-        
-        mediaRecorder.ondataavailable = e => chunks.push(e.data); 
-        mediaRecorder.onstop = cb; 
-        mediaRecorder.start(); 
-        drawWaveSpecific(barsElements);
-    }
-    
-    function drawWaveSpecific(bars) { 
-        animationId = requestAnimationFrame(() => drawWaveSpecific(bars)); 
-        analyser.getByteFrequencyData(dataArray); 
-        bars.forEach((bar, i) => { 
-            bar.style.height = Math.max(4, (dataArray[i % dataArray.length] / 128.0) * (bars.length > 20 ? 45 : 25)) + 'px'; 
-        }); 
-    }
-
-    async function startMainRecording(btn) {
-        applyBoing(btn); 
-        btn.classList.add('glow-active'); 
-        stopMicEngine();
-        
-        setTimeout(async () => {
-            try {
-                activeStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-                await showCountdown(); 
-                
-                document.getElementById('mainWaveContainer').style.display = 'flex'; 
-                recSeconds = 0; 
-                clearInterval(timerInt); 
-                document.getElementById('mainRecTimer').innerText = "00:00"; 
-                
-                timerInt = setInterval(() => { 
-                    recSeconds++; 
-                    const m = String(Math.floor(recSeconds/60)).padStart(2,'0');
-                    const s = String(recSeconds%60).padStart(2,'0');
-                    document.getElementById('mainRecTimer').innerText = `${m}:${s}`; 
-                }, 1000);
-                
-                initMicWithStream(activeStream, processKoreanAI, document.getElementById('mainWaveform').querySelectorAll('.wave-bar'));
-                
-                btn.innerText = "■ 완료"; 
-                btn.classList.add('glow-active'); 
-                btn.onclick = () => { 
-                    applyBoing(btn); 
-                    btn.classList.remove('glow-active'); 
-                    mediaRecorder.stop(); 
-                };
-            } catch(e) { 
-                alert("마이크 권한이 필요합니다."); 
-                location.reload(); 
-            }
-        }, 400); 
-    }
-    
-    async function getBase64Audio() { 
-        const blob = new Blob(chunks, { type: 'audio/webm' }); 
-        return new Promise(resolve => { 
-            const r = new FileReader(); 
-            r.onloadend = () => resolve(r.result.split(',')[1]); 
-            r.readAsDataURL(blob); 
-        }); 
-    }
-
-    async function processKoreanAI() {
-        document.getElementById('mainWaveContainer').style.display = 'none'; 
-        const loading = document.getElementById('loadingUIMain'); 
-        const btn = document.getElementById('mainRecordBtn'); 
-        
-        btn.style.display = 'none'; 
-        loading.style.display = 'block';
-        
-        let w = 0; 
-        clearInterval(progressInt); 
-        document.getElementById('progressTextMain').innerText = "0%"; 
-        
-        progressInt = setInterval(() => { 
-            w += Math.floor(Math.random() * 5) + 1; 
-            if(w > 96) w = 96; 
-            document.getElementById('progressBarMain').style.width = w + '%'; 
-            document.getElementById('progressTextMain').innerText = w + '%'; 
-        }, 300);
-        
-        const b64 = await getBase64Audio(); 
-        stopMicEngine(); 
-
-        try {
-            const res = await fetch("/api/openai-proxy", { 
-                method: "POST", 
-                headers: {"Content-Type": "application/json"}, 
-                body: JSON.stringify({
-                    audio: b64, 
-                    action: 'korean', 
-                    difficulty: selectedDifficulty, 
-                    lang_mode: currentLangMode
-                }) 
-            });
-            
-            if (!res.ok) throw new Error(`서버 에러: ${res.status}`);
-            
-            let tempLesson = await res.json();
-            
-            if (tempLesson.error) { 
-                alert(tempLesson.error); 
-                location.reload(); 
-                return; 
-            }
-            
-            lessonData = normalizeLessonData(tempLesson); 
-            lessonData.id = Date.now(); 
-            
-            lessonData.vocab.forEach(v => { 
-                let drills = [2, 3, 4, 5, 6, 7]; 
-                for (let i = drills.length - 1; i > 0; i--) { 
-                    const j = Math.floor(Math.random() * (i + 1)); 
-                    [drills[i], drills[j]] = [drills[j], drills[i]]; 
-                } 
-                v.drillOrder = [1, ...drills, 8]; 
-            });
-            
-            saveToArchive(); 
-            
-            clearInterval(progressInt); 
-            document.getElementById('progressBarMain').style.width = '100%'; 
-            document.getElementById('progressTextMain').innerText = '100%';
-            
-            setTimeout(() => { 
-                loading.style.display = 'none'; 
-                showDashboard(); 
-            }, 500);
-            
-        } catch (e) { 
-            console.error(e); 
-            alert("데이터 분석 지연. 네트워크를 확인 후 다시 시도해주세요."); 
-            location.reload(); 
-        }
+        } catch (e) { alert("연결 오류"); }
     }
 
     function showDashboard() {
-        if (!lessonData) return;
-        
-        document.getElementById('introView').style.display = 'none'; 
-        document.getElementById('practiceView').style.display = 'none'; 
+        document.getElementById('introView').style.display = 'none';
+        document.getElementById('practiceView').style.display = 'none';
         document.getElementById('dashboardView').style.display = 'block';
-        document.getElementById('dashKoText').innerText = lessonData.korean || "해석 없음";
         
-        const dashEn = document.getElementById('dashEnText');
-        const wordsHtml = (lessonData.english || "").split(' ').map(w => {
-            const clean = w.toLowerCase().replace(/[^a-z]/g, '');
-            const isDictWord = lessonData.dictionary && (lessonData.dictionary[clean] || lessonData.dictionary[w.toLowerCase()]);
-            
-            if (isDictWord) { 
-                return `<span class="en-word dict-link" onclick="showDictTooltip('${clean}', '${w.replace(/['"]/g,"")}', event, this)">${w} </span>`; 
-            } else { 
-                return `<span class="en-word" style="cursor:pointer;" onclick="playDictWordTTSOnly('${w.replace(/['"]/g,"")}', event)">${w} </span>`; 
-            }
-        }).join('');
-        dashEn.innerHTML = wordsHtml;
+        document.getElementById('dashEnText').innerText = lessonData.english;
+        document.getElementById('dashKoText').innerText = lessonData.korean;
+        
+        renderList('keyList', lessonData.keys, 'key');
+        renderList('vocabList', lessonData.vocab, 'vocab');
+        
+        document.getElementById('keyProgress').innerText = `${lessonData.completed.keys.filter(Boolean).length}/3`;
+        document.getElementById('vocabProgress').innerText = `${lessonData.completed.vocab.filter(Boolean).length}/3`;
+    }
 
-        const totalKeys = lessonData.keys ? lessonData.keys.length : 0;
-        const totalVocab = lessonData.vocab ? lessonData.vocab.length : 0;
-        
-        const keysC = (lessonData.completed.keys || []).filter(Boolean).length; 
-        const fullC = lessonData.completed.full ? 1 : 0; 
-        const vocabC = (lessonData.completed.vocab || []).filter(Boolean).length;
-        const totalProg = keysC + fullC + vocabC; 
-
-        document.getElementById('keyProgress').innerText = `${keysC}/${totalKeys}`; 
-        document.getElementById('vocabProgress').innerText = `${vocabC}/${totalVocab}`; 
-        document.getElementById('fullProgress').innerText = `${fullC}/1`;
-
-        const mainB = document.getElementById('dashMainBubble'); 
-        mainB.style.background = '#fff'; 
-        mainB.classList.remove('black-glow');
-        
-        const totalItems = totalKeys + totalVocab + 1;
-        if(totalProg < totalItems) {
-            mainB.style.background = '#F2F2F7'; 
-        } else { 
-            mainB.classList.add('black-glow'); 
-        }
-        
-        document.getElementById('keyList').innerHTML = (lessonData.keys || []).map((k, idx) => {
-            const isMastered = lessonData.completed.keys[idx];
-            return `
-            <div class="lesson-card boing-active ${isMastered ? 'mastered' : ''}" onclick="startPractice('key_${idx}_1', this)">
-                <div style="flex:1;">
-                    <div class="ko" style="font-size:14px; color:#666;">${k.ko_org}</div>
-                    <div class="en" style="font-size:18px; font-weight:900; margin-top:4px;">${k.phrase}</div>
+    function renderList(id, items, type) {
+        const container = document.getElementById(id);
+        container.innerHTML = items.map((item, idx) => `
+            <div class="lesson-card ${lessonData.completed[type][idx] ? 'mastered' : ''}" onclick="startPractice('${type}', ${idx})">
+                <div>
+                    <div style="font-weight:800; font-size:18px;">${item.phrase || item.word}</div>
+                    <div style="font-size:14px; color:#888;">${item.ko_org || item.meaning}</div>
                 </div>
-                <div style="font-size:24px; color:#aaa;">${isMastered ? '✅' : '▶'}</div>
-            </div>`;
-        }).join('');
-        
-        document.getElementById('vocabList').innerHTML = (lessonData.vocab || []).map((v, idx) => {
-            const isMastered = lessonData.completed.vocab[idx];
-            return `
-            <div class="lesson-card boing-active ${isMastered ? 'mastered' : ''}" onclick="startPractice('vocab_${idx}_1', this)">
-                <div style="flex:1;">
-                    <div class="ko" style="font-size:13px; color:#888;">${v.pos} | ${v.phonetics}</div>
-                    <div class="en" style="font-size:20px; font-weight:900; margin-top:2px;">${v.word}</div>
-                    <div class="ko" style="font-size:15px; color:#444; margin-top:2px; font-weight:800;">${v.meaning}</div>
-                </div>
-                <div style="font-size:24px; color:#aaa;">${isMastered ? '✅' : '▶'}</div>
-            </div>`;
-        }).join('');
-        
-        const isFullMastered = lessonData.completed.full;
-        document.getElementById('fullDrillCard').innerHTML = `
-        <div class="lesson-card boing-active ${isFullMastered ? 'mastered' : ''}" onclick="startPractice('full_1', this)">
-            <div style="flex:1;">
-                <div class="ko" style="font-size:14px; color:#666;">전체 문장 마스터 (3단계)</div>
-                <div class="en" style="font-size:17px; font-weight:900; margin-top:4px;">${lessonData.english || "Text"}</div>
+                <div>${lessonData.completed[type][idx] ? '✅' : '▶'}</div>
             </div>
-            <div style="font-size:24px; color:#aaa;">${isFullMastered ? '✅' : '▶'}</div>
-        </div>`;
+        `).join('');
     }
 
-    function playDictWordTTSOnly(word, event) { 
-        event.stopPropagation(); 
-        applyBoing(event.target); 
-        if(!word) return; 
-        synth.cancel(); 
-        const ut = new SpeechSynthesisUtterance(word); 
-        ut.lang = 'en-US'; 
-        synth.speak(ut); 
+    function startPractice(type, idx) {
+        currentMode = { type, idx };
+        currentStep = 1;
+        document.getElementById('dashboardView').style.display = 'none';
+        document.getElementById('practiceView').style.display = 'block';
+        setupPracUI();
     }
 
-    function showDictTooltip(cleanKey, originalWord, event, spanEl) {
-        event.stopPropagation();
-        
-        if(!lessonData || !lessonData.dictionary) return;
-        
-        let dict = lessonData.dictionary[cleanKey] || lessonData.dictionary[originalWord.toLowerCase()] || lessonData.dictionary[originalWord];
-        if(!dict) return; 
-
-        const tt = document.getElementById('globalDictTooltip');
-        document.getElementById('dictWord').innerText = originalWord; 
-        document.getElementById('dictKo').innerText = dict.ko || ""; 
-        document.getElementById('dictPos').innerText = dict.pos || ""; 
-        document.getElementById('dictPhonetics').innerText = dict.phonetics ? ` | ${dict.phonetics}` : ""; 
-        
-        const contextBox = document.getElementById('koContextContainer'); 
-        const contextText = document.getElementById('dictKoContext');
-        
-        if (dict.ko_context && dict.ko_context.trim() !== "") { 
-            contextBox.style.display = 'block'; 
-            contextText.innerText = dict.ko_context; 
-        } else { 
-            contextBox.style.display = 'none'; 
-        }
-
-        tt.style.display = 'block'; 
-        tt.style.transform = 'none'; 
-        
-        const rect = spanEl.getBoundingClientRect(); 
-        let finalLeft = rect.left + (rect.width / 2) - (tt.offsetWidth / 2);
-        
-        if (finalLeft < 15) finalLeft = 15; 
-        if (finalLeft + tt.offsetWidth > window.innerWidth - 15) {
-            finalLeft = window.innerWidth - tt.offsetWidth - 15;
-        }
-        
-        tt.style.top = (rect.bottom + window.scrollY + 8) + 'px'; 
-        tt.style.left = finalLeft + 'px';
-    }
-    
-    function hideDictTooltip() { 
-        const tt = document.getElementById('globalDictTooltip'); 
-        if(tt) tt.style.display = 'none'; 
-    }
-    
-    function playDictWordTTS(event) { 
-        event.stopPropagation(); 
-        applyBoing(event.target); 
-        const word = document.getElementById('dictWord').innerText; 
-        if(!word) return; 
-        synth.cancel(); 
-        const ut = new SpeechSynthesisUtterance(word); 
-        ut.lang = 'en-US'; 
-        synth.speak(ut); 
-    }
-    
-    function handlePlayTTS(btn) { applyBoing(btn); playTTS(); } 
-    function handlePauseTTS(btn) { applyBoing(btn); pauseTTS(); } 
-    function handleResetTTS(btn) { applyBoing(btn); resetTTS(); }
-    
-    function updateTTSUI() { 
-        const playBtn = document.getElementById('btnPlayTTS'); 
-        const pauseBtn = document.getElementById('btnPauseTTS'); 
-        
-        if (ttsIsPlaying) { 
-            playBtn.style.display = 'none'; 
-            pauseBtn.style.display = 'flex'; 
-        } else { 
-            playBtn.style.display = 'flex'; 
-            pauseBtn.style.display = 'none'; 
-            document.getElementById('playBtnText') ? document.getElementById('playBtnText').innerText = ttsGlobalIndex > 0 ? "이어 듣기" : "듣기" : null; 
-        } 
-    }
-    
-    function playTTS() {
-        if (ttsIsPlaying) return; 
-        synth.cancel();
-        
-        const textToSpeak = hiddenTTSWord || currentEnWordsArray.slice(ttsGlobalIndex).join(" ");
-        if (!textToSpeak || textToSpeak.includes("?")) return;
-        
-        const ut = new SpeechSynthesisUtterance(textToSpeak); 
-        ut.lang = 'en-US'; 
-        ut.rate = 0.85; 
-        window.currentUtterance = ut; 
-        
-        if (!hiddenTTSWord) { 
-            ut.onboundary = (e) => { 
-                if (e.name === 'word') { 
-                    const actIdx = ttsGlobalIndex + textToSpeak.substring(0, e.charIndex).split(/\s+/).filter(x => x.length > 0).length; 
-                    document.querySelectorAll('.en-word').forEach((span, i) => { 
-                        if (!span.classList.contains('blurred')) { 
-                            if (i <= actIdx) span.classList.add('active-blue'); 
-                            else span.classList.remove('active-blue'); 
-                        } 
-                    }); 
-                } 
-            }; 
-        }
-        
-        ut.onend = () => { 
-            ttsIsPlaying = false; 
-            if (!hiddenTTSWord && ttsGlobalIndex >= currentEnWordsArray.length - 1) { 
-                ttsGlobalIndex = 0; 
-                document.querySelectorAll('.en-word').forEach(s => { 
-                    if (!s.classList.contains('blurred')) s.classList.add('active-blue'); 
-                }); 
-            } 
-            updateTTSUI(); 
-        }; 
-        
-        ut.onerror = () => { 
-            ttsIsPlaying = false; 
-            updateTTSUI(); 
-        }; 
-        
-        ttsIsPlaying = true; 
-        updateTTSUI(); 
-        synth.speak(ut);
-    }
-    
-    function pauseTTS() { 
-        synth.cancel(); 
-        ttsIsPlaying = false; 
-        updateTTSUI(); 
-    }
-    
-    function resetTTS() { 
-        synth.cancel(); 
-        ttsIsPlaying = false; 
-        ttsGlobalIndex = 0; 
-        updateTTSUI(); 
-        document.querySelectorAll('.en-word').forEach(el => { 
-            el.classList.remove('active-blue', 'dimmed'); 
-        }); 
+    function setupPracUI() {
+        const item = lessonData[currentMode.type][currentMode.idx];
+        document.getElementById('pracKoText').innerText = item.ko_org || item.meaning;
+        document.getElementById('pracEnText').innerText = item.phrase || item.word;
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('pracRecordBtn').innerText = "녹음 시작";
     }
 
-    // 조건 없이 무조건 훈련 창으로 들어가도록 튕김 로직 삭제
-    function startPractice(mode, cardEl) { 
-        if(cardEl) applyBoing(cardEl); 
-        resetTTS(); 
-        stopMicEngine();
-        
-        // 데이터가 없으면 바로 반환 (튕기지 않고 안전 대기)
-        if(!lessonData) return;
-
-        document.getElementById('dashboardView').style.display = 'none'; 
-        document.getElementById('practiceView').style.display = 'block'; 
-        
-        currentPracticeMode = mode; 
-        setupPracticeUI(); 
-    }
-
-    function setupPracticeUI() {
-        let ko = "", en = "", blurPart = "", stepNum = 1; 
-        resetTTS(); 
-        hiddenTTSWord = "";
-        
-        document.getElementById('pracResultArea').style.display = 'none'; 
-        const nextBtn = document.getElementById('pracNextBtn'); 
-        nextBtn.className = 'btn-apple btn-skip-pale'; 
-        nextBtn.innerHTML = '건너뛰기 →';
-        
-        const recBtn = document.getElementById('pracRecordBtn');
-        recBtn.style.display = 'block'; 
-        recBtn.dataset.recording = "false"; 
-        recBtn.innerHTML = "녹음 시작"; 
-        recBtn.className = "btn-apple btn-red"; 
-        
-        document.getElementById('pracWaveContainer').style.display = 'none'; 
-        document.getElementById('loadingUIPrac').style.display = 'none';
-        document.getElementById('mcqArea').style.display = 'none'; 
-        document.getElementById('mcqArea').innerHTML = ''; 
-        document.getElementById('writingArea').style.display = 'none'; 
-        document.getElementById('pracGuideText').style.display = 'block';
-        document.getElementById('ansBubbleContainer').style.display = 'block';
-
-        if (currentPracticeMode.startsWith('key_')) {
-            const p = currentPracticeMode.split('_'); 
-            const idx = parseInt(p[1]); 
-            stepNum = parseInt(p[2]); 
-            
-            const k = (lessonData.keys && lessonData.keys[idx]) ? lessonData.keys[idx] : {};
-            
-            const safeKo = k.ko_org || "해석 없음"; 
-            const safeEn = k.en_org || "Missing Text"; 
-            const safeBlur = k.phrase || "none";
-            const safeKoV1 = k.ko_var1 || safeKo; 
-            const safeEnV1 = k.en_var1 || safeEn;
-            const safeKoV2 = k.ko_var2 || safeKo; 
-            const safeEnV2 = k.en_var2 || safeEn;
-            const safeKoLong = k.ko_long || safeKo; 
-            const safeEnLong = k.en_long || safeEn;
-
-            if(stepNum === 1) { ko = safeKo; en = safeEn; blurPart = "none"; }
-            else if(stepNum === 2) { ko = safeKo; en = safeEn; blurPart = safeBlur; }
-            else if(stepNum === 3) { ko = safeKoV1; en = safeEnV1; blurPart = "none"; }
-            else if(stepNum === 4) { ko = safeKoV1; en = safeEnV1; blurPart = safeBlur; }
-            else if(stepNum === 5) { ko = safeKoV2; en = safeEnV2; blurPart = "none"; }
-            else if(stepNum === 6) { ko = safeKoV2; en = safeEnV2; blurPart = safeBlur; }
-            else if(stepNum === 7) { ko = safeKoLong; en = safeEnLong; blurPart = "none"; }
-            else if(stepNum === 8) { ko = safeKoLong; en = safeEnLong; blurPart = safeBlur; }
-            
-            document.getElementById('stepBadge').innerText = `PHRASE MASTER STEP ${stepNum}/8`; 
-            document.getElementById('pracGuideText').innerText = "소리내어 읽어보세요";
-            
-        } else if (currentPracticeMode.startsWith('vocab_')) {
-            const p = currentPracticeMode.split('_'); 
-            const idx = parseInt(p[1]); 
-            stepNum = parseInt(p[2]); 
-            
-            const v = (lessonData.vocab && lessonData.vocab[idx]) ? lessonData.vocab[idx] : {};
-            const actualTask = (v.drillOrder) ? v.drillOrder[stepNum - 1] : stepNum; 
-            
-            document.getElementById('stepBadge').innerText = `VOCAB MASTER STEP ${stepNum}/8`;
-            
-            if (actualTask === 1) { 
-                ko = `${v.meaning || ''} [${v.pos || ''}]`; 
-                en = v.word || ''; 
-                blurPart = "none"; 
-                document.getElementById('pracGuideText').innerText = "단어를 발음해보세요"; 
-            } else if (actualTask === 2) { 
-                ko = `${v.meaning || ''}`; 
-                en = v.word || ''; 
-                blurPart = "all"; 
-                document.getElementById('pracGuideText').innerText = "빈칸을 채워 발음해보세요\n(어려우면 터치해서 힌트 보기)"; 
-            } else if (actualTask === 3) { 
-                ko = `${v.meaning || ''}`; 
-                en = "???"; 
-                blurPart = "none"; 
-                document.getElementById('pracGuideText').innerText = "뜻을 보고 영단어를 말해보세요"; 
-            } else if (actualTask === 4) { 
-                ko = "음성을 듣고 올바른 뜻 고르기"; 
-                en = "???"; 
-                hiddenTTSWord = v.word || ''; 
-                document.getElementById('pracGuideText').style.display = 'none'; 
-                renderMCQ(v.meaning, v.wrong_options); 
-            } else if (actualTask === 5) { 
-                ko = `올바른 스펠링 고르기\n(뜻: ${v.meaning || ''})`; 
-                en = "???"; 
-                hiddenTTSWord = v.word || ''; 
-                document.getElementById('pracGuideText').style.display = 'none'; 
-                renderSpellingMCQ(v); 
-            } else if (actualTask === 6) { 
-                ko = `${v.meaning || ''} (쓰기)`; 
-                en = "???"; 
-                hiddenTTSWord = v.word || ''; 
-                document.getElementById('pracGuideText').style.display = 'none'; 
-                renderWritingForm("정답을 영어로 적어주세요"); 
-            } else if (actualTask === 7) { 
-                ko = `듣고 받아쓰기`; 
-                en = "???"; 
-                hiddenTTSWord = v.word || ''; 
-                document.getElementById('pracGuideText').style.display = 'none'; 
-                renderWritingForm("정답을 영어로 적어주세요"); 
-            } else { 
-                ko = v.example_ko || ''; 
-                en = v.example_en || ''; 
-                blurPart = "none"; 
-                document.getElementById('pracGuideText').innerText = "예문을 소리내어 읽어보세요"; 
-            }
+    async function togglePracRecording(btn) {
+        if (!isRecording) {
+            isRecording = true;
+            btn.innerText = "■ 종료 (인식 중...)";
+            btn.classList.add('glow-active');
+            startMic();
         } else {
-            stepNum = parseInt(currentPracticeMode.split('_')[1]); 
-            const d = (lessonData.drills && lessonData.drills[stepNum - 1]) ? lessonData.drills[stepNum - 1] : {}; 
-            
-            ko = d.ko || "해석 없음"; 
-            en = d.en_full || "Missing Text"; 
-            blurPart = d.blur_part || "none";
-            
-            document.getElementById('stepBadge').innerText = `SENTENCE DRILL STEP ${stepNum}/3`; 
-            document.getElementById('pracGuideText').innerText = "소리내어 읽어보세요";
-        }
-        
-        document.getElementById('pracKoText').innerText = ko || "해석 없음"; 
-        renderInteractiveWords((en || "Missing Text"), blurPart);
-    }
-
-    function renderInteractiveWords(text, blurMode = "") {
-        const cont = document.getElementById('pracEnText'); 
-        cont.innerHTML = ""; 
-        
-        if(!text) return; 
-        currentEnWordsArray = text.split(" "); 
-        
-        const safeBlurMode = blurMode ? String(blurMode).toLowerCase() : "none";
-
-        currentEnWordsArray.forEach((w, idx) => {
-            const span = document.createElement('span'); 
-            span.className = "en-word"; 
-            span.innerText = w + " "; 
-            span.id = `word-${idx}`; 
-            
-            const clean = w.replace(/[^a-zA-Z]/g, '').toLowerCase();
-            
-            if (safeBlurMode === "all" || (safeBlurMode !== "none" && safeBlurMode.includes(clean) && clean.length > 0)) {
-                span.classList.add('blurred');
-            }
-            if (w.includes("?")) {
-                span.style.color = '#D1D1D6';
-            }
-            
-            span.onclick = () => { 
-                if (span.classList.contains('blurred')) { 
-                    span.classList.remove('blurred'); 
-                    span.style.color = 'var(--ios-blue)'; 
-                    span.style.background = 'transparent'; 
-                } 
-                resetTTS(); 
-                ttsGlobalIndex = idx; 
-                playTTS(); 
-            }; 
-            cont.appendChild(span);
-        });
-    }
-
-    function renderWritingForm(placeholderMsg) { 
-        document.getElementById('pracRecordBtn').style.display = 'none'; 
-        document.getElementById('writingArea').style.display = 'flex'; 
-        const input = document.getElementById('writingInput'); 
-        input.value = ""; 
-        input.placeholder = placeholderMsg; 
-        setTimeout(() => input.focus(), 100); 
-    }
-    
-    function checkWriting(btn) { 
-        applyBoing(btn); 
-        const inputVal = document.getElementById('writingInput').value.trim().toLowerCase(); 
-        const v = lessonData.vocab[parseInt(currentPracticeMode.split('_')[1])]; 
-        const correctWord = (v.word||"").toLowerCase(); 
-        
-        if (inputVal === correctWord) { 
-            btn.className = 'btn-apple btn-blue boing-active'; 
-            document.getElementById('writingInput').style.borderColor = 'var(--master-green)'; 
-            setTimeout(() => { 
-                showResultArea("100", "정답입니다!", v.word, "스펠링을 완벽하게 알고 계시네요!"); 
-                document.getElementById('writingArea').style.display = 'none'; 
-            }, 300); 
-        } else { 
-            document.getElementById('writingInput').style.borderColor = 'var(--ios-red)'; 
-            applyBoing(document.getElementById('writingInput')); 
-        } 
-    }
-    
-    function renderMCQ(correct, wrongs) { 
-        document.getElementById('pracRecordBtn').style.display = 'none'; 
-        const area = document.getElementById('mcqArea'); 
-        area.style.display = 'flex'; 
-        const opts = [correct, ...(wrongs||[])].filter(Boolean).sort(() => Math.random() - 0.5); 
-        area.innerHTML = opts.map(o => `<button class="mcq-btn" onclick="checkMCQ('${o}', '${correct}', this)">${o}</button>`).join(''); 
-    }
-    
-    function renderSpellingMCQ(v) { 
-        document.getElementById('pracRecordBtn').style.display = 'none'; 
-        const area = document.getElementById('mcqArea'); 
-        area.style.display = 'flex'; 
-        const confWords = v.confusing_words || [v.word + "e", v.word.substring(0, v.word.length-1)]; 
-        const opts = [v.word, ...confWords].filter(Boolean).sort(() => Math.random() - 0.5); 
-        area.innerHTML = opts.map(o => `<button class="mcq-btn" style="font-family:monospace; font-size:18px;" onclick="checkMCQ('${o}', '${v.word}', this)">${o}</button>`).join(''); 
-    }
-    
-    function checkMCQ(sel, cor, btn) { 
-        applyBoing(btn); 
-        if (sel === cor) { 
-            btn.className = 'mcq-btn boing-active'; 
-            btn.style.background = 'var(--ios-blue)'; 
-            btn.style.color = 'white'; 
-            setTimeout(() => { 
-                showResultArea("100", "정답입니다!", cor, "정확하게 맞추셨습니다!"); 
-                document.getElementById('mcqArea').style.display = 'none'; 
-            }, 300); 
-        } else { 
-            btn.style.background = 'var(--ios-red)'; 
-            btn.style.color = 'white'; 
-        } 
-    }
-
-    async function toggleQuickRecord(btn) {
-        if (btn.dataset.recording === "true") { 
-            applyBoing(btn); 
-            btn.dataset.recording = "false"; 
-            btn.innerHTML = "녹음 시작"; 
-            btn.classList.remove('glow-active'); 
-            if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop(); 
-            return; 
-        }
-        
-        stopMicEngine(); 
-        applyBoing(btn); 
-        btn.classList.add('glow-active'); 
-        resetTTS(); 
-        
-        btn.dataset.recording = "true"; 
-        btn.innerHTML = "■ 완료"; 
-        document.getElementById('pracResultArea').style.display = 'none'; 
-        
-        try { 
-            activeStream = await navigator.mediaDevices.getUserMedia({ audio: true }); 
-            document.getElementById('pracWaveContainer').style.display = 'flex'; 
-            recSeconds = 0; 
-            clearInterval(timerInt); 
-            document.getElementById('pracRecTimer').innerText = "00:00"; 
-            
-            timerInt = setInterval(() => { 
-                recSeconds++; 
-                const m = String(Math.floor(recSeconds/60)).padStart(2,'0');
-                const s = String(recSeconds%60).padStart(2,'0');
-                document.getElementById('pracRecTimer').innerText = `${m}:${s}`; 
-            }, 1000); 
-            
-            initMicWithStream(activeStream, processPracticeAI, document.getElementById('pracWaveform').querySelectorAll('.wave-bar')); 
-        } catch(e) { 
-            alert("마이크 권한 필요"); 
-            btn.dataset.recording="false"; 
-            btn.innerHTML="녹음 시작"; 
-            btn.classList.remove('glow-active'); 
-        }
-    }
-
-    async function processPracticeAI() {
-        document.getElementById('pracWaveContainer').style.display = 'none'; 
-        const loading = document.getElementById('loadingUIPrac'); 
-        const recBtn = document.getElementById('pracRecordBtn'); 
-        
-        recBtn.style.display = 'none'; 
-        loading.style.display = 'block';
-        
-        let w = 0; 
-        clearInterval(progressInt); 
-        document.getElementById('progressTextPrac').innerText = "0%"; 
-        
-        progressInt = setInterval(() => { 
-            w += Math.floor(Math.random() * 8) + 2; 
-            if(w > 95) w = 95; 
-            document.getElementById('progressBarPrac').style.width = w+'%'; 
-            document.getElementById('progressTextPrac').innerText = w + '%'; 
-        }, 250);
-        
-        const b64 = await getBase64Audio(); 
-        stopMicEngine(); 
-        
-        let targetText = document.getElementById('pracEnText').innerText;
-        
-        if (currentPracticeMode.startsWith('vocab_') && targetText.includes("?")) {
-            const v = lessonData.vocab[parseInt(currentPracticeMode.split('_')[1])];
-            targetText = v ? v.word : "";
-        }
-        
-        try {
-            const res = await fetch("/api/openai-proxy", { 
-                method: "POST", 
-                headers: {"Content-Type": "application/json"}, 
-                body: JSON.stringify({
-                    audio: b64, 
-                    action: 'evaluate', 
-                    target_english: targetText
-                }) 
+            isRecording = false;
+            btn.innerText = "분석 중...";
+            btn.classList.remove('glow-active');
+            stopMic(() => {
+                const target = lessonData[currentMode.type][currentMode.idx].phrase || lessonData[currentMode.type][currentMode.idx].word;
+                processSpeechAI('evaluate', target);
             });
-            
-            if (!res.ok) throw new Error("서버 에러"); 
-            
-            const data = await res.json(); 
-            clearInterval(progressInt); 
-            
-            document.getElementById('progressBarPrac').style.width = '100%'; 
-            document.getElementById('progressTextPrac').innerText = '100%';
-            
-            setTimeout(() => { 
-                loading.style.display = 'none'; 
-                document.getElementById('pracGuideText').style.display = 'none'; 
-                
-                if (!targetText.includes("?")) {
-                    highlightAccurateWords(currentEnWordsArray, data.recognized_text); 
-                }
-                
-                const safeScore = parseInt(data.score) || 0; 
-                showResultArea(safeScore, data.feedback, data.recognized_text || "인식 실패", "파란색으로 표시된 단어는 정확합니다."); 
-                
-                recBtn.style.display = 'block'; 
-                recBtn.dataset.recording = "false"; 
-                recBtn.innerHTML = "↺ 다시 시도"; 
-            }, 500);
-            
-        } catch(e) { 
-            alert("평가 중 연결이 지연되었습니다. 다시 시도해주세요."); 
-            loading.style.display = 'none'; 
-            recBtn.style.display = 'block'; 
         }
     }
 
-    function showResultArea(score, msg, targetText, feedback) {
-        document.getElementById('pracResultArea').style.display = 'block'; 
-        document.getElementById('scoreText').innerText = score; 
-        document.getElementById('scoreMsg').innerText = msg; 
-        
-        if (targetText && targetText !== "???") { 
-            document.getElementById('ansBubbleContainer').style.display = 'block'; 
-            document.getElementById('targetTextDisplay').innerText = targetText; 
-            document.getElementById('feedbackText').innerText = feedback; 
-        } else { 
-            document.getElementById('ansBubbleContainer').style.display = 'none'; 
-        }
-        
-        const nextBtn = document.getElementById('pracNextBtn'); 
-        if (score >= 70) { 
-            nextBtn.className = 'btn-apple btn-next-active'; 
-            nextBtn.innerHTML = '다음 단계 →'; 
-            applyBoing(nextBtn); 
-        } else { 
-            nextBtn.className = 'btn-apple btn-skip-pale'; 
-            nextBtn.innerHTML = '건너뛰기 →'; 
+    function showResult(data) {
+        alert(`점수: ${data.score}\n인식내용: ${data.recognized_text}\n${data.feedback}`);
+        if (data.score >= 70) {
+            lessonData.completed[currentMode.type][currentMode.idx] = true;
+            document.getElementById('nextBtn').style.display = 'block';
+            saveArchive();
         }
     }
 
-    function highlightAccurateWords(targets, recognized) {
-        if (!recognized) return; 
-        const recWords = recognized.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
-        
-        document.querySelectorAll('.en-word').forEach((span, i) => { 
-            if(!span.classList.contains('blurred')) { 
-                const tw = targets[i].toLowerCase().replace(/[^a-z]/g, ''); 
-                span.classList.remove('active-blue', 'dimmed'); 
-                if (tw && recWords.includes(tw)) {
-                    span.classList.add('active-blue'); 
-                } else {
-                    span.classList.add('dimmed'); 
-                }
-            } 
+    function nextStep() {
+        goDashboard();
+    }
+
+    function goDashboard() {
+        showDashboard();
+    }
+
+    // 마이크 로직
+    async function startMic() {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        chunks = [];
+        mediaRecorder.ondataavailable = e => chunks.push(e.data);
+        mediaRecorder.start();
+    }
+
+    function stopMic(callback) {
+        mediaRecorder.onstop = callback;
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    }
+
+    async function getBase64Audio() {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        return new Promise(resolve => {
+            const r = new FileReader();
+            r.onloadend = () => resolve(r.result.split(',')[1]);
+            r.readAsDataURL(blob);
         });
     }
 
-    function nextDrillStage(btn) {
-        if(btn) applyBoing(btn); 
-        resetTTS(); 
-        stopMicEngine();
-        
-        if(!lessonData) return goDashboard();
-
-        const p = currentPracticeMode.split('_'); 
-        const ns = parseInt(p[p.length - 1]) + 1;
-        
-        if (currentPracticeMode.startsWith('key_')) { 
-            if(ns > 8) { 
-                if(lessonData.completed && lessonData.completed.keys) lessonData.completed.keys[parseInt(p[1])] = true; 
-                goDashboard(); 
-            } else { 
-                currentPracticeMode = `key_${p[1]}_${ns}`; 
-                setupPracticeUI(); 
-            } 
-        } 
-        else if (currentPracticeMode.startsWith('vocab_')) { 
-            if(ns > 8) { 
-                if(lessonData.completed && lessonData.completed.vocab) lessonData.completed.vocab[parseInt(p[1])] = true; 
-                goDashboard(); 
-            } else { 
-                currentPracticeMode = `vocab_${p[1]}_${ns}`; 
-                setupPracticeUI(); 
-            } 
-        } 
-        else { 
-            if(ns > 3) { 
-                if(lessonData.completed) lessonData.completed.full = true; 
-                goDashboard(); 
-            } else { 
-                currentPracticeMode = `full_${ns}`; 
-                setupPracticeUI(); 
-            } 
-        }
-    }
-
-    function goDashboard(btn) { 
-        if(btn) applyBoing(btn); 
-        resetTTS(); 
-        stopMicEngine(); 
-        saveToArchive(); 
-        document.getElementById('practiceView').style.display = 'none'; 
-        showDashboard(); 
-    }
-
-    function saveToArchive() {
-        if(!lessonData || !lessonData.id) return; 
-        
-        let arc = getSafeStorage();
-        
-        const pr = (lessonData.completed.keys || []).filter(Boolean).length + 
-                   (lessonData.completed.full ? 1 : 0) + 
-                   (lessonData.completed.vocab || []).filter(Boolean).length;
-                   
-        const totalItems = (lessonData.keys ? lessonData.keys.length : 0) + 
-                           (lessonData.vocab ? lessonData.vocab.length : 0) + 1;
-                           
+    function saveArchive() {
+        let arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
         const idx = arc.findIndex(a => a.id === lessonData.id);
-        
-        const dataToSave = { 
-            id: lessonData.id, 
-            date: new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), 
-            title_ko: lessonData.title_ko || "나의 이야기", 
-            title_en: lessonData.title_en || "My Story", 
-            mastered: (pr >= totalItems), 
-            data: lessonData 
-        };
-        
-        if (idx !== -1) { 
-            dataToSave.starred = arc[idx].starred; 
-            arc[idx] = dataToSave; 
-        } else { 
-            dataToSave.starred = false; 
-            arc.unshift(dataToSave); 
-        } 
-        
+        if (idx > -1) arc[idx] = lessonData; else arc.unshift(lessonData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(arc));
     }
 
-    function toggleStar(e, id) { 
-        e.stopPropagation(); 
-        applyBoing(e.target); 
-        
-        let arc = getSafeStorage(); 
-        const idx = arc.findIndex(a => a.id === id); 
-        
-        if (idx === -1) return; 
-        
-        const currentStars = arc.filter(a => a.starred).length; 
-        if (!arc[idx].starred) { 
-            if (currentStars >= 3) { 
-                alert("최상단 고정은 최대 3개까지만 가능합니다."); 
-                return; 
-            } 
-            arc[idx].starred = true; 
-        } else { 
-            arc[idx].starred = false; 
-        } 
-        
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(arc)); 
-        renderArchive(); 
-    }
-    
-    function deleteArchive(e, id) { 
-        e.stopPropagation(); 
-        applyBoing(e.target); 
-        
-        if(!confirm("기록을 영구 삭제하시겠습니까?")) return; 
-        
-        let arc = getSafeStorage(); 
-        arc = arc.filter(a => a.id !== id); 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(arc)); 
-        
-        if (lessonData && lessonData.id === id) {
-            location.reload(); 
+    function startMainRecording(btn) {
+        if (!isRecording) {
+            isRecording = true;
+            btn.innerText = "말씀을 끝내고 버튼을 눌러주세요";
+            startMic();
         } else {
-            renderArchive(); 
+            isRecording = false;
+            btn.innerText = "분석 중...";
+            stopMic(() => processSpeechAI('korean'));
         }
     }
 
-    // 스토리지 렌더링. 단 하나의 항목에서 에러가 나도 전체가 죽지 않게 방어
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById('sec-' + tab).classList.add('active');
+        if (tab === 'archive') renderArchive();
+    }
+
     function renderArchive() {
-        const listStory = document.getElementById('archiveListStory'); 
-        const listVocab = document.getElementById('archiveListVocab'); 
-        
-        let rawArc = getSafeStorage();
-        let validArc = rawArc.filter(a => a && typeof a === 'object' && a.id);
-        
-        // 데이터 정규화
-        let arc = validArc.map(a => { 
-            a.data = normalizeLessonData(a.data); 
-            return a; 
-        });
-
-        if(arc.length === 0) { 
-            listStory.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; 
-            listVocab.innerHTML = "<p style='text-align:center; color:#888;'>저장된 단어가 없습니다.</p>"; 
-            return; 
-        }
-        
-        arc.sort((a, b) => { 
-            if (a.starred && !b.starred) return -1; 
-            if (!a.starred && b.starred) return 1; 
-            return 0; 
-        });
-
-        // 스토리 목록 그리기
-        let storyHtml = '';
-        arc.forEach(a => {
-            try {
-                const totalKeys = a.data.keys ? a.data.keys.length : 0;
-                const totalVocab = a.data.vocab ? a.data.vocab.length : 0;
-                const totalItems = totalKeys + totalVocab + 1;
-
-                const keysC = (a.data.completed.keys || []).filter(Boolean).length;
-                const fullC = a.data.completed.full ? 1 : 0;
-                const vocabC = (a.data.completed.vocab || []).filter(Boolean).length;
-                
-                const pr = keysC + fullC + vocabC;
-                const isMastered = (pr >= totalItems);
-
-                let textCol = '#D1D1D6'; 
-                let bgCol = '#fff'; 
-                let exClass = '';
-                
-                const ratio = totalItems > 0 ? pr / totalItems : 0;
-                if(ratio > 0 && ratio <= 0.3) { textCol='#8E8E93'; bgCol='#F2F2F7'; } 
-                else if(ratio > 0.3 && ratio <= 0.6) { textCol='#FFD60A'; bgCol='#FFFBE6'; } 
-                else if(ratio > 0.6 && ratio < 1) { textCol='#34C759'; bgCol='#E8F5E9'; } 
-                else if(isMastered) { textCol='#fff'; bgCol='#1C1C1E'; exClass='black-glow'; } 
-                
-                storyHtml += `
-                <div class="archive-bubble boing-active ${exClass}" onclick="loadFromArchive(${a.id}, this)" style="background:${bgCol};">
-                    <div class="archive-header">
-                        <div>
-                            <span style="color:${isMastered?'#aaa':'#555'};">${a.date || ''}</span>
-                            <span style="color:${textCol}; font-weight:900; margin-left:8px;">${isMastered?'🏆 완벽 정복':'⏳ 진행 중'}(${pr}/${totalItems})</span>
-                        </div>
-                        <div style="display:flex; gap: 12px; align-items:center;">
-                            <span class="icon-btn" onclick="toggleStar(event, ${a.id})">${a.starred ? '⭐' : '☆'}</span>
-                            <span class="icon-btn" onclick="deleteArchive(event, ${a.id})" style="opacity: 0.6;">🗑️</span>
-                        </div>
-                    </div>
-                    <div style="font-size:13px; color:${isMastered?'#aaa':'#888'}; font-weight:800; margin-bottom: 2px; margin-top: 8px;">${a.title_ko || '상황 요약'}</div>
-                    <div class="archive-title" style="font-size:18px; ${isMastered?'color:#fff;':''}">${a.title_en || 'My Story'}</div>
-                </div>`;
-            } catch (err) {
-                console.error("스토리 항목 렌더링 오류:", err);
-            }
-        });
-        listStory.innerHTML = storyHtml;
-
-        // 단어장 목록 그리기
-        let vocabHtml = '';
-        arc.forEach(a => { 
-            if(a.data && a.data.vocab) { 
-                a.data.vocab.forEach((v, vIdx) => { 
-                    try {
-                        const isMastered = (a.data.completed && a.data.completed.vocab) ? a.data.completed.vocab[vIdx] : false; 
-                        
-                        vocabHtml += `
-                        <div class="lesson-card boing-active ${isMastered ? 'mastered' : ''}" onclick="loadVocabFromArchive(${a.id}, ${vIdx}, this)" style="margin-bottom:0;">
-                            <div style="flex:1;">
-                                <div class="ko" style="font-size:13px; color:#888;">${v.pos || '단어'} | ${v.phonetics || ''}</div>
-                                <div class="en" style="font-size:20px; font-weight:900; margin-top:2px;">${v.word || 'N/A'}</div>
-                                <div class="ko" style="font-size:15px; color:#444; margin-top:2px; font-weight:800;">${v.meaning || '해석'}</div>
-                            </div>
-                            <div style="font-size:24px;">${isMastered ? '✅' : '▶'}</div>
-                        </div>`; 
-                    } catch (err) {
-                        console.error("단어 항목 렌더링 오류:", err);
-                    }
-                }); 
-            } 
-        });
-        listVocab.innerHTML = vocabHtml;
+        const arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        document.getElementById('archiveList').innerHTML = arc.map(a => `
+            <div class="lesson-card" onclick="loadArchive(${a.id})">
+                <div><b>${a.title_ko}</b><br><small>${a.english}</small></div>
+            </div>
+        `).join('');
     }
-    
-    function loadFromArchive(id, el) { 
-        applyBoing(el); 
-        stopMicEngine(); 
-        const arc = getSafeStorage(); 
-        const item = arc.find(a => a.id === id); 
-        if(item) { 
-            lessonData = normalizeLessonData(item.data); 
-            setTimeout(() => {
-                switchTab('game'); 
-                showDashboard();
-            }, 200); 
-        } 
-    }
-    
-    function loadVocabFromArchive(id, vIdx, el) { 
-        applyBoing(el); 
-        stopMicEngine(); 
-        const arc = getSafeStorage(); 
-        const item = arc.find(a => a.id === id); 
-        if(item) { 
-            lessonData = normalizeLessonData(item.data); 
-            setTimeout(() => { 
-                document.getElementById('tab-archive').classList.remove('active'); 
-                document.getElementById('sec-archive').classList.remove('active'); 
-                document.getElementById('tab-game').classList.add('active'); 
-                document.getElementById('sec-game').classList.add('active'); 
-                startPractice(`vocab_${vIdx}_1`); 
-            }, 200); 
-        } 
+
+    function loadArchive(id) {
+        const arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        lessonData = arc.find(a => a.id === id);
+        switchTab('game');
+        showDashboard();
     }
 </script>
 </body>
