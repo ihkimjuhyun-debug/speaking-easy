@@ -294,6 +294,7 @@
     let synth = window.speechSynthesis;
     let progressInt, timerInt, recSeconds = 0;
     let hiddenTTSWord = "";
+    let currentMimeType = 'audio/webm'; // iOS 호환을 위해 실제 감지된 MIME 타입 저장
 
     // ✅ BUG FIX: 현재 훈련의 실제 정답 텍스트를 별도로 저장 (DOM 파싱 오류 방지)
     let currentTargetText = "";
@@ -506,10 +507,27 @@
         audioCtx.createMediaStreamSource(stream).connect(analyser); 
         analyser.fftSize = 64; 
         dataArray = new Uint8Array(analyser.frequencyBinCount); 
-        mediaRecorder = new MediaRecorder(stream); 
+
+        // ✅ iOS 호환: 기기가 지원하는 MIME 타입 자동 감지
+        // iOS Safari: audio/mp4, Chrome/Android: audio/webm
+        const supportedTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
+        const detectedType = supportedTypes.find(t => {
+            try { return MediaRecorder.isTypeSupported(t); } catch(e) { return false; }
+        }) || '';
+
+        try {
+            mediaRecorder = detectedType 
+                ? new MediaRecorder(stream, { mimeType: detectedType }) 
+                : new MediaRecorder(stream);
+        } catch(e) {
+            mediaRecorder = new MediaRecorder(stream);
+        }
+
+        // 실제 사용 중인 MIME 타입 저장 (getBase64Audio에서 사용)
+        currentMimeType = mediaRecorder.mimeType || detectedType || 'audio/webm';
+
         chunks = []; 
-        
-        mediaRecorder.ondataavailable = e => chunks.push(e.data); 
+        mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
         mediaRecorder.onstop = cb; 
         mediaRecorder.start(); 
         drawWaveSpecific(barsElements);
@@ -562,7 +580,8 @@
     }
     
     async function getBase64Audio() { 
-        const blob = new Blob(chunks, { type: 'audio/webm' }); 
+        // ✅ iOS 호환: 실제 녹음된 MIME 타입으로 Blob 생성 (webm 강제 X)
+        const blob = new Blob(chunks, { type: currentMimeType }); 
         return new Promise(resolve => { 
             const r = new FileReader(); 
             r.onloadend = () => resolve(r.result.split(',')[1]); 
@@ -597,7 +616,8 @@
                 method: "POST", 
                 headers: {"Content-Type": "application/json"}, 
                 body: JSON.stringify({
-                    audio: b64, 
+                    audio: b64,
+                    mimeType: currentMimeType,
                     action: 'korean', 
                     difficulty: selectedDifficulty, 
                     lang_mode: currentLangMode
@@ -1274,9 +1294,10 @@
                 method: "POST", 
                 headers: {"Content-Type": "application/json"}, 
                 body: JSON.stringify({
-                    audio: b64, 
+                    audio: b64,
+                    mimeType: currentMimeType,
                     action: 'evaluate', 
-                    target_english: targetText  // ✅ 정확한 정답 텍스트 전달
+                    target_english: targetText
                 }) 
             });
             
