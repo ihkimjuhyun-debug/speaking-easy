@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Final V20 Ultimate</title>
+    <title>PolyGlot Master: Final V21 Ultimate</title>
     <style>
         :root { 
             --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; 
@@ -80,9 +80,11 @@
         .wave-bar { width: 3.5px; background: var(--ios-red); border-radius: 2px; height: 4px; transition: height 0.05s ease; }
         .stopwatch { font-family: "Malgun Gothic", sans-serif; font-weight: 900; font-size: 22px; flex: 1; text-align: center; }
         
-        #loadingUI { display: none; text-align: center; padding: 30px 0; }
-        .progress-bg { width: 100%; height: 12px; background: #E5E5EA; border-radius: 10px; overflow: hidden; margin: 0 auto; max-width: 80%; }
-        .progress-bar { width: 0%; height: 100%; background: var(--ios-blue); transition: width 0.2s; }
+        /* ✨ 백엔드 분석 중 UI 강화 (% 텍스트 추가) */
+        #loadingUI { display: none; text-align: left; padding: 30px 10%; }
+        .progress-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; font-weight: 800; color: var(--ios-blue); }
+        .progress-bg { width: 100%; height: 14px; background: #E5E5EA; border-radius: 10px; overflow: hidden; margin: 0 auto; }
+        .progress-bar { width: 0%; height: 100%; background: var(--ios-blue); transition: width 0.3s ease; }
 
         #countdownOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
         .countdown-num { font-size: 120px; font-weight: 900; color: var(--ios-blue); animation: popIn 1s infinite; }
@@ -146,7 +148,10 @@
         </div>
         
         <div id="loadingUI">
-            <div style="font-size: 15px; font-weight: 800; color: var(--ios-blue); margin-bottom: 10px;">AI가 분석 중입니다...</div>
+            <div class="progress-header">
+                <span style="font-size: 15px;">AI가 분석 중입니다...</span>
+                <span id="progressText" style="font-size: 18px; font-family: monospace;">0%</span>
+            </div>
             <div class="progress-bg"><div class="progress-bar" id="progressBar"></div></div>
         </div>
 
@@ -342,7 +347,16 @@
         document.getElementById('recordingPanelMain').style.display = 'none';
         document.getElementById('loadingUI').style.display = 'block';
         
-        let w = 0; clearInterval(progressInt); progressInt = setInterval(() => { w += 5; if(w>95) w=95; document.getElementById('progressBar').style.width = w+'%'; }, 200);
+        let w = 0; clearInterval(progressInt); 
+        document.getElementById('progressText').innerText = "0%";
+        // ✨ 퍼센티지 게이지 로직
+        progressInt = setInterval(() => { 
+            w += Math.floor(Math.random() * 8) + 2; 
+            if(w > 95) w = 95; 
+            document.getElementById('progressBar').style.width = w + '%'; 
+            document.getElementById('progressText').innerText = w + '%'; 
+        }, 250);
+        
         const b64 = await getBase64Audio();
         stopMicEngine(); 
 
@@ -362,7 +376,10 @@
                 v.drillOrder = [1, ...drills, 8]; 
             });
             
-            saveToArchive(); clearInterval(progressInt); document.getElementById('progressBar').style.width = '100%';
+            saveToArchive(); 
+            clearInterval(progressInt); 
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('progressText').innerText = '100%';
             setTimeout(() => { document.getElementById('loadingUI').style.display = 'none'; showDashboard(); }, 500);
         } catch (e) { alert("분석 중 오류 발생. 다시 시도해주세요."); location.reload(); }
     }
@@ -396,7 +413,7 @@
         event.stopPropagation();
         let dict = null;
         if(lessonData.dictionary) dict = lessonData.dictionary[word] || lessonData.dictionary[word.toLowerCase()];
-        if(!dict) dict = { ko: "기초 단어", pos: "Basic", phonetics: "", expression: "사전 데이터 정리 중", other_forms: "" };
+        if(!dict) dict = { ko: "기초 단어", pos: "Basic", phonetics: "", expression: "사전 데이터 확인 중", other_forms: "" };
 
         const tt = document.getElementById('globalDictTooltip');
         document.getElementById('dictWord').innerText = word; 
@@ -432,7 +449,6 @@
         const ut = new SpeechSynthesisUtterance(word); ut.lang = 'en-US'; synth.speak(ut);
     }
 
-    /* ✨ TTS 하이라이팅 버그 수정 로직 */
     function handlePlayTTS(btn) { applyBoing(btn); playTTS(); }
     function handlePauseTTS(btn) { applyBoing(btn); pauseTTS(); }
     function handleResetTTS(btn) { applyBoing(btn); resetTTS(); }
@@ -449,7 +465,6 @@
         if (!hiddenTTSWord) {
             ut.onboundary = (e) => {
                 if (e.name === 'word') {
-                    // 정확한 띄어쓰기 인덱스 계산을 통해 어긋남 방지
                     const spokenSoFar = textToSpeak.substring(0, e.charIndex);
                     const wordsSpoken = spokenSoFar.split(/\s+/).filter(x => x.length > 0).length;
                     const actIdx = ttsGlobalIndex + wordsSpoken;
@@ -513,7 +528,6 @@
             else if (actualTask === 7) { ko = `듣고 받아쓰기 (Dictation)`; en = "???"; hiddenTTSWord = v.word; document.getElementById('pracGuideText').style.display = 'none'; renderWritingForm("음성을 듣고 영어 단어 적기"); }
             else { ko = v.example_ko; en = v.example_en; blurPart = "none"; document.getElementById('pracGuideText').innerText = "예문을 소리내어 읽어보세요 🎙️"; }
         } else {
-            // ✨ 전체 드릴을 3단계로 단축
             stepNum = parseInt(currentPracticeMode.split('_')[1]); const d = lessonData.drills[stepNum - 1]; ko = d.ko; en = d.en_full; blurPart = d.blur_part;
             document.getElementById('stepBadge').innerText = `SENTENCE DRILL STEP ${stepNum}/3`; document.getElementById('pracGuideText').innerText = "영어를 소리내어 읽어보세요 🎙️";
         }
@@ -584,7 +598,15 @@
     async function processPracticeAI() {
         document.getElementById('pracWaveContainer').style.display = 'none';
         document.getElementById('loadingUI').style.display = 'block'; document.getElementById('pracRecordBtn').style.display = 'none';
-        let w = 0; clearInterval(progressInt); progressInt = setInterval(() => { w += 5; if(w>95) w=95; document.getElementById('progressBar').style.width = w+'%'; }, 200);
+        
+        let w = 0; clearInterval(progressInt); 
+        document.getElementById('progressText').innerText = "0%";
+        progressInt = setInterval(() => { 
+            w += Math.floor(Math.random() * 8) + 2; 
+            if(w > 95) w = 95; 
+            document.getElementById('progressBar').style.width = w+'%'; 
+            document.getElementById('progressText').innerText = w + '%'; 
+        }, 250);
         
         const b64 = await getBase64Audio();
         stopMicEngine(); 
@@ -594,17 +616,19 @@
 
         const res = await fetch("/api/openai-proxy", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({audio: b64, action: 'evaluate', target_english: targetText}) });
         const data = await res.json();
-        clearInterval(progressInt); document.getElementById('progressBar').style.width = '100%';
+        
+        clearInterval(progressInt); 
+        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('progressText').innerText = '100%';
         
         setTimeout(() => {
             document.getElementById('loadingUI').style.display = 'none'; document.getElementById('pracGuideText').style.display = 'none';
             if (!targetText.includes("?")) highlightAccurateWords(currentEnWordsArray, data.recognized_text);
             
-            // ✨ 점수 파싱 버그 완벽 수리
             const safeScore = parseInt(data.score) || 0;
             showResultArea(safeScore, data.feedback, data.recognized_text || "인식 불가", "파란색으로 표시된 단어는 정확합니다.");
             document.getElementById('pracRecordBtn').style.display = 'block'; 
-        }, 300);
+        }, 500);
     }
 
     function showResultArea(score, msg, targetText, feedback) {
@@ -613,7 +637,6 @@
         if (score >= 70) { 
             const nextBtn = document.getElementById('pracNextBtn'); nextBtn.className = 'btn-apple btn-blue btn-glow boing-active'; nextBtn.innerHTML = '다음 단계 ➡️'; 
         } else { 
-            // 점수가 낮으면 다시하기 버튼 등장 (버튼 초기화)
             const recBtn = document.getElementById('pracRecordBtn');
             recBtn.dataset.recording = "false"; recBtn.innerHTML = "발음 녹음하기"; recBtn.classList.remove('glow-active');
             document.getElementById('pracRetryBtn').style.display = 'block'; 
@@ -635,16 +658,13 @@
         const p = currentPracticeMode.split('_'); const ns = parseInt(p[p.length - 1]) + 1;
         if (currentPracticeMode.startsWith('key_')) { if(ns > 5) { lessonData.completed.keys[parseInt(p[1])] = true; goDashboard(); } else { currentPracticeMode = `key_${p[1]}_${ns}`; setupPracticeUI(); } } 
         else if (currentPracticeMode.startsWith('vocab_')) { if(ns > 8) { lessonData.completed.vocab[parseInt(p[1])] = true; goDashboard(); } else { currentPracticeMode = `vocab_${p[1]}_${ns}`; setupPracticeUI(); } } 
-        else { 
-            // ✨ 전체 문장 3단계 조건
-            if(ns > 3) { lessonData.completed.full = true; goDashboard(); } else { currentPracticeMode = `full_${ns}`; setupPracticeUI(); } 
-        }
+        else { if(ns > 3) { lessonData.completed.full = true; goDashboard(); } else { currentPracticeMode = `full_${ns}`; setupPracticeUI(); } }
     }
 
     function goDashboard(btn) { if(btn) applyBoing(btn); resetTTS(); stopMicEngine(); saveToArchive(); document.getElementById('practiceView').style.display = 'none'; showDashboard(); }
 
     function saveToArchive() {
-        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || [];
+        if(!lessonData || !lessonData.id) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v21')) || [];
         const pr = lessonData.completed.keys.filter(Boolean).length + (lessonData.completed.full ? 1 : 0) + lessonData.completed.vocab.filter(Boolean).length;
         const idx = arc.findIndex(a => a.id === lessonData.id);
         
@@ -658,15 +678,15 @@
         };
 
         if (idx !== -1) { dataToSave.starred = arc[idx].starred; arc[idx] = dataToSave; } else { dataToSave.starred = false; arc.unshift(dataToSave); }
-        localStorage.setItem('archive_poly_v20', JSON.stringify(arc));
+        localStorage.setItem('archive_poly_v21', JSON.stringify(arc));
     }
 
-    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v20', JSON.stringify(arc)); renderArchive(); }
-    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v20', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
+    function toggleStar(e, id) { e.stopPropagation(); applyBoing(e.target); let arc = JSON.parse(localStorage.getItem('archive_poly_v21')) || []; const idx = arc.findIndex(a => a.id === id); if (idx === -1) return; const currentStars = arc.filter(a => a.starred).length; if (!arc[idx].starred) { if (currentStars >= 3) { alert("최상단 고정은 최대 3개까지만 가능합니다."); return; } arc[idx].starred = true; } else { arc[idx].starred = false; } localStorage.setItem('archive_poly_v21', JSON.stringify(arc)); renderArchive(); }
+    function deleteArchive(e, id) { e.stopPropagation(); applyBoing(e.target); if(!confirm("기록을 영구 삭제하시겠습니까?")) return; let arc = JSON.parse(localStorage.getItem('archive_poly_v21')) || []; arc = arc.filter(a => a.id !== id); localStorage.setItem('archive_poly_v21', JSON.stringify(arc)); if (lessonData && lessonData.id === id) location.reload(); else renderArchive(); }
 
     function renderArchive() {
         const listStory = document.getElementById('archiveListStory'); const listVocab = document.getElementById('archiveListVocab');
-        let arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || [];
+        let arc = JSON.parse(localStorage.getItem('archive_poly_v21')) || [];
         if(arc.length === 0) { listStory.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; listVocab.innerHTML = "<p style='text-align:center; color:#888;'>저장된 단어가 없습니다.</p>"; return; }
         arc.sort((a, b) => { if (a.starred && !b.starred) return -1; if (!a.starred && b.starred) return 1; return 0; });
 
@@ -693,8 +713,8 @@
         listVocab.innerHTML = vocabHtml;
     }
     
-    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
-    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v20')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
+    function loadFromArchive(id, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v21')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => {switchTab('game'); showDashboard();}, 200); } }
+    function loadVocabFromArchive(id, vIdx, el) { applyBoing(el); stopMicEngine(); const arc = JSON.parse(localStorage.getItem('archive_poly_v21')) || []; const item = arc.find(a => a.id === id); if(item) { lessonData = item.data; setTimeout(() => { document.getElementById('tab-archive').classList.remove('active'); document.getElementById('sec-archive').classList.remove('active'); document.getElementById('tab-game').classList.add('active'); document.getElementById('sec-game').classList.add('active'); startPractice(`vocab_${vIdx}_1`); }, 200); } }
 
     function initMicWithStream(stream, cb, barsElements) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); audioCtx.createMediaStreamSource(stream).connect(analyser); analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount); mediaRecorder = new MediaRecorder(stream); chunks = []; mediaRecorder.ondataavailable = e => chunks.push(e.data); mediaRecorder.onstop = cb; mediaRecorder.start(); drawWaveSpecific(barsElements); }
     function drawWaveSpecific(bars) { animationId = requestAnimationFrame(() => drawWaveSpecific(bars)); analyser.getByteFrequencyData(dataArray); bars.forEach((bar, i) => { bar.style.height = Math.max(4, (dataArray[i % dataArray.length] / 128.0) * (bars.length > 20 ? 45 : 25)) + 'px'; }); }
