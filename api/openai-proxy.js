@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         if (action === 'korean') {
             let levelInstr = difficulty === "beginner" ? "초급: 쉬운 단어 위주" : difficulty === "intermediate" ? "중급: 실생활/비즈니스 자연스러운 표현" : "고급: 학술적, 세련된 어휘";
 
-            // 🌟 아키텍트 지침 변경: 사전 추출 시 "기본 3개 + 문장 길이에 비례한 추가 단어" 동적 할당
+            // NEW: 단어장(dictionary) 분량을 "기본 3개 보장 + 문장당 1개 추가"로 명확히 지시
             const instruction = `
             사용자의 말: "${userSpeech}"
             현재 난이도: ${levelInstr}
@@ -48,13 +48,12 @@ export default async function handler(req, res) {
             [최우선 엄수 규칙]
             1. '원어민이 쓰는 가장 자연스러운 문장'으로 번역하세요. 
                - 🚨 (중요) 의도치 않은 우연을 표현할 때 단순 부사 'accidentally'보다 동사구 'happen to'의 문법적/어감적 강도가 더 높다는 점 등 미묘한 뉘앙스 차이를 엄격히 반영하세요.
-            2. "keys"는 문장 내 핵심 덩어리 표현을 정확히 3개 추출. (각 8단계 변형 포함)
-            3. "vocab"은 훈련을 위한 핵심 단어 3개 추출 (오답 포함).
-            4. 🌟 "dictionary"는 생성된 문장에 포함된 단어들을 사전화합니다.
-               - 무조건 "vocab"에서 뽑은 3개의 핵심 단어를 포함하세요.
-               - 문장 길이에 비례하여 난이도가 있거나 까다로운 단어들을 추가로 추출하세요. (비율 예시: 문장 전체 분량이 약 5줄 분량의 길이라면 기본 3개 + 추가 2개 = 총 5개. 10줄 분량이라면 기본 3개 + 추가 7개 = 총 10개 수준으로 유동적이고 넉넉하게 뽑아주세요).
-               - 각 단어의 'ko_context'에는 사용자가 원래 한국어로 말했던 맥락을 반드시 포함하세요. (형식: "한국어로 이렇게 말했어요: 나는 [이것저것] 구경했어!")
-               - Key값은 특수기호를 제거한 소문자로 작성.
+            2. "keys"는 문장 내 핵심 덩어리 표현을 정확히 3개 추출. (각 8단계 변형 포함: org, var1, var2, long)
+            3. "vocab"은 훈련을 위한 핵심 단어 3개 (오답 포함).
+            4. 🌟 "dictionary"는 생성된 영어 문장에 포함된 단어들을 사전화합니다.
+               - "vocab"에서 뽑은 핵심 단어 3개는 무조건 100% 포함하세요 (최소 3개 보장).
+               - 이에 더해, "생성된 영어 문장의 갯수(마침표 기준) 당 1개"의 비율로 난이도가 있거나 뉘앙스가 까다로운 단어를 반드시 추가로 추출하세요. (예: 문장이 5개면 기본 3개 + 문장당 1개씩 추가 5개 = 총 8개 이상의 단어 추출 보장).
+               - 각 단어의 'ko_context'에는 사용자가 말했던 원래의 한국어 맥락을 반드시 포함하세요. (형식: "한국어로 이렇게 말했어요: 나는 [이것저것] 구경했어!")
             
             반환 JSON 구조:
             {
@@ -80,7 +79,7 @@ export default async function handler(req, res) {
 
             const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" }, max_tokens: 3000 })
+                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" }, max_tokens: 3500 })
             });
             const gptData = await gptResponse.json();
             return res.status(200).json(JSON.parse(gptData.choices[0].message.content));
