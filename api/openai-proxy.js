@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         if (action === 'korean') {
             let levelInstr = difficulty === "beginner" ? "초급: 쉬운 단어 위주" : difficulty === "intermediate" ? "중급: 실생활/비즈니스 자연스러운 표현" : "고급: 학술적, 세련된 어휘";
 
-            // NEW: 단어장(dictionary) 분량을 "기본 3개 보장 + 문장당 1개 추가"로 명확히 지시
+            // NEW: 단어 백과사전 분량을 AI가 절대 무시할 수 없도록 수학적 계산(문장수+3) 규칙 강제
             const instruction = `
             사용자의 말: "${userSpeech}"
             현재 난이도: ${levelInstr}
@@ -51,8 +51,8 @@ export default async function handler(req, res) {
             2. "keys"는 문장 내 핵심 덩어리 표현을 정확히 3개 추출. (각 8단계 변형 포함: org, var1, var2, long)
             3. "vocab"은 훈련을 위한 핵심 단어 3개 (오답 포함).
             4. 🌟 "dictionary"는 생성된 영어 문장에 포함된 단어들을 사전화합니다.
-               - "vocab"에서 뽑은 핵심 단어 3개는 무조건 100% 포함하세요 (최소 3개 보장).
-               - 이에 더해, "생성된 영어 문장의 갯수(마침표 기준) 당 1개"의 비율로 난이도가 있거나 뉘앙스가 까다로운 단어를 반드시 추가로 추출하세요. (예: 문장이 5개면 기본 3개 + 문장당 1개씩 추가 5개 = 총 8개 이상의 단어 추출 보장).
+               - "vocab"에서 뽑은 핵심 단어 3개는 무조건 100% 사전에 포함하세요.
+               - [절대 규칙: 수량 강제] 생성된 영어 문장의 마침표(.) 갯수를 세어보세요. "최소 3개 + 문장 갯수" 만큼의 단어를 무조건 사전에 생성해야 합니다. (예: 문장이 4줄이라면, 최소 7개의 단어 데이터가 사전에 있어야 합니다). 대충 건너뛰지 말고 이 할당량을 무조건 채우세요!
                - 각 단어의 'ko_context'에는 사용자가 말했던 원래의 한국어 맥락을 반드시 포함하세요. (형식: "한국어로 이렇게 말했어요: 나는 [이것저것] 구경했어!")
             
             반환 JSON 구조:
@@ -79,7 +79,8 @@ export default async function handler(req, res) {
 
             const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" }, max_tokens: 3500 })
+                // 토큰 넉넉하게 확장하여 데이터 잘림 현상 방지
+                body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: instruction }], response_format: { type: "json_object" }, max_tokens: 4000 })
             });
             const gptData = await gptResponse.json();
             return res.status(200).json(JSON.parse(gptData.choices[0].message.content));
