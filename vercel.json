@@ -1,7 +1,18 @@
 {
-    "functions": {
-        "api/stt.js": { "maxDuration": 10 },
-        "api/analyze.js": { "maxDuration": 10 },
-        "api/openai-proxy.js": { "maxDuration": 10 }
+  "regions": ["icn1"],
+  "functions": {
+    "api/stt.js":          { "maxDuration": 30 },
+    "api/analyze.js":      { "maxDuration": 30 },
+    "api/openai-proxy.js": { "maxDuration": 30 }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options",    "value": "nosniff" },
+        { "key": "X-Frame-Options",           "value": "DENY" },
+        { "key": "Cache-Control",             "value": "no-store" }
+      ]
     }
+  ]
 }
