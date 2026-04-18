@@ -1,8 +1,8 @@
 {
   "name": "speaking-beginner-v1",
   "version": "1.0.0",
-  "dependencies": {},
   "engines": {
-    "node": "20.x"
-  }
+    "node": "22.x"
+  },
+  "dependencies": {}
 }
