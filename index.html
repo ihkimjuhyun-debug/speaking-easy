@@ -508,23 +508,48 @@
         analyser.fftSize = 64; 
         dataArray = new Uint8Array(analyser.frequencyBinCount); 
 
-        // ✅ iOS 호환: 기기가 지원하는 MIME 타입 자동 감지
-        // iOS Safari: audio/mp4, Chrome/Android: audio/webm
-        const supportedTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'];
-        const detectedType = supportedTypes.find(t => {
-            try { return MediaRecorder.isTypeSupported(t); } catch(e) { return false; }
-        }) || '';
-
-        try {
-            mediaRecorder = detectedType 
-                ? new MediaRecorder(stream, { mimeType: detectedType }) 
-                : new MediaRecorder(stream);
-        } catch(e) {
-            mediaRecorder = new MediaRecorder(stream);
+        // MIME 타입 감지: 기기별 최적 포맷 선택
+        // iOS Safari는 audio/webm 미지원 → mp4 계열만 가능
+        // Chrome/Android는 audio/webm 지원
+        const candidateTypes = [
+            'audio/webm;codecs=opus',
+            'audio/webm',
+            'audio/mp4',
+            'video/mp4',   // iOS Safari에서 audio-only도 video/mp4로 기록되는 경우 있음
+            'audio/ogg',
+        ];
+        
+        let chosenType = '';
+        for (const t of candidateTypes) {
+            try {
+                if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(t)) {
+                    chosenType = t;
+                    break;
+                }
+            } catch(e) { /* ignore */ }
         }
 
-        // 실제 사용 중인 MIME 타입 저장 (getBase64Audio에서 사용)
-        currentMimeType = mediaRecorder.mimeType || detectedType || 'audio/webm';
+        try {
+            mediaRecorder = chosenType
+                ? new MediaRecorder(stream, { mimeType: chosenType })
+                : new MediaRecorder(stream);
+        } catch(e) {
+            // 지정 타입 실패 시 기본값으로 재시도
+            try { mediaRecorder = new MediaRecorder(stream); } catch(e2) { console.error('MediaRecorder 생성 실패:', e2); }
+        }
+
+        // 실제 사용 중인 MIME 타입 확정
+        // mediaRecorder.mimeType: 실제 사용 타입 (가장 신뢰할 수 있음)
+        const actualMime = mediaRecorder.mimeType || chosenType || '';
+
+        // iOS에서 빈 문자열이 반환될 경우 → iOS임을 감지하여 mp4로 가정
+        if (!actualMime || actualMime === '') {
+            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+                          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            currentMimeType = isIOS ? 'audio/mp4' : 'audio/webm';
+        } else {
+            currentMimeType = actualMime;
+        }
 
         chunks = []; 
         mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
@@ -618,8 +643,13 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ audio: b64, mimeType: currentMimeType, lang_mode: currentLangMode })
             });
-            if (!sttRes.ok) throw new Error(`STT 에러: ${sttRes.status}`);
+            if (!sttRes.ok) {
+                let errMsg = `STT ${sttRes.status}`;
+                try { const errData = await sttRes.json(); errMsg = errData.error || errMsg; } catch(e) {}
+                throw new Error(errMsg);
+            }
             const sttData = await sttRes.json();
+            if (sttData.error) throw new Error(sttData.error);
             const userText = sttData.text || "";
 
             // 환각/빈값 체크
@@ -642,21 +672,15 @@
             const analyzeRes = await fetch("/api/analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: userText, difficulty: selectedDifficulty, lang_mode: currentLangMode })
+                body: JSON.stringify({ text: userText, difficulty: selectedDifficulty })
             });
-            if (!analyzeRes.ok) throw new Error(`분석 에러: ${analyzeRes.status}`);
-            let tempLesson = await analyzeRes.json();
-
-            if (tempLesson.error) {
-                clearInterval(progressInt);
-                loading.style.display = 'none';
-                btn.style.display = 'block';
-                btn.style.background = 'var(--ios-blue)';
-                btn.innerHTML = '↺ 다시 시도';
-                btn.onclick = () => startMainRecording(btn);
-                alert(tempLesson.error);
-                return;
+            if (!analyzeRes.ok) {
+                let errMsg = `분석 ${analyzeRes.status}`;
+                try { const errData = await analyzeRes.json(); errMsg = errData.error || errMsg; } catch(e) {}
+                throw new Error(errMsg);
             }
+            let tempLesson = await analyzeRes.json();
+            if (tempLesson.error) throw new Error(tempLesson.error);
 
             lessonData = normalizeLessonData(tempLesson);
             lessonData.id = Date.now();
