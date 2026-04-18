@@ -3,8 +3,7 @@
   "functions": {
     "api/stt.js":          { "maxDuration": 30 },
     "api/analyze.js":      { "maxDuration": 30 },
-    "api/openai-proxy.js": { "maxDuration": 30 },
-    "api/warmup.js":       { "maxDuration": 5  }
+    "api/openai-proxy.js": { "maxDuration": 30 }
   },
   "headers": [
     {
