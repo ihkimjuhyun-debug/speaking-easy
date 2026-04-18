@@ -1,17 +1,25 @@
 {
   "regions": ["icn1"],
+
   "functions": {
     "api/stt.js":          { "maxDuration": 30 },
     "api/analyze.js":      { "maxDuration": 30 },
-    "api/openai-proxy.js": { "maxDuration": 30 }
+    "api/openai-proxy.js": { "maxDuration": 30 },
+    "api/warmup.js":       { "maxDuration": 5  }
   },
+
+  "crons": [
+    { "path": "/api/warmup", "schedule": "*/5 * * * *" }
+  ],
+
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options",    "value": "nosniff" },
-        { "key": "X-Frame-Options",           "value": "DENY" },
-        { "key": "Cache-Control",             "value": "no-store" }
+        { "key": "X-Content-Type-Options", "value": "nosniff"    },
+        { "key": "X-Frame-Options",        "value": "DENY"       },
+        { "key": "Cache-Control",          "value": "no-store"   },
+        { "key": "X-Robots-Tag",           "value": "noindex"    }
       ]
     }
   ]
