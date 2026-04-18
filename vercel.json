@@ -1,0 +1,7 @@
+{
+    "functions": {
+        "api/stt.js": { "maxDuration": 10 },
+        "api/analyze.js": { "maxDuration": 10 },
+        "api/openai-proxy.js": { "maxDuration": 10 }
+    }
+}
