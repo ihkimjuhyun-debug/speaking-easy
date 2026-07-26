@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Final Pro</title>
+    <title>PolyGlot Master: Final Pro Edge</title>
     <script>
         window.onerror = function(msg, url, line) {
             console.error("앱 오류 방어 작동:", msg, "라인:", line);
@@ -154,7 +154,7 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'archive_poly_final';
+    const STORAGE_KEY = 'archive_poly_final_edge';
     let lessonData = null, currentMode = null, isRecording = false;
     let mediaRecorder, chunks = [];
     let selectedDifficulty = 'intermediate';
@@ -232,7 +232,7 @@
             btn.classList.add('btn-blue');
             btn.style.display = 'none'; 
             document.getElementById('loadingUIMain').style.display = 'block'; 
-            startProgressUI('Main', 6.0); // 초기 문장 생성은 6초 예상
+            startProgressUI('Main', 8.0); // Edge Runtime 초기 문장 생성 예상시간 약간 증가
             stopMic(() => processSpeechAI('korean'));
         }
     }
