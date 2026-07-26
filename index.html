@@ -1,10 +1,9 @@
-```html:index.html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: UI & Speed Optimized</title>
+    <title>PolyGlot Master: Final Pro</title>
     <script>
         window.onerror = function(msg, url, line) {
             console.error("앱 오류 방어 작동:", msg, "라인:", line);
@@ -58,9 +57,10 @@
 
         /* 로딩 UI 스타일 */
         .progress-box { background: #fff; border-radius: 16px; padding: 18px; border: 2px solid var(--ios-blue); box-shadow: 0 5px 15px rgba(0,122,255,0.15); margin-bottom: 10px; }
-        .progress-header { display: flex; justify-content: space-between; font-weight: 900; color: var(--ios-blue); margin-bottom: 10px; font-size: 15px; }
+        .progress-header { display: flex; justify-content: space-between; font-weight: 900; color: var(--ios-blue); margin-bottom: 10px; font-size: 15px; align-items: center; }
         .progress-bg { height: 12px; background: #E5E5EA; border-radius: 6px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--ios-blue); width: 0%; transition: width 0.1s linear; }
+        .est-time { color:#FF3B30; font-size:13px; margin-left:8px; background:#FFE5E5; padding:2px 8px; border-radius:8px; }
     </style>
 </head>
 <body>
@@ -89,11 +89,11 @@
                 </div>
             </div>
             
-            <!-- 로딩 프로그레스 바 (초기 숨김) -->
+            <!-- 로딩 프로그레스 바 (예상 남은 시간 카운트다운) -->
             <div id="loadingUIMain" style="display:none;">
                 <div class="progress-box">
                     <div class="progress-header">
-                        <span>분석 중... <span id="loadingTimeMain" style="color:#FF3B30;">0.0s</span></span>
+                        <div>데이터 변환 중... <span class="est-time" id="loadingTimeMain">예상: 6.0초 남음</span></div>
                         <span id="loadingPercentMain">0%</span>
                     </div>
                     <div class="progress-bg"><div class="progress-bar" id="loadingBarMain"></div></div>
@@ -129,11 +129,10 @@
             </div>
             
             <div class="fixed-action-area">
-                <!-- 훈련용 로딩 프로그레스 바 -->
                 <div id="loadingUIPrac" style="display:none;">
                     <div class="progress-box">
                         <div class="progress-header">
-                            <span>채점 중... <span id="loadingTimePrac" style="color:#FF3B30;">0.0s</span></span>
+                            <div>발음 분석 중... <span class="est-time" id="loadingTimePrac">예상: 3.0초 남음</span></div>
                             <span id="loadingPercentPrac">0%</span>
                         </div>
                         <div class="progress-bg"><div class="progress-bar" id="loadingBarPrac"></div></div>
@@ -155,7 +154,7 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'archive_poly_v45';
+    const STORAGE_KEY = 'archive_poly_final';
     let lessonData = null, currentMode = null, isRecording = false;
     let mediaRecorder, chunks = [];
     let selectedDifficulty = 'intermediate';
@@ -182,25 +181,26 @@
         document.getElementById(`lang-${mode}`).classList.add('active'); 
     }
 
-    // 프로그레스 바 시작 함수
-    function startProgressUI(targetPrefix) {
-        let progressTime = 0;
+    // 🌟 예상 남은 시간 표시 프로그레스 바 시작
+    function startProgressUI(targetPrefix, estSeconds) {
+        let timeLeft = estSeconds; // 예상 소요 시간 (초)
         let progressValue = 0;
+        
         document.getElementById(`loadingPercent${targetPrefix}`).innerText = "0%";
         document.getElementById(`loadingBar${targetPrefix}`).style.width = "0%";
-        document.getElementById(`loadingTime${targetPrefix}`).innerText = "0.0s";
+        document.getElementById(`loadingTime${targetPrefix}`).innerText = `예상: ${timeLeft.toFixed(1)}초 남음`;
 
         progressInterval = setInterval(() => {
-            progressTime += 0.1;
-            document.getElementById(`loadingTime${targetPrefix}`).innerText = progressTime.toFixed(1) + "s";
-            // 점점 느려지며 90%에 수렴하는 페이크 로딩 애니메이션
-            if (progressValue < 90) progressValue += (90 - progressValue) * 0.15;
+            if (timeLeft > 0.1) timeLeft -= 0.1; // 카운트다운
+            document.getElementById(`loadingTime${targetPrefix}`).innerText = `예상: ${timeLeft.toFixed(1)}초 남음`;
+            
+            // 점점 느려지며 90%에 수렴하는 애니메이션
+            if (progressValue < 90) progressValue += (90 - progressValue) * 0.08;
             document.getElementById(`loadingPercent${targetPrefix}`).innerText = Math.floor(progressValue) + "%";
             document.getElementById(`loadingBar${targetPrefix}`).style.width = progressValue + "%";
         }, 100);
     }
 
-    // 프로그레스 바 100% 채우고 종료하는 함수
     function stopProgressUI() {
         clearInterval(progressInterval);
         ['Main', 'Prac'].forEach(prefix => {
@@ -217,32 +217,32 @@
         });
     }
 
-    // 메인화면 녹음 버튼 제어
+    // 메인화면 녹음 버튼 (빨간색 반짝임 효과)
     function handleMainRecording(btn) {
         applyBoing(btn);
         if (!isRecording) {
             isRecording = true; 
-            btn.innerText = "■ 녹음 중 (누르면 완료)"; 
+            btn.innerText = "■ 녹음 중 (누르면 변환 시작)"; 
             btn.classList.remove('btn-blue');
-            btn.classList.add('glow-active'); // 빨간색 반짝임 효과
+            btn.classList.add('glow-active'); 
             startMic();
         } else {
             isRecording = false; 
             btn.classList.remove('glow-active');
             btn.classList.add('btn-blue');
-            btn.style.display = 'none'; // 버튼 숨기기
-            document.getElementById('loadingUIMain').style.display = 'block'; // 로딩 UI 표시
-            startProgressUI('Main');
+            btn.style.display = 'none'; 
+            document.getElementById('loadingUIMain').style.display = 'block'; 
+            startProgressUI('Main', 6.0); // 초기 문장 생성은 6초 예상
             stopMic(() => processSpeechAI('korean'));
         }
     }
 
-    // 훈련화면 녹음 버튼 제어
+    // 훈련화면 녹음 버튼
     function handlePracRecording(btn) {
         applyBoing(btn);
         if (!isRecording) {
             isRecording = true; 
-            btn.innerText = "■ 녹음 중 (누르면 완료)"; 
+            btn.innerText = "■ 녹음 중 (누르면 채점 시작)"; 
             btn.classList.add('glow-active');
             startMic();
         } else {
@@ -250,13 +250,13 @@
             btn.classList.remove('glow-active');
             btn.style.display = 'none';
             document.getElementById('loadingUIPrac').style.display = 'block';
-            startProgressUI('Prac');
+            startProgressUI('Prac', 3.0); // 발음 평가는 3초 예상
             const target = lessonData[currentMode.type][currentMode.idx].phrase || lessonData[currentMode.type][currentMode.idx].word;
             stopMic(() => processSpeechAI('evaluate', target));
         }
     }
 
-    // STT 및 LLM 통신
+    // STT 및 LLM 통신 (강력한 에러 핸들링 포함)
     async function processSpeechAI(action, targetText = "") {
         const b64 = await getBase64Audio();
         try {
@@ -264,15 +264,27 @@
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ audio: b64, action, target_english: targetText, difficulty: selectedDifficulty, lang_mode: currentLangMode })
             });
+            
             const data = await res.json();
-            stopProgressUI(); // 로딩 종료
+            stopProgressUI(); 
+
+            if (data.error) { 
+                alert(`서버 통신 문제: ${data.error}`); 
+                location.reload(); 
+                return; 
+            }
 
             if (action === 'korean') {
-                if (data.error) { alert(data.error); location.reload(); return; }
                 lessonData = data;
                 lessonData.id = Date.now();
                 lessonData.keys = lessonData.keys || [];
                 lessonData.vocab = lessonData.vocab || [];
+                
+                // 데이터 부족 시 강제 빈 배열 생성으로 크래시 방지
+                const reqKeys = 3; 
+                while(lessonData.keys.length < reqKeys) lessonData.keys.push({phrase: "표현 부족", ko_org: "데이터 생성 지연", en_org: ""});
+                while(lessonData.vocab.length < reqKeys) lessonData.vocab.push({word: "단어 부족", meaning: "데이터 생성 지연"});
+                
                 lessonData.completed = { keys: new Array(lessonData.keys.length).fill(false), vocab: new Array(lessonData.vocab.length).fill(false) };
                 saveArchive();
                 showDashboard();
@@ -281,7 +293,7 @@
             }
         } catch (e) { 
             stopProgressUI();
-            alert("서버 통신에 실패했습니다."); 
+            alert("서버 응답이 늦거나 통신에 실패했습니다. (AI 처리 지연)"); 
             location.reload(); 
         }
     }
@@ -322,10 +334,6 @@
 
     function renderList(id, items, type) {
         const container = document.getElementById(id);
-        if (!items || items.length === 0) {
-            container.innerHTML = "<div style='color:#888; font-size:13px;'>데이터가 없습니다.</div>";
-            return;
-        }
         container.innerHTML = items.map((item, idx) => `
             <div class="lesson-card boing-active ${lessonData.completed[type][idx] ? 'mastered' : ''}" onclick="startPractice('${type}', ${idx}, this)">
                 <div style="flex:1;">
