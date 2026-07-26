@@ -1,9 +1,10 @@
+```html:index.html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Ultra Fast</title>
+    <title>PolyGlot Master: UI & Speed Optimized</title>
     <script>
         window.onerror = function(msg, url, line) {
             console.error("앱 오류 방어 작동:", msg, "라인:", line);
@@ -25,18 +26,41 @@
         .bubble-ko { font-size: 19px; font-weight: 900; text-align: center; line-height: 1.4; }
         .en-text-container { font-size: 24px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); }
         
+        .diff-control { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; gap: 4px; }
+        .diff-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .diff-opt.active { background: #fff; color: var(--apple-navy); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .lang-opt.active { background: #E8F5E9; color: var(--master-green); }
+
         .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
         .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
         
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: all 0.3s ease; }
         .btn-red { background: var(--ios-red); color: white; }
         .btn-blue { background: var(--ios-blue); color: white; }
         .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
         .btn-skip-pale { background: var(--skip-blue); color: #0056B3; font-weight: 900; }
         
+        /* 녹음 중 빨간색 반짝임 애니메이션 */
+        .glow-active { 
+            background: var(--ios-red) !important; 
+            color: white !important; 
+            box-shadow: 0 0 20px rgba(255,59,48,0.7) !important;
+            animation: pulseRed 1s infinite alternate; 
+        }
+        @keyframes pulseRed {
+            from { transform: scale(1); box-shadow: 0 0 10px rgba(255,59,48,0.5); }
+            to { transform: scale(1.02); box-shadow: 0 0 25px rgba(255,59,48,1); }
+        }
+
         @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.05); } 100% { transform: scale(1); } }
         .boing-active { animation: boing 0.3s ease-out; }
         .fixed-action-area { position: sticky; bottom: 10px; z-index: 999; padding-top: 10px; background: var(--ios-bg); }
+
+        /* 로딩 UI 스타일 */
+        .progress-box { background: #fff; border-radius: 16px; padding: 18px; border: 2px solid var(--ios-blue); box-shadow: 0 5px 15px rgba(0,122,255,0.15); margin-bottom: 10px; }
+        .progress-header { display: flex; justify-content: space-between; font-weight: 900; color: var(--ios-blue); margin-bottom: 10px; font-size: 15px; }
+        .progress-bg { height: 12px; background: #E5E5EA; border-radius: 6px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--ios-blue); width: 0%; transition: width 0.1s linear; }
     </style>
 </head>
 <body>
@@ -50,7 +74,31 @@
     <div id="sec-game" class="section active">
         <!-- 메인화면 -->
         <div id="introView">
-            <div class="speech-bubble"><div class="bubble-ko">실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요</div></div>
+            <div class="speech-bubble">
+                <div id="introMainTitle" class="bubble-ko" style="margin-bottom: 20px;">실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요</div>
+                <div class="diff-control">
+                    <div class="diff-opt" onclick="setDifficulty('beginner', this)" id="diff-beginner">🌱 초급</div>
+                    <div class="diff-opt active" onclick="setDifficulty('intermediate', this)" id="diff-intermediate">🌿 중급</div>
+                    <div class="diff-opt" onclick="setDifficulty('advanced', this)" id="diff-advanced">🌳 상급</div>
+                </div>
+                <div class="diff-control" style="background: #F2F2F7; margin-bottom: 0;">
+                    <div class="diff-opt lang-opt active" onclick="setLangMode('ko')" id="lang-ko">🇰🇷 한국어 모드</div>
+                    <div class="diff-opt lang-opt" onclick="setLangMode('en')" id="lang-en" style="font-size: 12px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                        <span>🇺🇸 영어 혼용 모드</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 로딩 프로그레스 바 (초기 숨김) -->
+            <div id="loadingUIMain" style="display:none;">
+                <div class="progress-box">
+                    <div class="progress-header">
+                        <span>분석 중... <span id="loadingTimeMain" style="color:#FF3B30;">0.0s</span></span>
+                        <span id="loadingPercentMain">0%</span>
+                    </div>
+                    <div class="progress-bg"><div class="progress-bar" id="loadingBarMain"></div></div>
+                </div>
+            </div>
             <button id="mainRecordBtn" class="btn-apple btn-blue" onclick="handleMainRecording(this)">녹음 시작</button>
         </div>
 
@@ -60,13 +108,10 @@
                 <div class="en-text-container" id="dashEnText"></div>
                 <div id="dashKoText" style="margin-top:10px; font-weight:700; color:#666; font-size:15px;"></div>
             </div>
-            
             <div style="font-weight:900; color:#888; margin-bottom:10px;">1. 덩어리 훈련 <span id="keyProgress" style="color:var(--ios-blue);">0/3</span></div>
             <div id="keyList"></div>
-            
             <div style="font-weight:900; color:#888; margin:20px 0 10px;">2. 핵심 단어 <span id="vocabProgress" style="color:var(--ios-blue);">0/3</span></div>
             <div id="vocabList"></div>
-            
             <button class="btn-apple btn-gray" style="margin-top:20px;" onclick="location.reload()">새로운 이야기</button>
         </div>
 
@@ -84,8 +129,18 @@
             </div>
             
             <div class="fixed-action-area">
+                <!-- 훈련용 로딩 프로그레스 바 -->
+                <div id="loadingUIPrac" style="display:none;">
+                    <div class="progress-box">
+                        <div class="progress-header">
+                            <span>채점 중... <span id="loadingTimePrac" style="color:#FF3B30;">0.0s</span></span>
+                            <span id="loadingPercentPrac">0%</span>
+                        </div>
+                        <div class="progress-bg"><div class="progress-bar" id="loadingBarPrac"></div></div>
+                    </div>
+                </div>
                 <button id="pracRecordBtn" class="btn-apple btn-red" onclick="handlePracRecording(this)">녹음 시작</button>
-                <div style="display:flex; gap:10px;">
+                <div style="display:flex; gap:10px; margin-top:10px;">
                     <button class="btn-apple btn-gray" onclick="goDashboard()">← 목록</button>
                     <button id="nextBtn" class="btn-apple btn-skip-pale" onclick="goDashboard()" style="display:none;">완료 및 뒤로가기 →</button>
                 </div>
@@ -100,49 +155,137 @@
 </div>
 
 <script>
-    const STORAGE_KEY = 'archive_poly_v43';
+    const STORAGE_KEY = 'archive_poly_v45';
     let lessonData = null, currentMode = null, isRecording = false;
     let mediaRecorder, chunks = [];
+    let selectedDifficulty = 'intermediate';
+    let currentLangMode = 'ko'; 
+    let progressInterval;
 
-    // 안전한 소문자 변환기 (undefined 에러 방어용)
-    function safeLower(str) { return (str || "").toString().toLowerCase().trim(); }
     function applyBoing(el) { el.classList.remove('boing-active'); void el.offsetWidth; el.classList.add('boing-active'); }
 
-    // 🌟 STT 및 LLM 분석 통합 파이프라인
+    // 난이도 설정
+    function setDifficulty(lvl, el) { 
+        selectedDifficulty = lvl; 
+        document.querySelectorAll('.diff-opt:not(.lang-opt)').forEach(o => o.classList.remove('active')); 
+        if (el) el.classList.add('active'); 
+        const titleEl = document.getElementById('introMainTitle');
+        if(lvl === 'beginner') titleEl.innerHTML = "기초 단어를 사용해서<br>쉬운 일상을 말해보세요";
+        else if(lvl === 'intermediate') titleEl.innerHTML = "실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요";
+        else titleEl.innerHTML = "전문적이거나 학술적인<br>깊이 있는 주제를 말해보세요";
+    }
+
+    // 언어 모드 설정
+    function setLangMode(mode) { 
+        currentLangMode = mode; 
+        document.querySelectorAll('.lang-opt').forEach(el => el.classList.remove('active')); 
+        document.getElementById(`lang-${mode}`).classList.add('active'); 
+    }
+
+    // 프로그레스 바 시작 함수
+    function startProgressUI(targetPrefix) {
+        let progressTime = 0;
+        let progressValue = 0;
+        document.getElementById(`loadingPercent${targetPrefix}`).innerText = "0%";
+        document.getElementById(`loadingBar${targetPrefix}`).style.width = "0%";
+        document.getElementById(`loadingTime${targetPrefix}`).innerText = "0.0s";
+
+        progressInterval = setInterval(() => {
+            progressTime += 0.1;
+            document.getElementById(`loadingTime${targetPrefix}`).innerText = progressTime.toFixed(1) + "s";
+            // 점점 느려지며 90%에 수렴하는 페이크 로딩 애니메이션
+            if (progressValue < 90) progressValue += (90 - progressValue) * 0.15;
+            document.getElementById(`loadingPercent${targetPrefix}`).innerText = Math.floor(progressValue) + "%";
+            document.getElementById(`loadingBar${targetPrefix}`).style.width = progressValue + "%";
+        }, 100);
+    }
+
+    // 프로그레스 바 100% 채우고 종료하는 함수
+    function stopProgressUI() {
+        clearInterval(progressInterval);
+        ['Main', 'Prac'].forEach(prefix => {
+            const ui = document.getElementById(`loadingUI${prefix}`);
+            if(ui && ui.style.display === 'block') {
+                document.getElementById(`loadingPercent${prefix}`).innerText = "100%";
+                document.getElementById(`loadingBar${prefix}`).style.width = "100%";
+                setTimeout(() => {
+                    ui.style.display = 'none';
+                    if(prefix === 'Main') document.getElementById('mainRecordBtn').style.display = 'flex';
+                    if(prefix === 'Prac') document.getElementById('pracRecordBtn').style.display = 'flex';
+                }, 300);
+            }
+        });
+    }
+
+    // 메인화면 녹음 버튼 제어
+    function handleMainRecording(btn) {
+        applyBoing(btn);
+        if (!isRecording) {
+            isRecording = true; 
+            btn.innerText = "■ 녹음 중 (누르면 완료)"; 
+            btn.classList.remove('btn-blue');
+            btn.classList.add('glow-active'); // 빨간색 반짝임 효과
+            startMic();
+        } else {
+            isRecording = false; 
+            btn.classList.remove('glow-active');
+            btn.classList.add('btn-blue');
+            btn.style.display = 'none'; // 버튼 숨기기
+            document.getElementById('loadingUIMain').style.display = 'block'; // 로딩 UI 표시
+            startProgressUI('Main');
+            stopMic(() => processSpeechAI('korean'));
+        }
+    }
+
+    // 훈련화면 녹음 버튼 제어
+    function handlePracRecording(btn) {
+        applyBoing(btn);
+        if (!isRecording) {
+            isRecording = true; 
+            btn.innerText = "■ 녹음 중 (누르면 완료)"; 
+            btn.classList.add('glow-active');
+            startMic();
+        } else {
+            isRecording = false; 
+            btn.classList.remove('glow-active');
+            btn.style.display = 'none';
+            document.getElementById('loadingUIPrac').style.display = 'block';
+            startProgressUI('Prac');
+            const target = lessonData[currentMode.type][currentMode.idx].phrase || lessonData[currentMode.type][currentMode.idx].word;
+            stopMic(() => processSpeechAI('evaluate', target));
+        }
+    }
+
+    // STT 및 LLM 통신
     async function processSpeechAI(action, targetText = "") {
         const b64 = await getBase64Audio();
         try {
             const res = await fetch("/api/openai-proxy", {
                 method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ audio: b64, action, target_english: targetText, difficulty: 'intermediate', lang_mode: 'ko' })
+                body: JSON.stringify({ audio: b64, action, target_english: targetText, difficulty: selectedDifficulty, lang_mode: currentLangMode })
             });
             const data = await res.json();
-            
+            stopProgressUI(); // 로딩 종료
+
             if (action === 'korean') {
                 if (data.error) { alert(data.error); location.reload(); return; }
-                
                 lessonData = data;
                 lessonData.id = Date.now();
-                // 데이터 강제 보정 (혹시라도 AI가 배열을 덜 뱉었을 때 방어)
                 lessonData.keys = lessonData.keys || [];
                 lessonData.vocab = lessonData.vocab || [];
-                lessonData.completed = { 
-                    keys: new Array(lessonData.keys.length).fill(false), 
-                    vocab: new Array(lessonData.vocab.length).fill(false) 
-                };
-                
+                lessonData.completed = { keys: new Array(lessonData.keys.length).fill(false), vocab: new Array(lessonData.vocab.length).fill(false) };
                 saveArchive();
                 showDashboard();
             } else {
                 renderResult(data);
             }
         } catch (e) { 
-            alert("서버 연결이 지연되었습니다. 다시 시도해주세요."); 
+            stopProgressUI();
+            alert("서버 통신에 실패했습니다."); 
             location.reload(); 
         }
     }
 
-    // 결과 화면 렌더링
     function renderResult(data) {
         document.getElementById('resultArea').style.display = 'block';
         document.getElementById('scoreDisplay').innerText = data.score + "점";
@@ -160,7 +303,6 @@
         }
     }
 
-    // 대시보드 렌더링
     function showDashboard() {
         document.getElementById('introView').style.display = 'none';
         document.getElementById('practiceView').style.display = 'none';
@@ -184,7 +326,6 @@
             container.innerHTML = "<div style='color:#888; font-size:13px;'>데이터가 없습니다.</div>";
             return;
         }
-        
         container.innerHTML = items.map((item, idx) => `
             <div class="lesson-card boing-active ${lessonData.completed[type][idx] ? 'mastered' : ''}" onclick="startPractice('${type}', ${idx}, this)">
                 <div style="flex:1;">
@@ -207,61 +348,24 @@
         const item = lessonData[type][idx];
         document.getElementById('pracKoText').innerText = item.ko_org || item.meaning || "";
         document.getElementById('pracEnText').innerText = item.phrase || item.word || "";
-        document.getElementById('pracRecordBtn').innerText = "녹음 시작";
+        
+        const btn = document.getElementById('pracRecordBtn');
+        btn.innerText = "녹음 시작";
+        btn.classList.remove('glow-active');
     }
 
-    // 메인화면 녹음 버튼 제어
-    function handleMainRecording(btn) {
-        applyBoing(btn);
-        if (!isRecording) {
-            isRecording = true; 
-            btn.innerText = "■ 말을 끝내고 누르세요"; 
-            startMic();
-        } else {
-            isRecording = false; 
-            btn.innerText = "⚡ 초고속 분석 중..."; 
-            stopMic(() => processSpeechAI('korean'));
-        }
-    }
-
-    // 훈련화면 녹음 버튼 제어
-    function handlePracRecording(btn) {
-        applyBoing(btn);
-        if (!isRecording) {
-            isRecording = true; 
-            btn.innerText = "■ 녹음 완료"; 
-            startMic();
-        } else {
-            isRecording = false; 
-            btn.innerText = "평가 중...";
-            const target = lessonData[currentMode.type][currentMode.idx].phrase || lessonData[currentMode.type][currentMode.idx].word;
-            stopMic(() => processSpeechAI('evaluate', target));
-        }
-    }
-
-    // 🌟 오디오 전송 지연 시간(20초->2초)을 날려버리는 마이크 압축 로직
     async function startMic() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            // 용량을 극단적으로 줄이는 설정 (16kbps 압축)
             let options = {};
             if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
                 options = { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 16000 };
             }
-            
             mediaRecorder = new MediaRecorder(stream, options);
             chunks = [];
-            
-            mediaRecorder.ondataavailable = e => {
-                if (e.data && e.data.size > 0) chunks.push(e.data);
-            };
-            
-            // 데이터를 250ms 단위로 쪼개 수집하여 딜레이 방지
+            mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
             mediaRecorder.start(250); 
-        } catch(e) { 
-            alert("마이크 권한을 허용해주세요."); 
-        }
+        } catch(e) { alert("마이크 권한을 허용해주세요."); }
     }
 
     function stopMic(callback) {
@@ -272,7 +376,6 @@
         }
     }
 
-    // Base64 인코딩
     async function getBase64Audio() {
         const blob = new Blob(chunks, { type: 'audio/webm' });
         return new Promise(resolve => {
@@ -282,7 +385,6 @@
         });
     }
 
-    // 아카이브(스토리지) 제어
     function saveArchive() {
         try {
             let arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -290,7 +392,7 @@
             if (idx > -1) arc[idx] = lessonData; 
             else arc.unshift(lessonData);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(arc));
-        } catch(e) { console.error("스토리지 저장 에러:", e); }
+        } catch(e) { console.error("스토리지 에러:", e); }
     }
 
     function switchTab(tab) {
@@ -305,10 +407,7 @@
         try {
             const arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
             const list = document.getElementById('archiveList');
-            if(arc.length === 0) {
-                list.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>";
-                return;
-            }
+            if(arc.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; return; }
             list.innerHTML = arc.map(a => `
                 <div class="lesson-card boing-active" onclick="loadArchive(${a.id}, this)">
                     <div style="flex:1;">
@@ -324,15 +423,11 @@
         applyBoing(el);
         const arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
         lessonData = arc.find(a => a.id === id);
-        if(lessonData) {
-            setTimeout(() => {
-                switchTab('game');
-                showDashboard();
-            }, 200);
-        }
+        if(lessonData) { setTimeout(() => { switchTab('game'); showDashboard(); }, 200); }
     }
 
     function goDashboard() { showDashboard(); }
 </script>
 </body>
 </html>
+```eof
