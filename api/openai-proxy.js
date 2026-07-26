@@ -1,12 +1,26 @@
-export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-    const { audio, action, target_english, difficulty, lang_mode } = req.body;
-    const API_KEY = process.env.OPENAI_API_KEY;
+// Vercel 환경에서 함수 실행 시간 초과(Timeout) 방지를 위해 Edge Runtime을 강제로 사용합니다.
+export const config = {
+    runtime: 'edge',
+};
+
+export default async function handler(req) {
+    if (req.method !== 'POST') {
+        return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
+    }
 
     try {
-        // 1. 오디오 파일을 받아 Whisper로 STT 변환
-        const audioBuffer = Buffer.from(audio, 'base64');
-        const blob = new Blob([audioBuffer], { type: 'audio/webm' });
+        const body = await req.json();
+        const { audio, action, target_english, difficulty, lang_mode } = body;
+        const API_KEY = process.env.OPENAI_API_KEY;
+
+        // Edge 런타임에서는 Buffer 대신 기본 Web API를 사용하여 오디오 데이터를 처리합니다.
+        const binaryString = atob(audio);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'audio/webm' });
+        
         const formData = new FormData();
         formData.append('file', blob, 'audio.webm');
         formData.append('model', 'whisper-1');
@@ -22,7 +36,6 @@ export default async function handler(req, res) {
         const sttData = await sttResponse.json();
         const userSpeech = sttData.text || "";
 
-        // 2. 한국어 상황 분석 및 훈련 데이터 생성
         if (action === 'korean') {
             let levelInstr = "";
             if (difficulty === "beginner") {
@@ -79,12 +92,11 @@ export default async function handler(req, res) {
             
             try {
                 const parsedData = JSON.parse(gptData.choices[0].message.content);
-                return res.status(200).json(parsedData);
+                return new Response(JSON.stringify(parsedData), { status: 200, headers: { 'Content-Type': 'application/json' } });
             } catch (parseError) {
                 throw new Error("AI 응답 데이터 구조 오류");
             }
         
-        // 3. 발음 평가 채점
         } else {
             const evalInstruction = `목표 문장: "${target_english}", 사용자 인식됨: "${userSpeech}". 매우 관대하게 채점하여 score(10~100 숫자)와 feedback만 JSON으로 반환.`;
             const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -99,16 +111,16 @@ export default async function handler(req, res) {
             const gptResult = await gptResponse.json();
             try {
                 const result = JSON.parse(gptResult.choices[0].message.content);
-                res.status(200).json({ ...result, recognized_text: userSpeech || "" });
+                return new Response(JSON.stringify({ ...result, recognized_text: userSpeech || "" }), { status: 200, headers: { 'Content-Type': 'application/json' } });
             } catch (e) {
-                res.status(200).json({ score: 0, feedback: "평가 데이터를 읽을 수 없습니다.", recognized_text: userSpeech });
+                return new Response(JSON.stringify({ score: 0, feedback: "평가 데이터를 읽을 수 없습니다.", recognized_text: userSpeech }), { status: 200, headers: { 'Content-Type': 'application/json' } });
             }
         }
     } catch (error) { 
         console.error("Proxy Error:", error);
-        res.status(500).json({ error: error.message }); 
+        return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
 ```eof
 
-The `index.html` file will follow immediately in the next message.
+The `index.html` file will be provided in the next message.
