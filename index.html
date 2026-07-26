@@ -3,439 +3,1150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyGlot Master: Final Pro Edge</title>
+    <title>Speaking Easy</title>
     <script>
-        window.onerror = function(msg, url, line) {
-            console.error("앱 오류 방어 작동:", msg, "라인:", line);
+        window.onerror = function(message, source, lineno) {
+            console.error("앱 오류:", message, "L" + lineno);
             return true;
         };
     </script>
     <style>
-        :root { --apple-navy: #1C1C1E; --ios-blue: #007AFF; --ios-red: #FF3B30; --ios-bg: #F2F2F7; --master-green: #34C759; --skip-blue: #B3D4FF; }
-        body { font-family: -apple-system, sans-serif; background: var(--ios-bg); margin: 0; color: var(--apple-navy); overflow-x: hidden; }
-        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--ios-bg); display: flex; flex-direction: column; padding-bottom: 40px; }
-        .nav-bar { display: flex; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
+        :root {
+            --navy:  #1C1C1E;
+            --blue:  #007AFF;
+            --red:   #FF3B30;
+            --bg:    #F2F2F7;
+            --green: #34C759;
+            --skip:  #B3D4FF;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: var(--bg); margin: 0; color: var(--navy); overflow-x: hidden; }
+        .wrap { max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--bg); display: flex; flex-direction: column; padding-bottom: 40px; }
+
+        /* ── 탭 ── */
+        .nav { display: flex; background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); border-bottom: 0.5px solid #D1D1D6; position: sticky; top: 0; z-index: 1000; }
         .tab { flex: 1; padding: 16px 0; border: none; background: none; font-size: 14px; font-weight: 800; color: #8E8E93; cursor: pointer; }
-        .tab.active { color: var(--ios-blue); border-bottom: 2.5px solid var(--ios-blue); }
-        .section { display: none; padding: 20px; animation: fadeIn 0.3s; }
-        .section.active { display: block; }
+        .tab.on { color: var(--blue); border-bottom: 2.5px solid var(--blue); }
+
+        /* ── 섹션 ── */
+        .sec { display: none; padding: 20px; animation: fadeIn .3s; }
+        .sec.on { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .speech-bubble { background: #fff; border-radius: 20px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; }
-        .bubble-ko { font-size: 19px; font-weight: 900; text-align: center; line-height: 1.4; }
-        .en-text-container { font-size: 24px; font-weight: 900; line-height: 1.35; color: var(--apple-navy); }
-        
-        .diff-control { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; gap: 4px; }
-        .diff-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-        .diff-opt.active { background: #fff; color: var(--apple-navy); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .lang-opt.active { background: #E8F5E9; color: var(--master-green); }
 
-        .lesson-card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-        .lesson-card.mastered { border-color: var(--master-green); background: #F2FCF4; }
-        
-        .btn-apple { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: all 0.3s ease; }
-        .btn-red { background: var(--ios-red); color: white; }
-        .btn-blue { background: var(--ios-blue); color: white; }
-        .btn-gray { background: #E5E5EA; color: var(--apple-navy); }
-        .btn-skip-pale { background: var(--skip-blue); color: #0056B3; font-weight: 900; }
-        
-        /* 녹음 중 빨간색 반짝임 애니메이션 */
-        .glow-active { 
-            background: var(--ios-red) !important; 
-            color: white !important; 
-            box-shadow: 0 0 20px rgba(255,59,48,0.7) !important;
-            animation: pulseRed 1s infinite alternate; 
+        /* ── 버블 ── */
+        .bubble { background: #fff; border-radius: 20px; padding: 22px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); position: relative; transition: background .3s, box-shadow .3s; }
+        .ko-big { font-size: 20px; font-weight: 900; line-height: 1.4; text-align: center; color: #111; }
+        .ko-sub { font-size: 15px; font-weight: 700; color: #666; line-height: 1.4; }
+        .label-sm { font-size: 12px; font-weight: 800; color: #888; margin-bottom: 8px; }
+
+        /* ── 영어 텍스트 ── */
+        .en-area { font-size: 26px; font-weight: 900; line-height: 1.35; color: var(--navy); }
+        .en-w { display: inline-block; margin: 0 5px 5px 0; cursor: pointer; transition: color .15s; }
+        .en-w.hit   { color: var(--blue) !important; }
+        .en-w.miss  { color: #D1D1D6 !important; }
+        .en-w.blur  { background: #E5E5EA; color: transparent !important; border-radius: 6px; padding: 0 4px; }
+        .dict-w { border-bottom: 2px dashed var(--blue); color: var(--blue); }
+
+        /* ── 스텝 뱃지 ── */
+        .badge-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+        .badge { background: var(--blue); color: #fff; padding: 5px 14px; border-radius: 10px; font-size: 12px; font-weight: 900; letter-spacing: .5px; }
+
+        /* ── 오디오 컨트롤 ── */
+        .audio-row { background: #fff; border-radius: 16px; padding: 10px 14px; display: flex; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #EAEAEA; margin-bottom: 0; }
+        .btn-tts { background: #E8F5E9; color: var(--green); border: none; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; padding: 0 18px; height: 38px; display: flex; align-items: center; gap: 5px; }
+        .btn-sub { background: #F2F2F7; color: #555; border: none; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; padding: 0 14px; height: 38px; display: flex; align-items: center; }
+
+        /* ── 입력 ── */
+        .write-input { width: 100%; height: 55px; border-radius: 14px; border: 2px solid #D1D1D6; padding: 0 15px; font-size: 18px; font-weight: 700; text-align: center; outline: none; transition: .2s; }
+        .write-input:focus { border-color: var(--blue); }
+
+        /* ── MCQ ── */
+        .mcq-area { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .mcq-btn {
+            background: #F2F2F7; border: none; padding: 16px;
+            border-radius: 14px; font-size: 18px; font-weight: 900;
+            cursor: pointer; color: var(--navy); transition: .2s; text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
         }
-        @keyframes pulseRed {
-            from { transform: scale(1); box-shadow: 0 0 10px rgba(255,59,48,0.5); }
-            to { transform: scale(1.02); box-shadow: 0 0 25px rgba(255,59,48,1); }
+
+        /* ── 결과 ── */
+        .score-box { background: #F8F8FA; border-radius: 14px; padding: 16px 20px; border: 1px solid #EAEAEA; display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+        .score-num { font-size: 42px; font-weight: 900; color: var(--blue); line-height: 1; }
+        .score-msg { font-size: 15px; font-weight: 700; color: #444; flex: 1; line-height: 1.4; }
+        .ans-box { background: #fff; border-radius: 14px; padding: 18px; border: 1px solid #EAEAEA; }
+        .ans-row { font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 10px; }
+        .ans-fb { font-size: 13.5px; font-weight: 700; color: #666; line-height: 1.5; border-top: 1px solid #EEE; padding-top: 10px; }
+
+        /* ── 버튼 ── */
+        .btn { width: 100%; height: 60px; border-radius: 18px; border: none; font-size: 17px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: .2s; -webkit-tap-highlight-color: transparent; }
+        .btn-red   { background: var(--red);   color: #fff; }
+        .btn-blue  { background: var(--blue);  color: #fff; }
+        .btn-gray  { background: #E5E5EA; color: var(--navy); }
+        .btn-pale  { background: var(--skip);  color: #0056B3; font-weight: 900; }
+
+        /* 녹음 중 펄스 */
+        .rec-pulse {
+            background: #fff !important;
+            border: 2px solid var(--red) !important;
+            box-shadow: 0 0 20px rgba(255,59,48,.3) !important;
+            animation: recAnim 1.2s infinite alternate;
+        }
+        @keyframes recAnim {
+            from { box-shadow: 0 0 10px rgba(255,59,48,.4); }
+            to   { box-shadow: 0 0 28px rgba(255,59,48,.9); }
         }
 
-        @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .boing-active { animation: boing 0.3s ease-out; }
-        .fixed-action-area { position: sticky; bottom: 10px; z-index: 999; padding-top: 10px; background: var(--ios-bg); }
+        /* 다음 버튼 펄스 */
+        @keyframes glowBlue { 0% { box-shadow: 0 0 5px rgba(0,122,255,.5); } 100% { box-shadow: 0 0 25px rgba(0,122,255,1); } }
+        .btn-next { animation: glowBlue 1.2s infinite alternate !important; background: var(--blue) !important; color: #fff !important; border: 2px solid #fff; }
 
-        /* 로딩 UI 스타일 */
-        .progress-box { background: #fff; border-radius: 16px; padding: 18px; border: 2px solid var(--ios-blue); box-shadow: 0 5px 15px rgba(0,122,255,0.15); margin-bottom: 10px; }
-        .progress-header { display: flex; justify-content: space-between; font-weight: 900; color: var(--ios-blue); margin-bottom: 10px; font-size: 15px; align-items: center; }
-        .progress-bg { height: 12px; background: #E5E5EA; border-radius: 6px; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--ios-blue); width: 0%; transition: width 0.1s linear; }
-        .est-time { color:#FF3B30; font-size:13px; margin-left:8px; background:#FFE5E5; padding:2px 8px; border-radius:8px; }
+        @keyframes boing { 0% { transform: scale(1); } 40% { transform: scale(1.07); } 100% { transform: scale(1); } }
+        .boing { animation: boing .35s cubic-bezier(.175,.885,.32,1.275); }
+
+        /* 카운트다운 */
+        #cntDown { display: none; position: fixed; inset: 0; background: rgba(255,255,255,.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        .cnt-num { font-size: 120px; font-weight: 900; color: var(--blue); animation: popIn 1s infinite; }
+        @keyframes popIn { 0%{transform:scale(.5);opacity:0} 30%{transform:scale(1.2);opacity:1} 100%{transform:scale(1);opacity:0} }
+
+        /* 진행바 */
+        .prog-box { background: #fff; border-radius: 16px; padding: 18px; border: 2px solid var(--blue); box-shadow: 0 5px 15px rgba(0,122,255,.15); margin-bottom: 10px; }
+        .prog-head { display: flex; justify-content: space-between; font-weight: 900; color: var(--blue); margin-bottom: 10px; font-size: 15px; }
+        .prog-bg { height: 12px; background: #E5E5EA; border-radius: 6px; overflow: hidden; }
+        .prog-bar { height: 100%; background: var(--blue); width: 0%; transition: width .15s linear; }
+
+        /* 웨이브폼 */
+        .wave-wrap { display: flex; align-items: center; gap: 2px; flex: 5; height: 38px; overflow: hidden; }
+        .wave-bar { width: 3.5px; background: var(--red); border-radius: 2px; height: 4px; transition: height .05s ease; }
+
+        /* 카드 */
+        .card { background: #fff; border: 2px solid #EAEAEA; border-radius: 16px; padding: 16px; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: .2s; -webkit-tap-highlight-color: transparent; }
+        .card.done { border-color: var(--green); background: #F2FCF4; }
+
+        /* 섹션 타이틀 */
+        .sec-title { font-size: 15px; font-weight: 900; color: #888; display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; }
+        .cnt-badge { font-size: 14px; font-weight: 800; color: var(--blue); }
+
+        /* 고정 하단 */
+        .fixed-btm { position: sticky; bottom: 10px; z-index: 999; padding-top: 10px; background: var(--bg); }
+
+        /* diff / lang 선택 */
+        .seg { display: flex; background: #E5E5EA; border-radius: 14px; padding: 4px; margin-bottom: 20px; gap: 4px; }
+        .seg-opt { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; font-weight: 800; color: #8E8E93; border-radius: 10px; cursor: pointer; transition: .2s; }
+        .seg-opt.on { background: #fff; color: var(--navy); box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+        .seg-opt.lang-on { background: #E8F5E9; color: var(--green); }
+
+        /* 아카이브 */
+        .arc-bubble { background: #fff; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,.04); cursor: pointer; border: 2px solid transparent; transition: .2s; -webkit-tap-highlight-color: transparent; }
+        .arc-hd { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 800; margin-bottom: 8px; }
+        .arc-title { font-size: 17px; font-weight: 900; line-height: 1.3; }
+
+        /* 사전 툴팁 */
+        #dictTip { display: none; position: absolute; background: rgba(28,28,30,.95); backdrop-filter: blur(10px); color: #fff; padding: 18px; border-radius: 16px; font-size: 14px; z-index: 99999; width: max-content; max-width: 300px; box-sizing: border-box; word-break: keep-all; white-space: normal; line-height: 1.5; box-shadow: 0 10px 30px rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.1); }
+        .dict-ctx { background: rgba(0,122,255,.15); border-left: 3px solid var(--blue); padding: 10px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13.5px; color: #ddd; font-style: italic; line-height: 1.4; }
+
+        /* 대시보드 메인 버블 - 완료시 */
+        .done-bubble { box-shadow: 0 0 20px rgba(0,0,0,.5) !important; border: 2.5px solid var(--navy) !important; background: var(--navy) !important; color: #fff !important; }
+        .done-bubble .ko-sub, .done-bubble .label-sm { color: #aaa !important; }
+        .done-bubble .en-area { color: #fff !important; }
+        .done-bubble .dict-w { color: #B3D4FF !important; border-color: #B3D4FF !important; }
     </style>
 </head>
-<body>
+<body onclick="hideTip()">
 
-<div class="container">
-    <nav class="nav-bar">
-        <button class="tab active" id="tab-game" onclick="switchTab('game')">GAME START</button>
-        <button class="tab" id="tab-archive" onclick="switchTab('archive')">STORAGE</button>
+<!-- 카운트다운 -->
+<div id="cntDown">
+    <div style="font-size:20px;font-weight:800;color:#888;margin-bottom:20px;">준비하세요</div>
+    <div class="cnt-num" id="cntNum">3</div>
+</div>
+
+<!-- 사전 툴팁 -->
+<div id="dictTip" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;padding-bottom:10px;">
+        <div>
+            <div id="tipWord" style="font-size:22px;font-weight:900;line-height:1.2;"></div>
+            <div style="color:#aaa;font-size:13px;margin-top:4px;"><span id="tipPos" style="margin-right:5px;"></span><span id="tipPhon"></span></div>
+        </div>
+        <div onclick="tipTTS(event)" style="cursor:pointer;background:rgba(255,255,255,.15);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;">▶</div>
+    </div>
+    <div id="tipKo" style="font-weight:800;font-size:16px;margin-bottom:4px;"></div>
+    <div id="tipCtx" class="dict-ctx" style="display:none;"></div>
+</div>
+
+<div class="wrap">
+    <nav class="nav">
+        <button class="tab on" id="tab-game" onclick="goTab('game')">GAME START</button>
+        <button class="tab" id="tab-arc" onclick="goTab('arc')">STORAGE</button>
     </nav>
 
-    <div id="sec-game" class="section active">
-        <!-- 메인화면 -->
-        <div id="introView">
-            <div class="speech-bubble">
-                <div id="introMainTitle" class="bubble-ko" style="margin-bottom: 20px;">실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요</div>
-                <div class="diff-control">
-                    <div class="diff-opt" onclick="setDifficulty('beginner', this)" id="diff-beginner">🌱 초급</div>
-                    <div class="diff-opt active" onclick="setDifficulty('intermediate', this)" id="diff-intermediate">🌿 중급</div>
-                    <div class="diff-opt" onclick="setDifficulty('advanced', this)" id="diff-advanced">🌳 상급</div>
+    <!-- ══ GAME 섹션 ══════════════════════════════════════════════ -->
+    <div id="sec-game" class="sec on">
+
+        <!-- ① 메인 녹음 화면 -->
+        <div id="vIntro">
+            <div class="bubble" style="text-align:center;margin-bottom:20px;">
+                <div id="introTitle" style="font-size:19px;font-weight:900;margin-bottom:25px;line-height:1.4;color:#002D5E;">
+                    실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요
                 </div>
-                <div class="diff-control" style="background: #F2F2F7; margin-bottom: 0;">
-                    <div class="diff-opt lang-opt active" onclick="setLangMode('ko')" id="lang-ko">🇰🇷 한국어 모드</div>
-                    <div class="diff-opt lang-opt" onclick="setLangMode('en')" id="lang-en" style="font-size: 12px; display:flex; align-items:center; justify-content:center; gap:4px;">
-                        <span>🇺🇸 영어 혼용 모드</span>
-                    </div>
+                <div class="seg">
+                    <div class="seg-opt"     onclick="setDiff('beginner',this)"    id="d-beginner">🌱 초급</div>
+                    <div class="seg-opt on"  onclick="setDiff('intermediate',this)" id="d-intermediate">🌿 중급</div>
+                    <div class="seg-opt"     onclick="setDiff('advanced',this)"    id="d-advanced">🌳 상급</div>
                 </div>
-            </div>
-            
-            <!-- 로딩 프로그레스 바 (예상 남은 시간 카운트다운) -->
-            <div id="loadingUIMain" style="display:none;">
-                <div class="progress-box">
-                    <div class="progress-header">
-                        <div>데이터 변환 중... <span class="est-time" id="loadingTimeMain">예상: 6.0초 남음</span></div>
-                        <span id="loadingPercentMain">0%</span>
-                    </div>
-                    <div class="progress-bg"><div class="progress-bar" id="loadingBarMain"></div></div>
+                <div class="seg" style="background:#F2F2F7;">
+                    <div class="seg-opt lang-on" onclick="setLang('ko')"   id="l-ko">🇰🇷 한국어 모드</div>
+                    <div class="seg-opt"          onclick="setLang('focus90')" id="l-focus90" style="font-size:12px;display:flex;align-items:center;justify-content:center;gap:3px;">🇺🇸 영어 혼용 모드</div>
                 </div>
             </div>
-            <button id="mainRecordBtn" class="btn-apple btn-blue" onclick="handleMainRecording(this)">녹음 시작</button>
+
+            <div class="fixed-btm">
+                <!-- 파형 (녹음 중 표시) -->
+                <div id="mainWave" style="display:none;justify-content:space-between;align-items:center;height:50px;margin-bottom:12px;background:#fff;border-radius:16px;padding:0 18px;border:2px solid var(--red);box-shadow:0 5px 15px rgba(255,59,48,.15);">
+                    <div class="wave-wrap" id="mainWaveInner">
+                        <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                    </div>
+                    <div id="mainTimer" style="font-weight:900;font-size:20px;color:var(--red);flex:1.5;text-align:center;white-space:nowrap;">00:00</div>
+                </div>
+                <!-- 로딩 -->
+                <div id="mainLoad" style="display:none;">
+                    <div class="prog-box">
+                        <div class="prog-head"><span id="mainLoadMsg">변환 중...</span><span id="mainLoadPct">0%</span></div>
+                        <div class="prog-bg"><div class="prog-bar" id="mainPBar"></div></div>
+                    </div>
+                </div>
+                <button id="mainRecBtn" class="btn btn-blue" onclick="mainRecStart(this)">🎙 녹음 시작</button>
+            </div>
         </div>
 
-        <!-- 훈련 대시보드 -->
-        <div id="dashboardView" style="display:none;">
-            <div class="speech-bubble">
-                <div class="en-text-container" id="dashEnText"></div>
-                <div id="dashKoText" style="margin-top:10px; font-weight:700; color:#666; font-size:15px;"></div>
+        <!-- ② 대시보드 -->
+        <div id="vDash" style="display:none;">
+            <!-- 내 이야기 버블 -->
+            <div class="bubble" id="dashBubble" style="margin-bottom:20px;">
+                <div class="label-sm">내 이야기 (AI 교정 완료)</div>
+                <div class="en-area" id="dashEn" style="font-size:22px;margin-bottom:10px;"></div>
+                <div class="ko-sub" id="dashKo" style="border-top:1px solid #EAEAEA;padding-top:10px;"></div>
             </div>
-            <div style="font-weight:900; color:#888; margin-bottom:10px;">1. 덩어리 훈련 <span id="keyProgress" style="color:var(--ios-blue);">0/3</span></div>
+
+            <div class="sec-title"><span>1. 덩어리 8단계 훈련</span><span class="cnt-badge" id="keyProg">0/0</span></div>
             <div id="keyList"></div>
-            <div style="font-weight:900; color:#888; margin:20px 0 10px;">2. 핵심 단어 <span id="vocabProgress" style="color:var(--ios-blue);">0/3</span></div>
-            <div id="vocabList"></div>
-            <button class="btn-apple btn-gray" style="margin-top:20px;" onclick="location.reload()">새로운 이야기</button>
+
+            <div class="sec-title" style="margin-top:20px;"><span>2. 핵심 단어 8코스</span><span class="cnt-badge" id="vocProg">0/0</span></div>
+            <div id="vocList"></div>
+
+            <div class="sec-title" style="margin-top:20px;"><span>3. 전체 문장 드릴</span><span class="cnt-badge" id="fullProg">0/1</span></div>
+            <div id="fullCard"></div>
+
+            <button class="btn btn-gray" style="margin-top:20px;" onclick="boing(this);setTimeout(()=>location.reload(),200)">새로운 이야기</button>
         </div>
 
-        <!-- 훈련 뷰 -->
-        <div id="practiceView" style="display:none;">
-            <div class="speech-bubble">
-                <div class="bubble-ko" id="pracKoText"></div>
-                <div class="en-text-container" id="pracEnText" style="margin-top:20px; text-align:center;"></div>
+        <!-- ③ 연습 화면 -->
+        <div id="vPrac" style="display:none;">
+            <div class="badge-wrap"><div class="badge" id="pracBadge">STEP 1</div></div>
+
+            <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px;">
+                <!-- 한국어 -->
+                <div class="bubble" style="padding:20px;">
+                    <div class="ko-big" id="pracKo" style="margin:0;"></div>
+                </div>
+                <!-- 음성 버튼 -->
+                <div class="audio-row">
+                    <button class="btn-tts" id="btnPlay" onclick="boing(this);playTTS()">🔊 음성 듣기</button>
+                    <button class="btn-sub" id="btnPause" style="display:none;" onclick="boing(this);pauseTTS()">일시정지</button>
+                    <button class="btn-sub" onclick="boing(this);resetTTS()">초기화</button>
+                </div>
+                <!-- 영어 텍스트 -->
+                <div class="bubble" style="padding:22px 20px;">
+                    <div class="en-area" id="pracEn"></div>
+                    <div id="guideText" style="font-size:13px;font-weight:800;color:var(--blue);margin-top:14px;text-align:center;">소리내어 읽어보세요</div>
+                </div>
             </div>
-            
-            <div id="resultArea" style="display:none; margin-bottom:20px; padding:15px; background:#fff; border-radius:15px; border:1px solid #ddd;">
-                <div style="font-size:28px; font-weight:900; color:var(--ios-blue);" id="scoreDisplay">0</div>
-                <div id="feedbackDisplay" style="font-size:14.5px; font-weight:800; margin-top:5px; color:#444;"></div>
-                <div style="font-size:13px; font-weight:700; color:#888; margin-top:8px;">인식된 발음: <span id="recTextDisplay" style="color:var(--ios-red);"></span></div>
+
+            <!-- 쓰기 영역 -->
+            <div id="writeArea" style="display:none;margin-bottom:14px;display:flex;flex-direction:column;gap:10px;">
+                <input type="text" id="writeInput" class="write-input" placeholder="영어 단어를 입력하세요" autocomplete="off" spellcheck="false">
+                <button onclick="checkWrite(this)" class="btn btn-blue" style="margin-bottom:0;">정답 제출</button>
             </div>
-            
-            <div class="fixed-action-area">
-                <div id="loadingUIPrac" style="display:none;">
-                    <div class="progress-box">
-                        <div class="progress-header">
-                            <div>발음 분석 중... <span class="est-time" id="loadingTimePrac">예상: 3.0초 남음</span></div>
-                            <span id="loadingPercentPrac">0%</span>
-                        </div>
-                        <div class="progress-bg"><div class="progress-bar" id="loadingBarPrac"></div></div>
+            <div class="mcq-area" id="mcqArea" style="display:none;"></div>
+
+            <!-- 결과 -->
+            <div id="pracResult" style="display:none;">
+                <div class="score-box">
+                    <div class="score-num" id="scoreNum">85</div>
+                    <div class="score-msg" id="scoreMsg">훌륭해요!</div>
+                </div>
+                <div class="ans-box" id="ansBox">
+                    <div class="ans-row"><span id="resultLabel">인식된 음성</span>: <span id="resultTxt" style="color:var(--blue);"></span></div>
+                    <div class="ans-fb" id="resultFb"></div>
+                </div>
+            </div>
+
+            <div class="fixed-btm">
+                <!-- 발음 로딩 -->
+                <div id="pracLoad" style="display:none;">
+                    <div class="prog-box">
+                        <div class="prog-head"><span>발음 정밀 평가 중...</span><span id="pracLoadPct">0%</span></div>
+                        <div class="prog-bg"><div class="prog-bar" id="pracPBar"></div></div>
                     </div>
                 </div>
-                <button id="pracRecordBtn" class="btn-apple btn-red" onclick="handlePracRecording(this)">녹음 시작</button>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="btn-apple btn-gray" onclick="goDashboard()">← 목록</button>
-                    <button id="nextBtn" class="btn-apple btn-skip-pale" onclick="goDashboard()" style="display:none;">완료 및 뒤로가기 →</button>
+                <button id="pracRecBtn" class="btn btn-red" onclick="toggleRec(this)" data-rec="0">녹음 시작</button>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+                    <button class="btn btn-gray" onclick="boing(this);goDash()">← 목록</button>
+                    <button id="nextBtn" class="btn btn-pale" onclick="nextStage(this)">건너뛰기 →</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="sec-archive" class="section">
-        <h2 style="font-weight:900; margin-bottom:15px;">학습 보관소</h2>
-        <div id="archiveList"></div>
+    <!-- ══ STORAGE 섹션 ══════════════════════════════════════════ -->
+    <div id="sec-arc" class="sec">
+        <h2 style="font-weight:900;color:#002D5E;margin-bottom:15px;">학습 보관소</h2>
+        <div class="seg" style="margin-bottom:20px;">
+            <div class="seg-opt on" id="arc-story" onclick="goArcTab('story')">상황별 이야기</div>
+            <div class="seg-opt"    id="arc-vocab" onclick="goArcTab('vocab')">핵심 단어장</div>
+        </div>
+        <div id="arcStory"></div>
+        <div id="arcVocab" style="display:none;"></div>
     </div>
 </div>
 
 <script>
-    const STORAGE_KEY = 'archive_poly_final_edge';
-    let lessonData = null, currentMode = null, isRecording = false;
-    let mediaRecorder, chunks = [];
-    let selectedDifficulty = 'intermediate';
-    let currentLangMode = 'ko'; 
-    let progressInterval;
+// ══════════════════════════════════════════════════════════════════
+// 전역 상태
+// ══════════════════════════════════════════════════════════════════
+const SK = 'speaking_easy_v1';
+let LD   = null;          // lessonData
+let mode = null;          // 현재 연습 모드 string
+let diff = 'intermediate';
+let lang = 'ko';
 
-    function applyBoing(el) { el.classList.remove('boing-active'); void el.offsetWidth; el.classList.add('boing-active'); }
+let enWords  = [];        // 현재 영어 단어 배열
+let ttsIdx   = 0;
+let ttsOn    = false;
+let ttsHidden = '';       // ??? 숨긴 단어 (MCQ용)
+let targetTxt = '';       // 정답 텍스트
+let resultLabel = '인식된 음성';
 
-    // 난이도 설정
-    function setDifficulty(lvl, el) { 
-        selectedDifficulty = lvl; 
-        document.querySelectorAll('.diff-opt:not(.lang-opt)').forEach(o => o.classList.remove('active')); 
-        if (el) el.classList.add('active'); 
-        const titleEl = document.getElementById('introMainTitle');
-        if(lvl === 'beginner') titleEl.innerHTML = "기초 단어를 사용해서<br>쉬운 일상을 말해보세요";
-        else if(lvl === 'intermediate') titleEl.innerHTML = "실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요";
-        else titleEl.innerHTML = "전문적이거나 학술적인<br>깊이 있는 주제를 말해보세요";
+let mediaRec, chunks = [], audioCtx, analyser, dataArr, animId;
+let stream = null;
+let timerInt, progInt, recSec = 0;
+let curMime = 'audio/webm';
+
+const synth = window.speechSynthesis;
+
+// ══ 유틸 ══════════════════════════════════════════════════════════
+function boing(el) {
+    if (!el) return;
+    el.classList.remove('boing'); void el.offsetWidth; el.classList.add('boing');
+}
+function $(id) { return document.getElementById(id); }
+function getStor() {
+    try { return JSON.parse(localStorage.getItem(SK) || '[]'); } catch { return []; }
+}
+function setStor(arr) { localStorage.setItem(SK, JSON.stringify(arr)); }
+
+// ══ 탭 ════════════════════════════════════════════════════════════
+function goTab(t) {
+    resetTTS(); stopMic();
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('.sec').forEach(x => x.classList.remove('on'));
+    $('tab-' + t).classList.add('on');
+    $('sec-' + (t === 'game' ? 'game' : 'arc')).classList.add('on');
+    if (t === 'arc') renderArc();
+}
+function goArcTab(t) {
+    $('arc-story').classList.toggle('on', t === 'story');
+    $('arc-vocab').classList.toggle('on', t === 'vocab');
+    $('arcStory').style.display = t === 'story' ? 'block' : 'none';
+    $('arcVocab').style.display = t === 'vocab' ? 'block' : 'none';
+    renderArc();
+}
+
+// ══ 난이도 / 언어 ══════════════════════════════════════════════════
+function setDiff(v, el) {
+    diff = v;
+    document.querySelectorAll('.seg-opt:not([id^="l-"]):not(#arc-story):not(#arc-vocab)').forEach(x => x.classList.remove('on'));
+    if (el) el.classList.add('on');
+    const t = $('introTitle');
+    if (v === 'beginner') t.innerHTML = '기초 단어를 사용해서<br>쉬운 일상을 말해보세요';
+    else if (v === 'intermediate') t.innerHTML = '실생활/비즈니스 상황에서<br>자주 쓰는 말을 해보세요';
+    else t.innerHTML = '전문적이거나 학술적인<br>깊이 있는 주제를 말해보세요';
+}
+function setLang(v) {
+    lang = v;
+    document.querySelectorAll('[id^="l-"]').forEach(x => x.classList.remove('lang-on'));
+    $('l-' + v).classList.add('lang-on');
+}
+
+// ══ 카운트다운 ════════════════════════════════════════════════════
+function countdown() {
+    return new Promise(resolve => {
+        const ov = $('cntDown'), num = $('cntNum');
+        ov.style.display = 'flex';
+        let c = 3;
+        num.innerText = c;
+        const t = setInterval(() => {
+            c--;
+            if (c < 0) { clearInterval(t); ov.style.display = 'none'; resolve(); }
+            else num.innerText = c;
+        }, 1000);
+    });
+}
+
+// ══ 마이크 ════════════════════════════════════════════════════════
+function stopMic() {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    if (mediaRec && mediaRec.state !== 'inactive') try { mediaRec.stop(); } catch {}
+    if (audioCtx && audioCtx.state !== 'closed') audioCtx.close();
+    clearInterval(timerInt);
+    cancelAnimationFrame(animId);
+}
+function startMicEngine(st, bars, cb) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    audioCtx.createMediaStreamSource(st).connect(analyser);
+    analyser.fftSize = 64;
+    dataArr = new Uint8Array(analyser.frequencyBinCount);
+
+    const types = ['audio/webm;codecs=opus','audio/webm','audio/mp4','video/mp4','audio/ogg'];
+    let chosen = '';
+    for (const t of types) { try { if (MediaRecorder.isTypeSupported(t)) { chosen = t; break; } } catch {} }
+    try { mediaRec = chosen ? new MediaRecorder(st, { mimeType: chosen }) : new MediaRecorder(st); }
+    catch { try { mediaRec = new MediaRecorder(st); } catch(e) { console.error(e); } }
+
+    const actual = mediaRec.mimeType || chosen || '';
+    curMime = (!actual)
+        ? ((/iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) ? 'audio/mp4' : 'audio/webm')
+        : actual;
+
+    chunks = [];
+    mediaRec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+    mediaRec.onstop = cb;
+    mediaRec.start();
+    (function draw() {
+        animId = requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArr);
+        bars.forEach((b, i) => { b.style.height = Math.max(4, (dataArr[i % dataArr.length] / 128) * 40) + 'px'; });
+    })();
+}
+async function getB64() {
+    const blob = new Blob(chunks, { type: curMime });
+    return new Promise(r => { const fr = new FileReader(); fr.onloadend = () => r(fr.result.split(',')[1]); fr.readAsDataURL(blob); });
+}
+
+// ══ 메인 녹음 ════════════════════════════════════════════════════
+async function mainRecStart(btn) {
+    boing(btn);
+    stopMic();
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        await countdown();
+
+        $('mainWave').style.display = 'flex';
+        recSec = 0; clearInterval(timerInt);
+        timerInt = setInterval(() => {
+            recSec++;
+            $('mainTimer').innerText = `${String(Math.floor(recSec/60)).padStart(2,'0')}:${String(recSec%60).padStart(2,'0')}`;
+        }, 1000);
+
+        startMicEngine(stream, $('mainWaveInner').querySelectorAll('.wave-bar'), onMainStop);
+
+        // 버튼 → 완료 버튼
+        btn.innerText = '■ 완료';
+        btn.className = 'btn rec-pulse';
+        btn.onclick = () => { boing(btn); btn.className = 'btn btn-blue'; mediaRec.stop(); };
+    } catch(e) {
+        alert('마이크 권한이 필요합니다.');
+        location.reload();
     }
+}
 
-    // 언어 모드 설정
-    function setLangMode(mode) { 
-        currentLangMode = mode; 
-        document.querySelectorAll('.lang-opt').forEach(el => el.classList.remove('active')); 
-        document.getElementById(`lang-${mode}`).classList.add('active'); 
-    }
+async function onMainStop() {
+    $('mainWave').style.display = 'none';
+    $('mainRecBtn').style.display = 'none';
+    $('mainLoad').style.display = 'block';
+    clearInterval(timerInt);
 
-    // 🌟 예상 남은 시간 표시 프로그레스 바 시작
-    function startProgressUI(targetPrefix, estSeconds) {
-        let timeLeft = estSeconds; // 예상 소요 시간 (초)
-        let progressValue = 0;
-        
-        document.getElementById(`loadingPercent${targetPrefix}`).innerText = "0%";
-        document.getElementById(`loadingBar${targetPrefix}`).style.width = "0%";
-        document.getElementById(`loadingTime${targetPrefix}`).innerText = `예상: ${timeLeft.toFixed(1)}초 남음`;
+    // ── 진행바: STT(0→45%) 단계 ─────────────────────────────────
+    let pct = 0;
+    $('mainLoadMsg').innerText = '🎙 음성 변환 중...';
+    clearInterval(progInt);
+    progInt = setInterval(() => {
+        pct += 3; if (pct > 44) pct = 44;
+        $('mainPBar').style.width = pct + '%';
+        $('mainLoadPct').innerText = Math.round(pct) + '%';
+    }, 180);
 
-        progressInterval = setInterval(() => {
-            if (timeLeft > 0.1) timeLeft -= 0.1; // 카운트다운
-            document.getElementById(`loadingTime${targetPrefix}`).innerText = `예상: ${timeLeft.toFixed(1)}초 남음`;
-            
-            // 점점 느려지며 90%에 수렴하는 애니메이션
-            if (progressValue < 90) progressValue += (90 - progressValue) * 0.08;
-            document.getElementById(`loadingPercent${targetPrefix}`).innerText = Math.floor(progressValue) + "%";
-            document.getElementById(`loadingBar${targetPrefix}`).style.width = progressValue + "%";
-        }, 100);
-    }
+    const b64 = await getB64();
+    stopMic();
 
-    function stopProgressUI() {
-        clearInterval(progressInterval);
-        ['Main', 'Prac'].forEach(prefix => {
-            const ui = document.getElementById(`loadingUI${prefix}`);
-            if(ui && ui.style.display === 'block') {
-                document.getElementById(`loadingPercent${prefix}`).innerText = "100%";
-                document.getElementById(`loadingBar${prefix}`).style.width = "100%";
-                setTimeout(() => {
-                    ui.style.display = 'none';
-                    if(prefix === 'Main') document.getElementById('mainRecordBtn').style.display = 'flex';
-                    if(prefix === 'Prac') document.getElementById('pracRecordBtn').style.display = 'flex';
-                }, 300);
-            }
+    try {
+        // ── Step1: STT ─────────────────────────────────────────────
+        const sttRes = await fetch('/api/stt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audio: b64, mimeType: curMime, lang_mode: lang })
         });
-    }
+        if (!sttRes.ok) throw new Error('STT ' + sttRes.status);
+        const sttData = await sttRes.json();
+        if (sttData.error) throw new Error(sttData.error);
+        const userText = (sttData.text || '').trim();
 
-    // 메인화면 녹음 버튼 (빨간색 반짝임 효과)
-    function handleMainRecording(btn) {
-        applyBoing(btn);
-        if (!isRecording) {
-            isRecording = true; 
-            btn.innerText = "■ 녹음 중 (누르면 변환 시작)"; 
-            btn.classList.remove('btn-blue');
-            btn.classList.add('glow-active'); 
-            startMic();
-        } else {
-            isRecording = false; 
-            btn.classList.remove('glow-active');
-            btn.classList.add('btn-blue');
-            btn.style.display = 'none'; 
-            document.getElementById('loadingUIMain').style.display = 'block'; 
-            startProgressUI('Main', 8.0); // Edge Runtime 초기 문장 생성 예상시간 약간 증가
-            stopMic(() => processSpeechAI('korean'));
+        // 환각 체크
+        if (userText.length < 2 || /[\u3040-\u30ff\u4e00-\u9fff]/.test(userText)) {
+            throw new Error('음성이 명확히 인식되지 않았습니다. 조용한 곳에서 다시 말씀해주세요.');
         }
-    }
 
-    // 훈련화면 녹음 버튼
-    function handlePracRecording(btn) {
-        applyBoing(btn);
-        if (!isRecording) {
-            isRecording = true; 
-            btn.innerText = "■ 녹음 중 (누르면 채점 시작)"; 
-            btn.classList.add('glow-active');
-            startMic();
-        } else {
-            isRecording = false; 
-            btn.classList.remove('glow-active');
-            btn.style.display = 'none';
-            document.getElementById('loadingUIPrac').style.display = 'block';
-            startProgressUI('Prac', 3.0); // 발음 평가는 3초 예상
-            const target = lessonData[currentMode.type][currentMode.idx].phrase || lessonData[currentMode.type][currentMode.idx].word;
-            stopMic(() => processSpeechAI('evaluate', target));
-        }
-    }
+        // ── STT 완료 → 진행바 48%로 점프, GPT 단계 시작 ───────────
+        clearInterval(progInt);
+        pct = 48;
+        $('mainLoadMsg').innerText = '🤖 AI 학습 데이터 생성 중...';
+        progInt = setInterval(() => {
+            pct += 1.5; if (pct > 95) pct = 95;
+            $('mainPBar').style.width = pct + '%';
+            $('mainLoadPct').innerText = Math.round(pct) + '%';
+        }, 200);
 
-    // STT 및 LLM 통신 (강력한 에러 핸들링 포함)
-    async function processSpeechAI(action, targetText = "") {
-        const b64 = await getBase64Audio();
-        try {
-            const res = await fetch("/api/openai-proxy", {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ audio: b64, action, target_english: targetText, difficulty: selectedDifficulty, lang_mode: currentLangMode })
-            });
-            
-            const data = await res.json();
-            stopProgressUI(); 
+        // ── Step2: Analyze ─────────────────────────────────────────
+        const anaRes = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: userText, difficulty: diff })
+        });
+        if (!anaRes.ok) throw new Error('분석 ' + anaRes.status);
+        let lesson = await anaRes.json();
+        if (lesson.error) throw new Error(lesson.error);
 
-            if (data.error) { 
-                alert(`서버 통신 문제: ${data.error}`); 
-                location.reload(); 
-                return; 
+        lesson = normalize(lesson);
+        lesson.id = Date.now();
+
+        // vocab drillOrder 셔플
+        lesson.vocab.forEach(v => {
+            let mid = [2,3,4];
+            for (let i = mid.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [mid[i], mid[j]] = [mid[j], mid[i]];
             }
+            v.drillOrder = [1, ...mid, 5, 6, 7, 8];
+        });
 
-            if (action === 'korean') {
-                lessonData = data;
-                lessonData.id = Date.now();
-                lessonData.keys = lessonData.keys || [];
-                lessonData.vocab = lessonData.vocab || [];
-                
-                // 데이터 부족 시 강제 빈 배열 생성으로 크래시 방지
-                const reqKeys = 3; 
-                while(lessonData.keys.length < reqKeys) lessonData.keys.push({phrase: "표현 부족", ko_org: "데이터 생성 지연", en_org: ""});
-                while(lessonData.vocab.length < reqKeys) lessonData.vocab.push({word: "단어 부족", meaning: "데이터 생성 지연"});
-                
-                lessonData.completed = { keys: new Array(lessonData.keys.length).fill(false), vocab: new Array(lessonData.vocab.length).fill(false) };
-                saveArchive();
-                showDashboard();
-            } else {
-                renderResult(data);
-            }
-        } catch (e) { 
-            stopProgressUI();
-            alert("서버 응답이 늦거나 통신에 실패했습니다. (AI 처리 지연)"); 
-            location.reload(); 
+        LD = lesson;
+        saveArc();
+
+        clearInterval(progInt);
+        $('mainPBar').style.width = '100%';
+        $('mainLoadPct').innerText = '100%';
+        setTimeout(() => {
+            $('mainLoad').style.display = 'none';
+            showDash();
+        }, 350);
+
+    } catch(e) {
+        clearInterval(progInt);
+        $('mainLoad').style.display = 'none';
+        const btn = $('mainRecBtn');
+        btn.style.display = 'flex';
+        btn.className = 'btn btn-blue';
+        btn.innerText = '↺ 다시 시도';
+        btn.onclick = () => mainRecStart(btn);
+        alert(e.message || '분석 실패. 다시 시도해주세요.');
+    }
+}
+
+// ══ 데이터 정규화 ══════════════════════════════════════════════════
+function normalize(d) {
+    if (!d || typeof d !== 'object') d = { korean: '오류', english: 'Error' };
+    if (!Array.isArray(d.drills) || !d.drills.length) {
+        d.drills = [
+            { step:1, ko: d.korean||'해석', en_full: d.english||'Text', blur_part:'none' },
+            { step:2, ko: d.korean||'해석', en_full: d.english||'Text', blur_part:'keyword' },
+            { step:3, ko: d.korean||'해석', en_full: d.english||'Text', blur_part:'all' }
+        ];
+    }
+    if (!Array.isArray(d.keys) || !d.keys.length) {
+        d.keys = [{ phrase: d.english||'Text', ko_org: d.korean||'해석', en_org: d.english||'Text' }];
+    }
+    d.keys.forEach(k => {
+        k.phrase  = k.phrase  || k.en_org   || 'Missing';
+        k.ko_org  = k.ko_org  || d.korean   || '해석 없음';
+        k.en_org  = k.en_org  || d.english  || 'Missing Text';
+        k.ko_var1 = k.ko_var1 || k.ko_org;  k.en_var1 = k.en_var1 || k.en_org;
+        k.ko_var2 = k.ko_var2 || k.ko_org;  k.en_var2 = k.en_var2 || k.en_org;
+        k.ko_long = k.ko_long || k.ko_org;  k.en_long = k.en_long || k.en_org;
+    });
+    if (!Array.isArray(d.vocab) || !d.vocab.length) {
+        d.vocab = [{ word:'N/A', meaning:'데이터 없음', pos:'N/A' }];
+    }
+    d.vocab.forEach(v => {
+        if (!v.drillOrder || v.drillOrder.length < 8) v.drillOrder = [1,2,3,4,5,6,7,8];
+        v.word    = v.word    || 'N/A';
+        v.meaning = v.meaning || 'N/A';
+        if (/[가-힣]/.test(v.word)) {
+            if (v.phonetics && /[a-zA-Z]/.test(v.phonetics)) { v.word = v.phonetics.replace(/[^a-zA-Z\s'-]/g,'').trim(); }
+            else { v.meaning = v.word; v.word = 'N/A'; }
         }
-    }
+        v.wrong_options   = v.wrong_options   || ['오답1','오답2'];
+        v.confusing_words = v.confusing_words || [v.word+'e', v.word.slice(0,-1)||v.word];
+        v.example_en = v.example_en || v.word     || 'Text';
+        v.example_ko = v.example_ko || v.meaning  || '해석';
+        v.var1_en = v.var1_en || v.example_en; v.var1_ko = v.var1_ko || v.example_ko;
+        v.var2_en = v.var2_en || v.example_en; v.var2_ko = v.var2_ko || v.example_ko;
+        v.var3_en = v.var3_en || v.example_en; v.var3_ko = v.var3_ko || v.example_ko;
+        v.pos      = v.pos      || '단어';
+        v.phonetics = v.phonetics || '';
+    });
+    if (!d.completed || typeof d.completed !== 'object') d.completed = {};
+    if (!Array.isArray(d.completed.keys))  d.completed.keys  = new Array(d.keys.length).fill(false);
+    if (!Array.isArray(d.completed.vocab)) d.completed.vocab = new Array(d.vocab.length).fill(false);
+    d.completed.full = !!d.completed.full;
+    if (!d.dictionary || typeof d.dictionary !== 'object') d.dictionary = {};
+    return d;
+}
 
-    function renderResult(data) {
-        document.getElementById('resultArea').style.display = 'block';
-        document.getElementById('scoreDisplay').innerText = data.score + "점";
-        document.getElementById('feedbackDisplay').innerText = data.feedback || "피드백이 없습니다.";
-        document.getElementById('recTextDisplay').innerText = data.recognized_text || "인식 실패";
-        
-        const btn = document.getElementById('pracRecordBtn');
-        btn.innerText = "↻ 다시 시도";
-        
-        if (data.score >= 70) {
-            lessonData.completed[currentMode.type][currentMode.idx] = true;
-            document.getElementById('nextBtn').style.display = 'flex';
-            applyBoing(document.getElementById('nextBtn'));
-            saveArchive();
-        }
-    }
+// ══ 대시보드 ══════════════════════════════════════════════════════
+function showDash() {
+    if (!LD) return;
+    $('vIntro').style.display = 'none';
+    $('vPrac').style.display  = 'none';
+    $('vDash').style.display  = 'block';
 
-    function showDashboard() {
-        document.getElementById('introView').style.display = 'none';
-        document.getElementById('practiceView').style.display = 'none';
-        document.getElementById('dashboardView').style.display = 'block';
-        
-        document.getElementById('dashEnText').innerText = lessonData.english || "문장 생성 중 오류";
-        document.getElementById('dashKoText').innerText = lessonData.korean || "";
-        
-        renderList('keyList', lessonData.keys, 'keys');
-        renderList('vocabList', lessonData.vocab, 'vocab');
-        
-        const keysTotal = lessonData.keys.length;
-        const vocabTotal = lessonData.vocab.length;
-        document.getElementById('keyProgress').innerText = `${lessonData.completed.keys.filter(Boolean).length}/${keysTotal}`;
-        document.getElementById('vocabProgress').innerText = `${lessonData.completed.vocab.filter(Boolean).length}/${vocabTotal}`;
-    }
+    $('dashKo').innerText = LD.korean || '해석 없음';
 
-    function renderList(id, items, type) {
-        const container = document.getElementById(id);
-        container.innerHTML = items.map((item, idx) => `
-            <div class="lesson-card boing-active ${lessonData.completed[type][idx] ? 'mastered' : ''}" onclick="startPractice('${type}', ${idx}, this)">
-                <div style="flex:1;">
-                    <div style="font-weight:900; font-size:18px;">${item.phrase || item.word || "N/A"}</div>
-                    <div style="font-size:14px; color:#888; margin-top:2px;">${item.ko_org || item.meaning || "뜻 없음"}</div>
-                </div>
-                <div style="font-size:22px;">${lessonData.completed[type][idx] ? '✅' : '▶'}</div>
+    // 영어 텍스트 (사전 링크 포함)
+    const dashEn = $('dashEn');
+    dashEn.innerHTML = (LD.english || '').split(' ').map(w => {
+        const clean = w.toLowerCase().replace(/[^a-z]/g,'');
+        const isDic = LD.dictionary && (LD.dictionary[clean] || LD.dictionary[w.toLowerCase()]);
+        if (isDic) return `<span class="en-w dict-w" onclick="showTip('${clean}','${w.replace(/['"]/g,'')}',event,this)">${w} </span>`;
+        return `<span class="en-w" onclick="ttsWord('${w.replace(/['"]/g,'')}',event)">${w} </span>`;
+    }).join('');
+
+    const kC = (LD.completed.keys  || []).filter(Boolean).length;
+    const vC = (LD.completed.vocab || []).filter(Boolean).length;
+    const fC = LD.completed.full ? 1 : 0;
+    const kT = LD.keys.length, vT = LD.vocab.length;
+
+    $('keyProg').innerText  = `${kC}/${kT}`;
+    $('vocProg').innerText  = `${vC}/${vT}`;
+    $('fullProg').innerText = `${fC}/1`;
+
+    const done = kC + vC + fC >= kT + vT + 1;
+    const db = $('dashBubble');
+    db.className = 'bubble' + (done ? ' done-bubble' : '');
+
+    $('keyList').innerHTML = LD.keys.map((k,i) => `
+        <div class="card boing ${LD.completed.keys[i]?'done':''}" onclick="boing(this);startPrac('key_${i}_1')">
+            <div style="flex:1;">
+                <div style="font-size:14px;color:#666;">${k.ko_org}</div>
+                <div style="font-size:18px;font-weight:900;margin-top:3px;">${k.phrase}</div>
             </div>
-        `).join('');
-    }
+            <div style="font-size:22px;color:#aaa;">${LD.completed.keys[i]?'✅':'▶'}</div>
+        </div>`).join('');
 
-    function startPractice(type, idx, el) {
-        if(el) applyBoing(el);
-        currentMode = { type, idx };
-        document.getElementById('dashboardView').style.display = 'none';
-        document.getElementById('practiceView').style.display = 'block';
-        document.getElementById('resultArea').style.display = 'none';
-        document.getElementById('nextBtn').style.display = 'none';
-        
-        const item = lessonData[type][idx];
-        document.getElementById('pracKoText').innerText = item.ko_org || item.meaning || "";
-        document.getElementById('pracEnText').innerText = item.phrase || item.word || "";
-        
-        const btn = document.getElementById('pracRecordBtn');
-        btn.innerText = "녹음 시작";
-        btn.classList.remove('glow-active');
-    }
+    $('vocList').innerHTML = LD.vocab.map((v,i) => `
+        <div class="card boing ${LD.completed.vocab[i]?'done':''}" onclick="boing(this);startPrac('vocab_${i}_1')">
+            <div style="flex:1;">
+                <div style="font-size:13px;color:#888;">${v.pos} | ${v.phonetics}</div>
+                <div style="font-size:20px;font-weight:900;margin-top:2px;">${v.word}</div>
+                <div style="font-size:15px;color:#444;margin-top:2px;font-weight:800;">${v.meaning}</div>
+            </div>
+            <div style="font-size:22px;color:#aaa;">${LD.completed.vocab[i]?'✅':'▶'}</div>
+        </div>`).join('');
 
-    async function startMic() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            let options = {};
-            if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-                options = { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 16000 };
+    $('fullCard').innerHTML = `
+        <div class="card boing ${LD.completed.full?'done':''}" onclick="boing(this);startPrac('full_1')">
+            <div style="flex:1;">
+                <div style="font-size:14px;color:#666;">전체 문장 마스터 (3단계)</div>
+                <div style="font-size:17px;font-weight:900;margin-top:3px;">${LD.english||'Text'}</div>
+            </div>
+            <div style="font-size:22px;color:#aaa;">${LD.completed.full?'✅':'▶'}</div>
+        </div>`;
+}
+
+// ══ 사전 툴팁 ══════════════════════════════════════════════════════
+function showTip(ck, ow, ev, el) {
+    ev.stopPropagation();
+    if (!LD || !LD.dictionary) return;
+    const dict = LD.dictionary[ck] || LD.dictionary[ow.toLowerCase()];
+    if (!dict) return;
+    $('tipWord').innerText = ow;
+    $('tipKo').innerText   = dict.ko || '';
+    $('tipPos').innerText  = dict.pos || '';
+    $('tipPhon').innerText = dict.phonetics ? '| ' + dict.phonetics : '';
+    const ctx = $('tipCtx');
+    if (dict.ko_context) { ctx.style.display = 'block'; ctx.innerText = dict.ko_context; }
+    else ctx.style.display = 'none';
+    const tt = $('dictTip');
+    tt.style.display = 'block'; tt.style.transform = 'none';
+    const r = el.getBoundingClientRect();
+    let lx = r.left + r.width / 2 - tt.offsetWidth / 2;
+    if (lx < 15) lx = 15;
+    if (lx + tt.offsetWidth > window.innerWidth - 15) lx = window.innerWidth - tt.offsetWidth - 15;
+    tt.style.top  = (r.bottom + window.scrollY + 8) + 'px';
+    tt.style.left = lx + 'px';
+}
+function hideTip() { const tt = $('dictTip'); if (tt) tt.style.display = 'none'; }
+function tipTTS(ev) {
+    ev.stopPropagation();
+    const w = $('tipWord').innerText;
+    if (!w) return;
+    synth.cancel();
+    const ut = new SpeechSynthesisUtterance(w); ut.lang = 'en-US'; synth.speak(ut);
+}
+function ttsWord(w, ev) {
+    ev.stopPropagation(); boing(ev.target);
+    synth.cancel();
+    const ut = new SpeechSynthesisUtterance(w); ut.lang = 'en-US'; synth.speak(ut);
+}
+
+// ══ TTS ═══════════════════════════════════════════════════════════
+function updateTTSBtn() {
+    $('btnPlay').style.display  = ttsOn ? 'none' : 'flex';
+    $('btnPause').style.display = ttsOn ? 'flex'  : 'none';
+}
+function playTTS() {
+    if (ttsOn) return; synth.cancel();
+    const txt = ttsHidden || enWords.slice(ttsIdx).join(' ');
+    if (!txt || txt.includes('?')) return;
+    const ut = new SpeechSynthesisUtterance(txt); ut.lang = 'en-US'; ut.rate = 0.85;
+    if (!ttsHidden) {
+        ut.onboundary = ev => {
+            if (ev.name === 'word') {
+                const ai = ttsIdx + txt.substring(0, ev.charIndex).split(/\s+/).filter(x=>x).length;
+                document.querySelectorAll('.en-w').forEach((s,i) => {
+                    if (!s.classList.contains('blur')) { s.classList.toggle('hit', i <= ai); s.classList.remove('miss'); }
+                });
             }
-            mediaRecorder = new MediaRecorder(stream, options);
-            chunks = [];
-            mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-            mediaRecorder.start(250); 
-        } catch(e) { alert("마이크 권한을 허용해주세요."); }
+        };
     }
+    ut.onend  = () => { ttsOn = false; updateTTSBtn(); };
+    ut.onerror = () => { ttsOn = false; updateTTSBtn(); };
+    ttsOn = true; updateTTSBtn(); synth.speak(ut);
+}
+function pauseTTS() { synth.cancel(); ttsOn = false; updateTTSBtn(); }
+function resetTTS() {
+    synth.cancel(); ttsOn = false; ttsIdx = 0; updateTTSBtn();
+    document.querySelectorAll('.en-w').forEach(s => s.classList.remove('hit','miss'));
+}
 
-    function stopMic(callback) {
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.onstop = callback;
-            mediaRecorder.stop();
-            mediaRecorder.stream.getTracks().forEach(t => t.stop());
+// ══ 연습 화면 ══════════════════════════════════════════════════════
+function startPrac(m) {
+    if (!LD) return goDash();
+    resetTTS(); stopMic();
+    $('vDash').style.display  = 'none';
+    $('vPrac').style.display  = 'block';
+    mode = m;
+    setupPrac();
+}
+
+function setupPrac() {
+    let ko='', en='', blur='';
+    resetTTS();
+    ttsHidden = ''; targetTxt = ''; resultLabel = '인식된 음성';
+    $('pracResult').style.display = 'none';
+    $('mcqArea').style.display = 'none'; $('mcqArea').innerHTML = '';
+    $('writeArea').style.display = 'none';
+    $('guideText').style.display = 'block';
+    $('ansBox').style.display = 'block';
+    restoreRecBtn($('pracRecBtn'));
+    $('pracLoad').style.display = 'none';
+    const nb = $('nextBtn'); nb.className = 'btn btn-pale'; nb.innerText = '건너뛰기 →';
+
+    if (mode.startsWith('key_')) {
+        const [, idxS, stepS] = mode.split('_');
+        const idx = +idxS, step = +stepS;
+        const k = LD.keys[idx] || {};
+        const ko0 = k.ko_org||'해석 없음', en0 = k.en_org||'Missing Text', bl0 = k.phrase||'none';
+        if (step===1) { ko=ko0; en=en0; blur='none'; }
+        else if (step===2) { ko=ko0; en=en0; blur=bl0; }
+        else if (step===3) { ko=k.ko_var1||ko0; en=k.en_var1||en0; blur='none'; }
+        else if (step===4) { ko=k.ko_var1||ko0; en=k.en_var1||en0; blur=bl0; }
+        else if (step===5) { ko=k.ko_var2||ko0; en=k.en_var2||en0; blur='none'; }
+        else if (step===6) { ko=k.ko_var2||ko0; en=k.en_var2||en0; blur=bl0; }
+        else if (step===7) { ko=k.ko_long||ko0; en=k.en_long||en0; blur='none'; }
+        else              { ko=k.ko_long||ko0; en=k.en_long||en0; blur=bl0; }
+        targetTxt = en; resultLabel = '인식된 음성';
+        $('pracBadge').innerText = `PHRASE MASTER STEP ${step}/8`;
+        $('guideText').innerText = '소리내어 읽어보세요';
+
+    } else if (mode.startsWith('vocab_')) {
+        const [, idxS, stepS] = mode.split('_');
+        const idx = +idxS, step = +stepS;
+        const v = LD.vocab[idx] || {};
+        const task = (v.drillOrder || [])[step - 1] || step;
+        $('pracBadge').innerText = `VOCAB MASTER STEP ${step}/8`;
+
+        if (task === 1) {
+            ko = `${v.meaning} [${v.pos}]`; en = v.word; blur = 'none';
+            targetTxt = v.word; resultLabel = '발음한 단어';
+            $('guideText').innerText = '🔊 단어를 소리내어 발음해보세요';
+        } else if (task === 2) {
+            ko = `음성을 듣고 올바른 스펠링 고르기\n(뜻: ${v.meaning})`; en = '???';
+            ttsHidden = v.word; targetTxt = ''; resultLabel = '당신이 고른 답';
+            $('guideText').style.display = 'none';
+            renderSpellingMCQ(v);
+        } else if (task === 3) {
+            ko = '🎧 음성을 듣고 올바른 뜻을 고르세요'; en = '???';
+            ttsHidden = v.word; targetTxt = ''; resultLabel = '당신이 고른 뜻';
+            $('guideText').style.display = 'none';
+            // ★ 오답을 다른 vocab의 meaning (한국어)으로
+            const others = LD.vocab.filter((ov,oi) => oi !== idx && ov.meaning && ov.meaning !== v.meaning).map(ov => ov.meaning).slice(0,2);
+            renderMCQ(v.meaning, others.length >= 2 ? others : v.wrong_options);
+        } else if (task === 4) {
+            ko = `🎧 음성을 듣고 영어로 받아쓰세요\n(뜻: ${v.meaning})`; en = '???';
+            ttsHidden = v.word; targetTxt = ''; resultLabel = '당신이 쓴 단어';
+            $('guideText').style.display = 'none';
+            showWrite('영어 단어를 받아 적어주세요');
+        } else if (task === 5) {
+            ko=v.example_ko; en=v.example_en; blur='none';
+            targetTxt=v.example_en; resultLabel='인식된 음성';
+            $('guideText').innerText = '📖 예문을 소리내어 읽어보세요';
+        } else if (task === 6) {
+            ko=v.var1_ko||v.example_ko; en=v.var1_en||v.example_en; blur='none';
+            targetTxt=en; resultLabel='인식된 음성';
+            $('guideText').innerText = '💬 다양한 상황 1 - 읽어보세요';
+        } else if (task === 7) {
+            ko=v.var2_ko||v.example_ko; en=v.var2_en||v.example_en; blur='none';
+            targetTxt=en; resultLabel='인식된 음성';
+            $('guideText').innerText = '💬 다양한 상황 2 - 읽어보세요';
+        } else {
+            ko=v.var3_ko||v.example_ko; en=v.var3_en||v.example_en; blur='none';
+            targetTxt=en; resultLabel='인식된 음성';
+            $('guideText').innerText = '💬 다양한 상황 3 - 읽어보세요';
         }
+
+    } else { // full
+        const step = +mode.split('_')[1];
+        const d = LD.drills[step - 1] || {};
+        ko = d.ko || '해석 없음'; en = d.en_full || 'Missing Text'; blur = d.blur_part || 'none';
+        targetTxt = d.en_full || ''; resultLabel = '인식된 음성';
+        $('pracBadge').innerText = `SENTENCE DRILL STEP ${step}/3`;
+        $('guideText').innerText = '소리내어 읽어보세요';
     }
 
-    async function getBase64Audio() {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
-        return new Promise(resolve => {
-            const r = new FileReader();
-            r.onloadend = () => resolve(r.result.split(',')[1]);
-            r.readAsDataURL(blob);
-        });
-    }
+    $('pracKo').innerText = ko || '해석 없음';
+    renderWords(en || 'Missing Text', blur);
+}
 
-    function saveArchive() {
-        try {
-            let arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-            const idx = arc.findIndex(a => a.id === lessonData.id);
-            if (idx > -1) arc[idx] = lessonData; 
-            else arc.unshift(lessonData);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(arc));
-        } catch(e) { console.error("스토리지 에러:", e); }
-    }
+function renderWords(text, blurMode) {
+    const cont = $('pracEn'); cont.innerHTML = '';
+    if (!text) return;
+    enWords = text.split(' ');
+    const safe = (blurMode || 'none').toLowerCase();
+    enWords.forEach((w, i) => {
+        const sp = document.createElement('span');
+        sp.className = 'en-w'; sp.id = 'w' + i; sp.innerText = w + ' ';
+        const clean = w.replace(/[^a-zA-Z]/g,'').toLowerCase();
+        if (safe === 'all' || (safe !== 'none' && safe.includes(clean) && clean.length > 0)) sp.classList.add('blur');
+        if (w.includes('?')) sp.style.color = '#D1D1D6';
+        sp.onclick = () => {
+            if (sp.classList.contains('blur')) {
+                sp.classList.remove('blur'); sp.style.color = 'var(--blue)'; sp.style.background = 'transparent'; return;
+            }
+            resetTTS(); ttsIdx = i; playTTS();
+        };
+        cont.appendChild(sp);
+    });
+}
 
-    function switchTab(tab) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('tab-' + tab).classList.add('active');
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById('sec-' + tab).classList.add('active');
-        if (tab === 'archive') renderArchive();
+function showWrite(ph) {
+    $('pracRecBtn').style.display = 'none';
+    $('writeArea').style.display = 'flex';
+    const inp = $('writeInput'); inp.value = ''; inp.placeholder = ph;
+    setTimeout(() => inp.focus(), 100);
+}
+function checkWrite(btn) {
+    boing(btn);
+    const val = $('writeInput').value.trim().toLowerCase();
+    const v = LD.vocab[+mode.split('_')[1]];
+    if (val === (v.word||'').toLowerCase()) {
+        btn.className = 'btn btn-blue boing';
+        $('writeInput').style.borderColor = 'var(--green)';
+        setTimeout(() => {
+            currentResultLabel = '당신이 쓴 단어';
+            showResult(100, '정답입니다!', v.word, '스펠링을 완벽하게 알고 계시네요!');
+            $('writeArea').style.display = 'none';
+        }, 300);
+    } else {
+        $('writeInput').style.borderColor = 'var(--red)';
+        boing($('writeInput'));
     }
+}
+function renderMCQ(correct, wrongs) {
+    $('pracRecBtn').style.display = 'none';
+    const area = $('mcqArea'); area.style.display = 'flex';
+    const opts = [correct, ...(wrongs||[])].filter(Boolean).sort(() => Math.random()-.5);
+    area.innerHTML = opts.map(o =>
+        `<button class="mcq-btn" onclick="checkMCQ('${o.replace(/'/g,"\\'")}','${correct.replace(/'/g,"\\'")}',this)">${o}</button>`
+    ).join('');
+}
+function renderSpellingMCQ(v) {
+    $('pracRecBtn').style.display = 'none';
+    const area = $('mcqArea'); area.style.display = 'flex';
+    const conf = v.confusing_words || [v.word+'e', v.word.slice(0,-1)||v.word];
+    const opts = [v.word, ...conf].filter(Boolean).sort(() => Math.random()-.5);
+    area.innerHTML = opts.map(o =>
+        `<button class="mcq-btn" style="font-size:20px;letter-spacing:.05em;" onclick="checkMCQ('${o}','${v.word}',this)">${o}</button>`
+    ).join('');
+}
+function checkMCQ(sel, cor, btn) {
+    boing(btn);
+    if (sel === cor) {
+        btn.className = 'mcq-btn boing'; btn.style.background = 'var(--blue)'; btn.style.color = '#fff';
+        setTimeout(() => {
+            resultLabel = resultLabel || '당신이 고른 답';
+            showResult(100, '정답입니다!', cor, '정확하게 맞추셨습니다!');
+            $('mcqArea').style.display = 'none';
+        }, 300);
+    } else {
+        btn.style.background = 'var(--red)'; btn.style.color = '#fff';
+    }
+}
 
-    function renderArchive() {
-        try {
-            const arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-            const list = document.getElementById('archiveList');
-            if(arc.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888;'>저장된 기록이 없습니다.</p>"; return; }
-            list.innerHTML = arc.map(a => `
-                <div class="lesson-card boing-active" onclick="loadArchive(${a.id}, this)">
-                    <div style="flex:1;">
-                        <div style="font-weight:900; margin-bottom:4px;">${a.title_ko || '상황 요약'}</div>
-                        <div style="font-size:13px; color:#888;">${(a.english || "").substring(0, 45)}...</div>
-                    </div>
+// ══ 발음 평가 녹음 ════════════════════════════════════════════════
+function restoreRecBtn(btn) {
+    if (!btn) return;
+    btn.dataset.rec = '0';
+    btn.style.cssText = '';
+    btn.className = 'btn btn-red';
+    btn.innerText = '녹음 시작';
+    btn.onclick = () => toggleRec(btn);
+}
+function stopInlineRec() {
+    if (mediaRec && mediaRec.state !== 'inactive') mediaRec.stop();
+}
+async function toggleRec(btn) {
+    if (btn.dataset.rec === '1') return;
+    stopMic(); boing(btn); resetTTS();
+    btn.dataset.rec = '1';
+    $('pracResult').style.display = 'none';
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        btn.style.cssText = `background:#fff!important;border:2px solid var(--red)!important;box-shadow:0 5px 15px rgba(255,59,48,.2)!important;padding:0 10px 0 14px!important;cursor:default!important;justify-content:flex-start!important;`;
+        btn.innerHTML = `
+            <div style="display:flex;align-items:center;width:100%;gap:6px;">
+                <div id="inlineWave" style="display:flex;align-items:center;gap:2px;flex:5;height:38px;overflow:hidden;">
+                    ${'<div class="wave-bar"></div>'.repeat(18)}
                 </div>
-            `).join('');
-        } catch(e) { console.error("스토리지 로드 에러:", e); }
+                <div id="inlineTimer" style="font-weight:900;font-size:16px;color:var(--red);flex:1.5;text-align:center;white-space:nowrap;">00:00</div>
+                <button onclick="stopInlineRec()" style="background:var(--red);color:#fff;border:none;border-radius:14px;padding:0 16px;height:44px;font-weight:900;font-size:15px;cursor:pointer;white-space:nowrap;flex:2;min-width:0;">■ 완료</button>
+            </div>`;
+        recSec = 0; clearInterval(timerInt);
+        timerInt = setInterval(() => {
+            recSec++;
+            const el = $('inlineTimer');
+            if (el) el.innerText = `${String(Math.floor(recSec/60)).padStart(2,'0')}:${String(recSec%60).padStart(2,'0')}`;
+        }, 1000);
+        startMicEngine(stream, $('inlineWave').querySelectorAll('.wave-bar'), onPracStop);
+    } catch(e) {
+        alert('마이크 권한이 필요합니다.');
+        restoreRecBtn(btn);
+    }
+}
+
+async function onPracStop() {
+    const recBtn = $('pracRecBtn');
+    restoreRecBtn(recBtn);
+    recBtn.style.display = 'none';
+    $('pracLoad').style.display = 'block';
+
+    let p = 0; clearInterval(progInt);
+    progInt = setInterval(() => {
+        p += Math.random() * 8 + 2; if (p > 95) p = 95;
+        $('pracPBar').style.width = p + '%';
+        $('pracLoadPct').innerText = Math.round(p) + '%';
+    }, 200);
+
+    const b64 = await getB64(); stopMic();
+    const tt = targetTxt || '';
+
+    if (!tt) {
+        clearInterval(progInt);
+        $('pracLoad').style.display = 'none';
+        recBtn.style.display = 'flex';
+        recBtn.dataset.rec = '0';
+        recBtn.innerText = '↺ 다시 시도';
+        return;
     }
 
-    function loadArchive(id, el) {
-        applyBoing(el);
-        const arc = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        lessonData = arc.find(a => a.id === id);
-        if(lessonData) { setTimeout(() => { switchTab('game'); showDashboard(); }, 200); }
+    try {
+        const res = await fetch('/api/openai-proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audio: b64, mimeType: curMime, action: 'evaluate', target_english: tt })
+        });
+        if (!res.ok) throw new Error('서버 에러');
+        const data = await res.json();
+        clearInterval(progInt);
+        $('pracPBar').style.width = '100%'; $('pracLoadPct').innerText = '100%';
+        setTimeout(() => {
+            $('pracLoad').style.display = 'none';
+            $('guideText').style.display = 'none';
+            if (tt && !tt.includes('?')) highlightWords(enWords, data.recognized_text);
+            showResult(parseInt(data.score)||0, data.feedback, data.recognized_text||'인식 실패', '파란색 단어가 정확히 인식됐습니다.');
+            recBtn.style.display = 'flex'; recBtn.dataset.rec = '0'; recBtn.innerText = '↺ 다시 시도';
+        }, 400);
+    } catch(e) {
+        clearInterval(progInt);
+        alert('평가 중 오류가 발생했습니다. 다시 시도해주세요.');
+        $('pracLoad').style.display = 'none';
+        recBtn.style.display = 'flex';
     }
+}
 
-    function goDashboard() { showDashboard(); }
+function showResult(score, msg, txt, fb) {
+    $('pracResult').style.display = 'block';
+    $('scoreNum').innerText = score; $('scoreMsg').innerText = msg;
+    if (txt && txt !== '???') {
+        $('ansBox').style.display = 'block';
+        $('resultLabel').innerText = resultLabel;
+        $('resultTxt').innerText   = txt;
+        $('resultFb').innerText    = fb;
+    } else { $('ansBox').style.display = 'none'; }
+    const nb = $('nextBtn');
+    if (score >= 70) { nb.className = 'btn btn-next'; nb.innerText = '다음 단계 →'; boing(nb); }
+    else { nb.className = 'btn btn-pale'; nb.innerText = '건너뛰기 →'; }
+}
+function highlightWords(targets, recognized) {
+    if (!recognized || !targets.length) return;
+    const rw = recognized.toLowerCase().replace(/[^a-z\s]/g,'').split(/\s+/);
+    document.querySelectorAll('.en-w').forEach((sp, i) => {
+        if (!sp.classList.contains('blur')) {
+            const tw = (targets[i]||'').toLowerCase().replace(/[^a-z]/g,'');
+            sp.classList.remove('hit','miss');
+            sp.classList.add(tw && rw.includes(tw) ? 'hit' : 'miss');
+        }
+    });
+}
+
+// ══ 다음 단계 ═════════════════════════════════════════════════════
+function nextStage(btn) {
+    boing(btn); resetTTS(); stopMic();
+    if (!LD) return goDash();
+    const p  = mode.split('_');
+    const ns = +p[p.length - 1] + 1;
+    if (mode.startsWith('key_')) {
+        if (ns > 8) { LD.completed.keys[+p[1]] = true; goDash(); }
+        else { mode = `key_${p[1]}_${ns}`; setupPrac(); }
+    } else if (mode.startsWith('vocab_')) {
+        if (ns > 8) { LD.completed.vocab[+p[1]] = true; goDash(); }
+        else { mode = `vocab_${p[1]}_${ns}`; setupPrac(); }
+    } else {
+        if (ns > 3) { LD.completed.full = true; goDash(); }
+        else { mode = `full_${ns}`; setupPrac(); }
+    }
+}
+function goDash() {
+    resetTTS(); stopMic();
+    restoreRecBtn($('pracRecBtn'));
+    saveArc();
+    $('vPrac').style.display = 'none';
+    showDash();
+}
+
+// ══ 저장 / 아카이브 ═══════════════════════════════════════════════
+function saveArc() {
+    if (!LD || !LD.id) return;
+    let arc = getStor();
+    const kC = (LD.completed.keys||[]).filter(Boolean).length;
+    const vC = (LD.completed.vocab||[]).filter(Boolean).length;
+    const fC = LD.completed.full ? 1 : 0;
+    const pr = kC + vC + fC;
+    const ti = LD.keys.length + LD.vocab.length + 1;
+    const obj = {
+        id: LD.id,
+        date: new Date().toLocaleDateString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+        title_ko: LD.title_ko || '나의 이야기',
+        title_en: LD.title_en || 'My Story',
+        mastered: pr >= ti,
+        starred: false,
+        data: LD
+    };
+    const i = arc.findIndex(a => a.id === LD.id);
+    if (i !== -1) { obj.starred = arc[i].starred; arc[i] = obj; }
+    else arc.unshift(obj);
+    setStor(arc);
+}
+function toggleStar(ev, id) {
+    ev.stopPropagation(); boing(ev.target);
+    let arc = getStor(); const i = arc.findIndex(a => a.id === id);
+    if (i === -1) return;
+    if (!arc[i].starred && arc.filter(a=>a.starred).length >= 3) { alert('최상단 고정은 최대 3개입니다.'); return; }
+    arc[i].starred = !arc[i].starred;
+    setStor(arc); renderArc();
+}
+function delArc(ev, id) {
+    ev.stopPropagation();
+    if (!confirm('삭제하시겠습니까?')) return;
+    let arc = getStor().filter(a => a.id !== id);
+    setStor(arc);
+    if (LD && LD.id === id) location.reload();
+    else renderArc();
+}
+function renderArc() {
+    const sl = $('arcStory'), vl = $('arcVocab');
+    let arc = getStor().filter(a => a && a.id).map(a => { a.data = normalize(a.data); return a; });
+    if (!arc.length) {
+        sl.innerHTML = "<p style='text-align:center;color:#888;'>저장된 기록이 없습니다.</p>";
+        vl.innerHTML = "<p style='text-align:center;color:#888;'>저장된 단어가 없습니다.</p>";
+        return;
+    }
+    arc.sort((a,b) => (b.starred?1:0) - (a.starred?1:0));
+    const kT = d => d.keys.length, vT = d => d.vocab.length;
+    const kC = d => (d.completed.keys||[]).filter(Boolean).length;
+    const vC = d => (d.completed.vocab||[]).filter(Boolean).length;
+    const fC = d => d.completed.full?1:0;
+    sl.innerHTML = arc.map(a => {
+        const pr = kC(a.data)+vC(a.data)+fC(a.data), ti = kT(a.data)+vT(a.data)+1;
+        const r = ti>0?pr/ti:0;
+        const m = pr>=ti;
+        let bg='#fff', tc='#D1D1D6', cls='';
+        if(r>0&&r<=.3){bg='#F2F2F7';tc='#8E8E93';}
+        else if(r>.3&&r<=.6){bg='#FFFBE6';tc='#FFD60A';}
+        else if(r>.6&&r<1){bg='#E8F5E9';tc='#34C759';}
+        else if(m){bg='#1C1C1E';tc='#fff';cls='done-bubble';}
+        return `<div class="arc-bubble boing ${cls}" onclick="loadArc(${a.id},this)" style="background:${bg};">
+            <div class="arc-hd">
+                <div><span style="color:${m?'#aaa':'#555'};">${a.date||''}</span>
+                <span style="color:${tc};font-weight:900;margin-left:8px;">${m?'🏆 완벽 정복':'⏳ 진행 중'}(${pr}/${ti})</span></div>
+                <div style="display:flex;gap:12px;align-items:center;">
+                    <span onclick="toggleStar(event,${a.id})">${a.starred?'⭐':'☆'}</span>
+                    <span onclick="delArc(event,${a.id})" style="opacity:.6;">🗑️</span>
+                </div>
+            </div>
+            <div style="font-size:13px;color:${m?'#aaa':'#888'};font-weight:800;margin-bottom:2px;margin-top:8px;">${a.title_ko||''}</div>
+            <div class="arc-title" style="${m?'color:#fff;':''}">${a.title_en||'My Story'}</div>
+        </div>`;
+    }).join('');
+    let vh = '';
+    arc.forEach(a => {
+        (a.data.vocab||[]).forEach((v,vi) => {
+            const done = (a.data.completed.vocab||[])[vi];
+            vh += `<div class="card boing ${done?'done':''}" onclick="boing(this);loadVoc(${a.id},${vi})" style="margin-bottom:0;">
+                <div style="flex:1;">
+                    <div style="font-size:13px;color:#888;">${v.pos||'단어'} | ${v.phonetics||''}</div>
+                    <div style="font-size:20px;font-weight:900;margin-top:2px;">${v.word||'N/A'}</div>
+                    <div style="font-size:15px;color:#444;margin-top:2px;font-weight:800;">${v.meaning||'해석'}</div>
+                </div>
+                <div style="font-size:22px;">${done?'✅':'▶'}</div>
+            </div>`;
+        });
+    });
+    vl.innerHTML = vh || "<p style='text-align:center;color:#888;'>단어가 없습니다.</p>";
+}
+function loadArc(id, el) {
+    boing(el); stopMic();
+    const item = getStor().find(a => a.id === id);
+    if (item) { LD = normalize(item.data); setTimeout(() => { goTab('game'); showDash(); }, 200); }
+}
+function loadVoc(id, vi) {
+    stopMic();
+    const item = getStor().find(a => a.id === id);
+    if (item) {
+        LD = normalize(item.data);
+        document.querySelectorAll('.tab,.sec').forEach(x=>x.classList.remove('on'));
+        $('tab-game').classList.add('on'); $('sec-game').classList.add('on');
+        setTimeout(() => startPrac(`vocab_${vi}_1`), 200);
+    }
+}
 </script>
 </body>
 </html>
-```eof
