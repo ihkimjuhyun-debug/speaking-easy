@@ -1,50 +1,47 @@
-// Vercel 배포 에러 방지를 위해 Edge Runtime 설정을 제거하고 표준 Node.js(Serverless) 환경으로 원복합니다.
-
 export default async function handler(req, res) {
-    // CORS 및 메서드 검사
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-    const { audio, action, target_english, difficulty, lang_mode } = req.body;
+    const body = req.body;
     const API_KEY = process.env.OPENAI_API_KEY;
 
     try {
-        // 1. 오디오 파일을 받아 Whisper로 STT 변환 (Node.js Buffer 사용)
-        const audioBuffer = Buffer.from(audio, 'base64');
-        const blob = new Blob([audioBuffer], { type: 'audio/webm' });
-        const formData = new FormData();
-        formData.append('file', blob, 'audio.webm');
-        formData.append('model', 'whisper-1');
-        
-        if (action === 'evaluate') formData.append('language', 'en');
-        else if (lang_mode === 'ko') formData.append('language', 'ko');
+        // [STEP 1] 음성 인식(STT)만 단독으로 처리하는 구역 (10초 Timeout 회피)
+        if (body.action === 'transcribe') {
+            const audioBuffer = Buffer.from(body.audio, 'base64');
+            const blob = new Blob([audioBuffer], { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('file', blob, 'audio.webm');
+            formData.append('model', 'whisper-1');
+            
+            if (body.lang_mode === 'ko') formData.append('language', 'ko');
+            else formData.append('language', 'en'); // 영어 채점용
 
-        const sttResponse = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-            method: "POST", headers: { "Authorization": `Bearer ${API_KEY}` }, body: formData
-        });
-        
-        if (!sttResponse.ok) throw new Error("STT 엔진 통신 실패");
-        const sttData = await sttResponse.json();
-        const userSpeech = sttData.text || "";
+            const sttRes = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+                method: "POST", headers: { "Authorization": `Bearer ${API_KEY}` }, body: formData
+            });
+            
+            if (!sttRes.ok) throw new Error("음성 인식(Whisper) 실패");
+            const sttData = await sttRes.json();
+            
+            return res.status(200).json({ text: sttData.text || "" });
+        }
 
-        // 2. 한국어 상황 분석 및 훈련 데이터 생성
-        if (action === 'korean') {
+        // [STEP 2] 상황 훈련 데이터 생성(LLM)만 단독으로 처리하는 구역
+        if (body.action === 'korean') {
+            const { userSpeech, difficulty } = body;
+            
             let levelInstr = "";
-            if (difficulty === "beginner") {
-                levelInstr = "초급: 매우 쉬운 기초 단어와 짧고 단순한 구조.";
-            } else if (difficulty === "intermediate") {
-                levelInstr = "중급: 실생활/비즈니스 원어민 표현.";
-            } else if (difficulty === "advanced") {
-                levelInstr = "고급: 학술적이고 세련된 고급 어휘.";
-            }
+            if (difficulty === "beginner") levelInstr = "초급: 매우 쉬운 기초 단어와 짧고 단순한 구조.";
+            else if (difficulty === "intermediate") levelInstr = "중급: 실생활/비즈니스 원어민 표현.";
+            else if (difficulty === "advanced") levelInstr = "고급: 학술적이고 세련된 고급 어휘.";
 
-            // 10초 Timeout을 피하기 위해 프롬프트를 더욱 간결하게 압축
             const instruction = `
             음성: "${userSpeech}" 
             난이도: ${levelInstr}
             
             [규칙]
-            1. 음성 전체 맥락을 영어로 번역.
-            2. 'keys': 핵심 구(Phrase) 정확히 3개.
-            3. 'vocab': 핵심 단어 정확히 3개.
+            1. 음성 전체 맥락 번역.
+            2. 'keys': 핵심 구 3개.
+            3. 'vocab': 핵심 단어 3개.
             4. 절대 다른 부가 설명을 넣지 마세요.
             
             JSON 구조:
@@ -63,7 +60,7 @@ export default async function handler(req, res) {
                 ]
             }`;
 
-            const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+            const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
                 body: JSON.stringify({ 
                     model: "gpt-4o-mini", 
@@ -73,20 +70,17 @@ export default async function handler(req, res) {
                 })
             });
 
-            if (!gptResponse.ok) throw new Error("LLM 엔진 통신 실패");
-            const gptData = await gptResponse.json();
-            
-            try {
-                const parsedData = JSON.parse(gptData.choices[0].message.content);
-                return res.status(200).json(parsedData);
-            } catch (parseError) {
-                throw new Error("AI 응답 데이터 파싱 오류");
-            }
-        
-        // 3. 발음 평가 채점
-        } else {
+            if (!gptRes.ok) throw new Error("AI 분석(GPT) 실패");
+            const gptData = await gptRes.json();
+            return res.status(200).json(JSON.parse(gptData.choices[0].message.content));
+        }
+
+        // [STEP 3] 발음 채점(Evaluate)만 단독으로 처리하는 구역
+        if (body.action === 'evaluate') {
+            const { userSpeech, target_english } = body;
             const evalInstruction = `목표: "${target_english}", 인식: "${userSpeech}". 관대하게 채점하여 score(10~100 숫자)와 feedback만 JSON으로 반환.`;
-            const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+            
+            const gptRes = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
                 body: JSON.stringify({ 
                     model: "gpt-4o-mini", 
@@ -95,14 +89,12 @@ export default async function handler(req, res) {
                 })
             });
             
-            const gptResult = await gptResponse.json();
-            try {
-                const result = JSON.parse(gptResult.choices[0].message.content);
-                return res.status(200).json({ ...result, recognized_text: userSpeech || "" });
-            } catch (e) {
-                return res.status(200).json({ score: 0, feedback: "평가 불가", recognized_text: userSpeech });
-            }
+            if (!gptRes.ok) throw new Error("채점 서버 통신 실패");
+            const gptData = await gptRes.json();
+            const result = JSON.parse(gptData.choices[0].message.content);
+            return res.status(200).json({ ...result, recognized_text: userSpeech || "" });
         }
+
     } catch (error) { 
         console.error("Proxy Error:", error);
         return res.status(500).json({ error: error.message }); 
@@ -110,4 +102,4 @@ export default async function handler(req, res) {
 }
 ```eof
 
-프론트엔드(`index.html`)는 이전에 복사하신 코드를 그대로 두시면 됩니다. 이 백엔드 파일만 교체하시면 배포 에러가 즉시 해결됩니다!
+위 코드를 `api/openai-proxy.js`에 먼저 적용해 주세요. 이어서 두 번째 파일(`index.html`)을 제공해 드리겠습니다.
