@@ -4,6 +4,7 @@ export default async function handler(req, res) {
     const API_KEY = process.env.OPENAI_API_KEY;
 
     try {
+        // 1. 오디오 파일을 받아 Whisper로 STT 변환
         const audioBuffer = Buffer.from(audio, 'base64');
         const blob = new Blob([audioBuffer], { type: 'audio/webm' });
         const formData = new FormData();
@@ -19,24 +20,24 @@ export default async function handler(req, res) {
         const sttData = await sttResponse.json();
         const userSpeech = sttData.text || "";
 
+        // 2. 한국어 상황 분석 및 훈련 데이터 3세트 생성 (초고속 다이어트 모드)
         if (action === 'korean') {
-            // 🌟 1500토큰 -> 300토큰으로 압축하는 초고속 프롬프트
-            // 프론트엔드에서 자동 생성하는 예문, 발음기호, drills 등을 전면 생략하여 속도 극대화
             const instruction = `
-            사용자: "${userSpeech}" (난이도: ${difficulty})
+            사용자 음성: "${userSpeech}" (난이도: ${difficulty})
             
-            [초고속 응답을 위한 토큰 다이어트 규정]
-            반드시 아래 JSON 포맷을 유지하되, 제시되지 않은 필드(drills, phonetics, 예문 등)는 절대 생성하지 마세요. (생성 시 속도 저하 발생)
+            [초고속 응답을 위한 토큰 다이어트 및 강제 규정]
+            1. 'keys' 배열에는 반드시 덩어리 표현을 정확히 3개 생성할 것.
+            2. 'vocab' 배열에는 핵심 단어를 정확히 3개 생성할 것.
+            3. 지시된 JSON 구조 외의 부가적인 설명(phonetics, 예문 등)은 속도 저하를 유발하므로 절대 생성하지 말 것.
             
+            반환 JSON 구조:
             {
                 "title_ko": "요약", 
                 "title_en": "Title", 
-                "korean": "자연스러운 번역", 
-                "english": "English",
+                "korean": "자연스러운 한국어 번역", 
+                "english": "원어민식 영어 문장",
                 "dictionary": { 
-                    "word1": {"ko":"뜻","pos":"품사"}, 
-                    "word2": {"ko":"뜻","pos":"품사"}, 
-                    "word3": {"ko":"뜻","pos":"품사"} 
+                    "word1": {"ko":"뜻","pos":"품사"}, "word2": {"ko":"뜻","pos":"품사"}, "word3": {"ko":"뜻","pos":"품사"} 
                 },
                 "keys": [
                     {"phrase": "핵심표현1", "ko_org": "해석", "en_org": "문장"},
@@ -61,10 +62,9 @@ export default async function handler(req, res) {
             const gptData = await gptResponse.json();
             return res.status(200).json(JSON.parse(gptData.choices[0].message.content));
         
+        // 3. 발음 평가 채점
         } else {
-            // 발음 평가 채점 (이 부분은 이미 짧아서 빠릅니다)
-            const evalInstruction = `목표: "${target_english}", 인식됨: "${userSpeech}". 관대하게 채점해서 score(10~100)와 feedback만 JSON 반환.`;
-            
+            const evalInstruction = `목표 문장: "${target_english}", 사용자 인식됨: "${userSpeech}". 매우 관대하게 채점하여 score(10~100 숫자)와 feedback만 JSON으로 반환.`;
             const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
                 body: JSON.stringify({ 
