@@ -204,6 +204,10 @@
                         <div class="prog-bg"><div class="prog-bar" id="mainPBar"></div></div>
                     </div>
                 </div>
+                <!-- 녹음 시간 안내 -->
+                <div style="text-align:center;font-size:12px;font-weight:800;color:#aaa;margin-bottom:8px;">
+                    권장: <span style="color:var(--green);">5~120초</span> &nbsp;|&nbsp; 청크 분할로 <span style="color:var(--blue);">2분도 OK</span>
+                </div>
                 <button id="mainRecBtn" class="btn btn-blue" onclick="mainRecStart(this)">🎙 녹음 시작</button>
             </div>
         </div>
@@ -340,7 +344,36 @@ let enWords = [], ttsIdx = 0, ttsOn = false, ttsHidden = '';
 let targetTxt = '', resultLabel = '인식된 음성', typeTarget = '';
 let mediaRec, chunks = [], audioCtx, analyser, dataArr, animId;
 let stream = null, timerInt, progInt, recSec = 0, curMime = 'audio/webm';
+let sttAccumulator = [], chunkSeq = 0, chunkDoneCount = 0;
 const synth = window.speechSynthesis;
+
+// ── Blob → base64 헬퍼 ──────────────────────────────────────────
+async function blobToB64(blob){
+    return new Promise(r=>{const fr=new FileReader();fr.onloadend=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(blob);});
+}
+
+// ── 청크 STT 전송 (백그라운드 비동기) ──────────────────────────
+// 녹음 중 18초마다 자동 호출 → 동시에 여러 청크 처리
+async function sendSTTChunk(blob, idx){
+    try{
+        const b64 = await blobToB64(blob);
+        const r = await fetch('/api/stt',{
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({audio:b64, mimeType:curMime, lang_mode:lang})
+        });
+        const data = await r.json();
+        chunkDoneCount++;
+        // 진행 중 UI 업데이트
+        const msgEl = document.getElementById('mainLoadMsg');
+        if(msgEl && sttAccumulator.length>1){
+            msgEl.innerText = `🎙 음성 분석 중 (${chunkDoneCount}/${sttAccumulator.length} 완료)...`;
+        }
+        return {idx, text: data.text || ''};
+    }catch(e){
+        console.warn('[STT chunk'+idx+']', e.message);
+        return {idx, text:''};
+    }
+}
 
 // ══ 유틸 ══════════════════════════════════════════════════════════
 function boing(el){ if(!el)return; el.classList.remove('boing'); void el.offsetWidth; el.classList.add('boing'); }
@@ -424,7 +457,22 @@ function startMicEngine(st,bars,cb){
     catch{try{mediaRec=new MediaRecorder(st);}catch(e){console.error(e);}}
     const actual=mediaRec.mimeType||chosen||'';
     curMime=!actual?((/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))?'audio/mp4':'audio/webm'):actual;
-    chunks=[]; mediaRec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data);}; mediaRec.onstop=cb; mediaRec.start();
+    sttAccumulator=[]; chunkSeq=0; chunkDoneCount=0; chunks=[];
+
+    mediaRec.ondataavailable=e=>{
+        if(!e.data||e.data.size<1000) return;
+        chunks.push(e.data); // fallback용 보존
+
+        // 청크마다 즉시 STT 전송 (백그라운드)
+        const myIdx=chunkSeq++;
+        const blob=new Blob([e.data],{type:curMime});
+        const promise=sendSTTChunk(blob,myIdx);
+        sttAccumulator.push(promise);
+    };
+
+    mediaRec.onstop=cb;
+    // 18초 단위 청크 → 2분 녹음 = 최대 7개 청크, 동시 처리
+    mediaRec.start(18000);
     (function draw(){ animId=requestAnimationFrame(draw); analyser.getByteFrequencyData(dataArr); bars.forEach((b,i)=>{b.style.height=Math.max(4,(dataArr[i%dataArr.length]/128)*40)+'px';}); })();
 }
 async function getB64(){ const blob=new Blob(chunks,{type:curMime}); return new Promise(r=>{const fr=new FileReader();fr.onloadend=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(blob);}); }
@@ -458,8 +506,27 @@ async function mainRecStart(btn){
         stream=await navigator.mediaDevices.getUserMedia({audio:true});
         await countdown();
         $('mainWave').style.display='flex';
+        const MAX_REC = quickMode ? 30 : 120; // 일반:2분, 빠른대화:30초
         recSec=0; clearInterval(timerInt);
-        timerInt=setInterval(()=>{ recSec++; $('mainTimer').innerText=`${String(Math.floor(recSec/60)).padStart(2,'0')}:${String(recSec%60).padStart(2,'0')}`; },1000);
+        timerInt=setInterval(()=>{
+            recSec++;
+            const mm=String(Math.floor(recSec/60)).padStart(2,'0');
+            const ss=String(recSec%60).padStart(2,'0');
+            const tEl=$('mainTimer');
+            const remain=MAX_REC-recSec;
+            if(recSec>=MAX_REC){
+                // 자동 종료
+                tEl.innerText='⏹ 자동종료'; tEl.style.color='var(--red)'; tEl.style.fontSize='15px';
+                clearInterval(timerInt);
+                if(mediaRec&&mediaRec.state!=='inactive') mediaRec.stop();
+            } else if(remain<=5){
+                tEl.innerText=`${mm}:${ss}  🔴${remain}초 남음`; tEl.style.color='var(--red)'; tEl.style.fontSize='13px';
+            } else if(recSec>=100){
+                tEl.innerText=`${mm}:${ss}  ⚠️${Math.ceil(remain/60)}분 남음`; tEl.style.color='#FF9500'; tEl.style.fontSize='15px';
+            } else {
+                tEl.innerText=`${mm}:${ss}`; tEl.style.color='var(--red)'; tEl.style.fontSize='20px';
+            }
+        },1000);
         startMicEngine(stream,$('mainWaveInner').querySelectorAll('.wave-bar'), quickMode?onQuickStop:onMainStop);
         btn.innerText='■ 완료'; btn.className='btn rec-pulse';
         btn.onclick=()=>{ boing(btn); btn.className=quickMode?'btn btn-gold':'btn btn-blue'; mediaRec.stop(); };
@@ -504,15 +571,34 @@ async function onMainStop(){
     $('mainLoad').style.display='block';
     clearInterval(timerInt);
     startLoad('mainPBar','mainLoadPct','mainLoadMsg','mainLoadTime','🎙 음성 변환 중...',4);
-    const b64=await getB64(); stopMic();
+    stopMic();
+
+    // ── 모든 청크 STT 완료 대기 ────────────────────────────────────
+    // 녹음 중 이미 처리 시작했으므로 대기 시간 최소화
+    let userText = '';
     try{
-        // Step1: STT
-        const sttRes=await fetch('/api/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,mimeType:curMime,lang_mode:lang})});
-        if(!sttRes.ok) throw new Error('STT '+sttRes.status);
-        const sttData=await sttRes.json();
-        if(sttData.error) throw new Error(sttData.error);
-        const userText=(sttData.text||'').trim();
-        if(userText.length<2||/[\u3040-\u30ff\u4e00-\u9fff]/.test(userText)) throw new Error('음성이 명확히 인식되지 않았습니다. 조용한 곳에서 다시 말씀해주세요.');
+        if(sttAccumulator.length === 0){
+            // 타임슬라이스 미지원 환경 (일부 브라우저) → 기존 방식 fallback
+            const b64=await getB64();
+            const sttRes=await fetch('/api/stt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,mimeType:curMime,lang_mode:lang})});
+            if(!sttRes.ok) throw new Error('STT '+sttRes.status);
+            const sttData=await sttRes.json();
+            if(sttData.error) throw new Error(sttData.error);
+            userText=(sttData.text||'').trim();
+        } else {
+            // 청크 STT 결과 합산 (이미 대부분 완료 상태)
+            const total=sttAccumulator.length;
+            if($('mainLoadMsg')) $('mainLoadMsg').innerText=`🎙 음성 분석 완료 대기 중 (${total}개)...`;
+            const results=await Promise.all(sttAccumulator);
+            results.sort((a,b)=>a.idx-b.idx);
+            userText=results.map(r=>r.text).filter(Boolean).join(' ').trim();
+        }
+    }catch(e){
+        throw new Error('음성 인식 실패: '+e.message);
+    }
+
+    try{
+        if(userText.length<2||/[぀-ヿ一-鿿]/.test(userText)) throw new Error('음성이 명확히 인식되지 않았습니다. 조용한 곳에서 다시 말씀해주세요.');
 
         // Step2: Analyze (GPT) - 예상 시간 업데이트
         startLoad('mainPBar','mainLoadPct','mainLoadMsg','mainLoadTime','🤖 AI 학습 데이터 생성 중...',10);
@@ -532,7 +618,11 @@ async function onMainStop(){
         clearInterval(progInt);
         $('mainLoad').style.display='none';
         const rb=$('mainRecBtn'); rb.style.display='flex'; rb.className='btn btn-blue'; rb.innerText='↺ 다시 시도'; rb.onclick=()=>mainRecStart(rb);
-        alert(e.message||'분석 실패. 다시 시도해주세요.');
+        const msg = e.message || '분석 실패.';
+        const is504 = msg.includes('504') || msg.includes('초과') || msg.includes('timeout');
+        alert(is504
+            ? '⏱ 변환 시간이 초과됐어요.\n\n💡 해결 방법:\n• 10~15초 이내로 짧게 말씀해주세요\n• 녹음 버튼을 눌러 다시 시도해주세요'
+            : msg);
     }
 }
 
