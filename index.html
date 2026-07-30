@@ -160,6 +160,12 @@
     <div id="sec-game" class="sec on">
 
         <!-- ① 인트로 (녹음 화면) -->
+        <!-- RYAN's Speaking 타이틀 -->
+        <div style="text-align:center;padding:18px 0 4px;letter-spacing:-0.5px;">
+            <div style="font-size:11px;font-weight:800;color:#aaa;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;">AI English Learning</div>
+            <div style="font-size:28px;font-weight:900;color:#002D5E;line-height:1.1;">RYAN<span style="color:var(--blue);">'s</span> Speaking</div>
+        </div>
+
         <div id="vIntro">
             <div class="bubble" style="text-align:center;margin-bottom:20px;">
                 <div id="introTitle" style="font-size:19px;font-weight:900;margin-bottom:22px;line-height:1.4;color:#002D5E;">
@@ -173,8 +179,14 @@
                 </div>
                 <!-- 언어 / 빠른 대화 모드 -->
                 <div class="seg" style="background:#F2F2F7;margin-bottom:8px;">
-                    <div class="seg-opt lang-on" onclick="setLang('ko')"      id="l-ko">🇰🇷 한국어</div>
-                    <div class="seg-opt"          onclick="setLang('focus90')" id="l-focus90" style="font-size:12px;">🇺🇸 영어혼용</div>
+                    <div class="seg-opt lang-on" onclick="setLang('ko')" id="l-ko" style="padding:10px 0;">
+                        <div>🇰🇷 한국어</div>
+                        <div style="font-size:9px;font-weight:700;color:#888;margin-top:2px;letter-spacing:0;">사용 언어: 한국어</div>
+                    </div>
+                    <div class="seg-opt" onclick="setLang('focus90')" id="l-focus90" style="padding:10px 0;">
+                        <div style="font-size:13px;">🇺🇸 교정모드</div>
+                        <div style="font-size:9px;font-weight:700;color:#888;margin-top:2px;letter-spacing:0;white-space:nowrap;">영어 (한국어 보조)</div>
+                    </div>
                 </div>
                 <!-- 개선3: 빠른 대화 모드 -->
                 <div id="quickToggle" onclick="toggleQuick()" style="background:#FFF9E5;border:2px solid var(--gold);border-radius:14px;padding:12px;cursor:pointer;transition:.2s;">
@@ -205,8 +217,8 @@
                     </div>
                 </div>
                 <!-- 녹음 시간 안내 -->
-                <div style="text-align:center;font-size:12px;font-weight:800;color:#aaa;margin-bottom:8px;">
-                    권장: <span style="color:var(--green);">5~120초</span> &nbsp;|&nbsp; 청크 분할로 <span style="color:var(--blue);">2분도 OK</span>
+                <div id="recHint" style="text-align:center;font-size:12px;font-weight:800;color:#aaa;margin-bottom:8px;">
+                    권장: <span id="hintRecom" style="color:var(--green);">5~60초</span> &nbsp;|&nbsp; 최대 녹음시간 <span id="hintMax" style="color:var(--blue);">2분</span>
                 </div>
                 <button id="mainRecBtn" class="btn btn-blue" onclick="mainRecStart(this)">🎙 녹음 시작</button>
             </div>
@@ -219,7 +231,10 @@
                 <div class="quick-ko" id="quickKo">—</div>
                 <div class="quick-label">영어로</div>
                 <div class="quick-en" id="quickEn">—</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
+                <button class="copy-btn" onclick="playQuickTTS()" style="background:#E8F5E9;color:var(--green);font-weight:900;">🔊 전체 발음 듣기</button>
                 <button class="copy-btn" onclick="copyQuick()">📋 영어 복사</button>
+            </div>
             </div>
             <button class="btn btn-gold" onclick="boing(this);showView('vIntro')">⚡ 다시 변환</button>
             <button class="btn btn-gray" onclick="boing(this);setTimeout(()=>location.reload(),200)" style="margin-top:4px;">처음으로</button>
@@ -228,7 +243,10 @@
         <!-- ③ 대시보드 -->
         <div id="vDash" style="display:none;">
             <div class="bubble" id="dashBubble" style="margin-bottom:20px;">
-                <div class="lbl" style="font-size:12px;font-weight:800;color:#888;margin-bottom:8px;">내 이야기 (AI 교정 완료)</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <div class="lbl" style="font-size:12px;font-weight:800;color:#888;margin-bottom:0;">내 이야기 (AI 교정 완료)</div>
+                    <button onclick="playDashTTS(this)" style="background:#E8F5E9;color:var(--green);border:none;border-radius:10px;padding:5px 12px;font-size:12px;font-weight:900;cursor:pointer;">🔊 전체 듣기</button>
+                </div>
                 <div class="en-area" id="dashEn" style="font-size:22px;margin-bottom:10px;"></div>
                 <div id="dashKo" style="font-size:15px;font-weight:700;color:#666;border-top:1px solid #EAEAEA;padding-top:10px;"></div>
             </div>
@@ -426,12 +444,18 @@ function toggleQuick(){
     const rb  = $('mainRecBtn');
     if(quickMode){
         tog.style.background='var(--gold)'; tog.style.borderColor='#B8860B';
-        st.style.color='#7A5500'; st.innerText='현재: ON — 3초 즉시 번역 모드';
+        st.style.color='#7A5500'; st.innerText='현재: ON — 즉시 번역 모드 (최대 30초)';
         rb.className='btn btn-gold'; rb.innerText='⚡ 빠른 변환 시작';
+        // 힌트 텍스트 → 빠른 모드
+        if($('hintRecom')) $('hintRecom').innerText='5~20초';
+        if($('hintMax'))   $('hintMax').innerText='30초';
     } else {
         tog.style.background='#FFF9E5'; tog.style.borderColor='var(--gold)';
-        st.style.color='#aaa'; st.innerText='현재: OFF — 게임/학습 모드';
+        st.style.color='#aaa'; st.innerText='현재: OFF — 게임/학습 모드 (최대 2분)';
         rb.className='btn btn-blue'; rb.innerText='🎙 녹음 시작';
+        // 힌트 텍스트 → 일반 모드
+        if($('hintRecom')) $('hintRecom').innerText='5~60초';
+        if($('hintMax'))   $('hintMax').innerText='2분';
     }
 }
 
@@ -557,6 +581,27 @@ async function onQuickStop(){
         $('mainLoad').style.display='none'; $('mainRecBtn').style.display='flex';
         alert('빠른 변환 실패. 다시 시도해주세요.');
     }
+}
+// 빠른 모드 전체 발음 듣기
+function playQuickTTS(){
+    const txt=$('quickEn').innerText;
+    if(!txt||txt==='—') return;
+    synth.cancel();
+    const ut=new SpeechSynthesisUtterance(txt); ut.lang='en-US'; ut.rate=0.85;
+    synth.speak(ut);
+}
+// 일반 모드 대시보드 전체 듣기
+function playDashTTS(btn){
+    boing(btn);
+    const txt=(LD&&LD.english)||'';
+    if(!txt) return;
+    synth.cancel();
+    const ut=new SpeechSynthesisUtterance(txt); ut.lang='en-US'; ut.rate=0.85;
+    ut.onstart=()=>{ btn.innerText='⏹ 정지'; btn.style.background='#FFE5E5'; btn.style.color='var(--red)'; };
+    ut.onend=ut.onerror=()=>{ btn.innerText='🔊 전체 듣기'; btn.style.background='#E8F5E9'; btn.style.color='var(--green)'; };
+    synth.speak(ut);
+    // 클릭 시 정지 토글
+    btn.onclick=()=>{ synth.cancel(); btn.innerText='🔊 전체 듣기'; btn.style.background='#E8F5E9'; btn.style.color='var(--green)'; btn.onclick=()=>playDashTTS(btn); };
 }
 function copyQuick(){
     const txt=$('quickEn').innerText;
