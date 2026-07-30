@@ -5,7 +5,8 @@ function retry(fn,n){var attempt=0;function run(){return fn().catch(function(e){
 
 function buildPrompt(text,difficulty){
   var lvl=difficulty==='beginner'?'basic/simple':difficulty==='advanced'?'advanced/academic':'intermediate/business';
-  if(text.length>300) text=text.slice(0,300);
+  // 텍스트 길이 제한 없음 - 2분 분량(~1200자)도 처리
+  if(text.length>1500) text=text.slice(0,1500);
   return 'Korean: "'+text+'"\nLevel: '+lvl+'\n\nReturn ONLY valid JSON. ALL fields filled. No empty strings. Be concise.\n\n'
     +'{"title_ko":"","title_en":"","korean":"교정된 자연스러운 한국어","english":"complete English translation",'
     +'"dictionary":{"단어1":{"ko":"뜻","pos":"noun","phonetics":"/ab/","ko_context":"예시"},"단어2":{"ko":"뜻","pos":"verb","phonetics":"/cd/","ko_context":"예시"},"단어3":{"ko":"뜻","pos":"adj","phonetics":"/ef/","ko_context":"예시"}},'
