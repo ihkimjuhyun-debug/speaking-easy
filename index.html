@@ -564,7 +564,10 @@ async function onQuickStop(){
     $('mainLoad').style.display='block';
     clearInterval(timerInt);
     startLoad('mainPBar','mainLoadPct','mainLoadMsg','mainLoadTime','⚡ 빠른 번역 중...',4);
-    const b64=await getB64(); stopMic();
+    stopMic(); // stopMic 먼저 → chunks 완전 수집 후 처리
+    // 청크 분할로 인해 chunks에 여러 조각이 있을 수 있음 → 전체 합산
+    const blob = new Blob(chunks, {type: curMime});
+    const b64 = await new Promise(r=>{const fr=new FileReader();fr.onloadend=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(blob);});
     try{
         const res=await fetch('/api/quick',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,mimeType:curMime})});
         const data=await res.json();
@@ -583,12 +586,55 @@ async function onQuickStop(){
         alert('빠른 변환 실패. 다시 시도해주세요.');
     }
 }
-// 빠른 모드 전체 발음 듣기
+// 빠른 모드: 영어 결과를 단어별 클릭 가능하게 렌더링
+function renderQuickWords(text){
+    quickEnPlainText = text;
+    const cont = $('quickEn');
+    cont.innerHTML = '';
+    if(!text || text === '—'){ cont.innerText = '—'; return; }
+    text.split(' ').forEach(function(w){
+        if(!w) return;
+        var sp = document.createElement('span');
+        sp.innerText = w;
+        sp.style.cssText = 'display:inline-block;cursor:pointer;padding:2px 5px;margin:2px 2px;border-radius:6px;transition:background .15s;';
+        sp.onmouseover = function(){ sp.style.background = '#EFF6FF'; };
+        sp.onmouseout  = function(){ sp.style.background = 'transparent'; };
+        sp.onclick = function(ev){
+            ev.stopPropagation();
+            synth.cancel();
+            var ut = new SpeechSynthesisUtterance(w);
+            ut.lang = 'en-US'; ut.rate = 0.85;
+            sp.style.color = 'var(--blue)';
+            ut.onend = ut.onerror = function(){ sp.style.color = ''; };
+            synth.speak(ut);
+        };
+        cont.appendChild(sp);
+        cont.appendChild(document.createTextNode(' '));
+    });
+}
+
+// 빠른 모드 전체 발음 듣기 (정지 토글)
 function playQuickTTS(){
-    const txt=quickEnPlainText||$('quickEn').innerText;
-    if(!txt||txt==='—') return;
+    var btn = event.currentTarget || event.target;
+    var txt = quickEnPlainText;
+    if(!txt || txt === '—') return;
+    if(synth.speaking){
+        synth.cancel();
+        btn.innerHTML = '🔊 전체 발음 듣기';
+        btn.style.background = '#E8F5E9'; btn.style.color = 'var(--green)';
+        return;
+    }
     synth.cancel();
-    const ut=new SpeechSynthesisUtterance(txt); ut.lang='en-US'; ut.rate=0.85;
+    var ut = new SpeechSynthesisUtterance(txt);
+    ut.lang = 'en-US'; ut.rate = 0.85;
+    ut.onstart = function(){
+        btn.innerHTML = '⏹ 정지';
+        btn.style.background = '#FFE5E5'; btn.style.color = 'var(--red)';
+    };
+    ut.onend = ut.onerror = function(){
+        btn.innerHTML = '🔊 전체 발음 듣기';
+        btn.style.background = '#E8F5E9'; btn.style.color = 'var(--green)';
+    };
     synth.speak(ut);
 }
 // 일반 모드 대시보드 전체 듣기 (정지 토글)
