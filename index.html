@@ -229,8 +229,8 @@
             <div class="quick-card">
                 <div class="quick-label">내가 말한 것 (한국어)</div>
                 <div class="quick-ko" id="quickKo">—</div>
-                <div class="quick-label">영어로</div>
-                <div class="quick-en" id="quickEn">—</div>
+                <div class="quick-label">영어로 <span style="font-size:10px;color:#bbb;font-weight:600;">(단어 클릭 → 발음)</span></div>
+                <div class="quick-en" id="quickEn" style="line-height:1.8;"></div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
                 <button class="copy-btn" onclick="playQuickTTS()" style="background:#E8F5E9;color:var(--green);font-weight:900;">🔊 전체 발음 듣기</button>
                 <button class="copy-btn" onclick="copyQuick()">📋 영어 복사</button>
@@ -363,6 +363,7 @@ let targetTxt = '', resultLabel = '인식된 음성', typeTarget = '';
 let mediaRec, chunks = [], audioCtx, analyser, dataArr, animId;
 let stream = null, timerInt, progInt, recSec = 0, curMime = 'audio/webm';
 let sttAccumulator = [], chunkSeq = 0, chunkDoneCount = 0;
+let quickEnPlainText = ''; // 빠른 모드 영어 텍스트 (TTS + 복사용)
 const synth = window.speechSynthesis;
 
 // ── Blob → base64 헬퍼 ──────────────────────────────────────────
@@ -573,7 +574,7 @@ async function onQuickStop(){
             $('mainRecBtn').style.display='flex';
             const rb=$('mainRecBtn'); rb.className='btn btn-gold'; rb.innerText='⚡ 빠른 변환 시작'; rb.onclick=()=>mainRecStart(rb);
             $('quickKo').innerText=data.korean||'인식 실패';
-            $('quickEn').innerText=data.english||'번역 실패';
+            renderQuickWords(data.english||'번역 실패');
             showView('vQuick');
         },300);
     }catch(e){
@@ -584,24 +585,28 @@ async function onQuickStop(){
 }
 // 빠른 모드 전체 발음 듣기
 function playQuickTTS(){
-    const txt=$('quickEn').innerText;
+    const txt=quickEnPlainText||$('quickEn').innerText;
     if(!txt||txt==='—') return;
     synth.cancel();
     const ut=new SpeechSynthesisUtterance(txt); ut.lang='en-US'; ut.rate=0.85;
     synth.speak(ut);
 }
-// 일반 모드 대시보드 전체 듣기
+// 일반 모드 대시보드 전체 듣기 (정지 토글)
 function playDashTTS(btn){
     boing(btn);
     const txt=(LD&&LD.english)||'';
     if(!txt) return;
+    if(synth.speaking){
+        synth.cancel();
+        btn.innerText='🔊 전체 듣기';
+        btn.style.background='#E8F5E9'; btn.style.color='var(--green)';
+        return;
+    }
     synth.cancel();
     const ut=new SpeechSynthesisUtterance(txt); ut.lang='en-US'; ut.rate=0.85;
     ut.onstart=()=>{ btn.innerText='⏹ 정지'; btn.style.background='#FFE5E5'; btn.style.color='var(--red)'; };
     ut.onend=ut.onerror=()=>{ btn.innerText='🔊 전체 듣기'; btn.style.background='#E8F5E9'; btn.style.color='var(--green)'; };
     synth.speak(ut);
-    // 클릭 시 정지 토글
-    btn.onclick=()=>{ synth.cancel(); btn.innerText='🔊 전체 듣기'; btn.style.background='#E8F5E9'; btn.style.color='var(--green)'; btn.onclick=()=>playDashTTS(btn); };
 }
 function copyQuick(){
     const txt=$('quickEn').innerText;
