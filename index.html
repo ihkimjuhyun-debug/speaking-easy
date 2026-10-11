@@ -180,6 +180,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .score-bar-label{display:flex;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:4px;}
 .score-bar-bg{height:10px;background:#F0F0F4;border-radius:5px;overflow:hidden;}
 .score-bar-fill{height:100%;border-radius:5px;transition:width .8s ease;}
+/* Free speaking feedback */
+.fb-section{margin-bottom:14px;}
+.fb-section-title{font-size:12px;font-weight:900;color:#888;letter-spacing:.3px;margin-bottom:8px;}
+.corr-block{background:#fff;border-radius:12px;border:1.5px solid #EDEDF2;padding:11px 13px;margin-bottom:8px;}
+.corr-orig{display:flex;gap:7px;align-items:flex-start;margin-bottom:5px;}
+.corr-fix{display:flex;gap:7px;align-items:flex-start;margin-bottom:5px;}
+.corr-exp{font-size:12px;color:#777;font-weight:600;padding-left:22px;line-height:1.5;}
+.corr-badge{font-size:13px;flex-shrink:0;margin-top:1px;}
+.corr-orig-text{font-size:13.5px;font-weight:700;color:#888;text-decoration:line-through;line-height:1.5;}
+.corr-fix-text{font-size:13.5px;font-weight:800;color:#0055CC;line-height:1.5;}
+.rewrite-box{background:linear-gradient(135deg,#EEF5FF,#F5F0FF);border-radius:14px;padding:14px 16px;border-left:4px solid var(--blue);}
+.rewrite-en{font-size:15px;font-weight:800;color:#002D5E;line-height:1.65;}
+.good-box{background:#F6FFF9;border-radius:12px;padding:10px 14px;border-left:4px solid var(--green);}
+.good-text{font-size:13px;font-weight:700;color:#2A7A4E;line-height:1.6;}
 </style>
 </head>
 <body>
@@ -214,10 +228,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
       </div>
       <div class="lbl" style="margin-top:10px;">모드</div>
       <div class="seg">
-        <button data-m="normal" class="on" id="btnNormal" onclick="setMode(this)">🎙 일반 녹음<br><small style="font-weight:600;font-size:10px;">최대 2분</small></button>
+        <button data-m="normal" class="on" id="btnNormal" onclick="setMode(this)">🎙 일반 녹음<br><small style="font-weight:600;font-size:10px;">실시간 전사 · 무제한</small></button>
         <button data-m="quick" id="btnQuick" onclick="setMode(this)">⚡️ 빠른 대화<br><small style="font-weight:600;font-size:10px;">최대 30초</small></button>
       </div>
-      <div class="tip" id="koHint">일상 대화, 회의, 수업 내용을 녹음하세요. AI가 영어 표현 + 단어장 + 드릴을 만들어줍니다.</div>
+      <div class="tip" id="koHint">일상 대화, 회의, 수업 내용을 녹음하세요. 15초마다 자동 전사 — 1시간도 무제한으로 녹음할 수 있습니다.</div>
     </div>
 
     <div class="status"><span class="dot dot-off" id="koDot"></span><span id="koStatus">대기 중</span></div>
@@ -225,10 +239,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
       <div class="timer" id="koTimer">00:00</div>
       <div class="tip c" id="koMeta">녹음 버튼을 눌러 시작하세요</div>
     </div>
+
+    <!-- 실시간 전사 박스 (녹음 중에만 표시) -->
+    <div id="koLiveBox" style="display:none;">
+      <div class="card" style="border-left:3px solid var(--blue);padding:12px 14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div class="lbl" style="margin-bottom:0;">🔴 실시간 전사</div>
+          <div style="font-size:11px;font-weight:800;color:var(--blue);" id="koChunkCount"></div>
+        </div>
+        <div id="koLiveTranscript" style="font-size:13.5px;font-weight:600;line-height:1.7;color:#333;min-height:36px;max-height:160px;overflow-y:auto;word-break:keep-all;"></div>
+      </div>
+    </div>
+
     <button id="koRecBtn" class="btn btn-blue" onclick="koToggleRec()">🎙 녹음 시작</button>
     <div class="row" id="koLive" style="display:none;">
       <button class="btn btn-orange" onclick="koPause()" id="koPauseBtn">⏸ 일시정지</button>
-      <button class="btn btn-red" onclick="koStop()">■ 종료</button>
+      <button class="btn btn-red" onclick="koStop()">■ 종료 &amp; 분석</button>
     </div>
 
     <!-- 결과 영역 -->
@@ -543,9 +569,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 var gDiff = 'intermediate';
 var gMode = 'normal';
 var gData = null;
-var koMediaRec = null, koChunks = [], koStream = null;
+var koMediaRec = null, koStream = null;
 var koTimerInt = null, koSecs = 0, koPaused = false;
-var koSttAccum = [], koChunkSeq = 0;
+// 실시간 청크 STT 상태
+var koChunkSeqNext = 0;   // 다음 청크 시퀀스 번호
+var koChunkPending = 0;   // 현재 처리 중인 청크 수
+var koSttResults = {};    // {seq: text} — 순서 보존
+var koAnalyzing = false;  // stop 후 대기 중 여부
 var spMode = 'pronun', spCatSel = 'daily', spCustomText = '', spShadowSet_ = 'intro', spEchoSet_ = 'basic';
 var spSentIdx = 0, spSentList = [];
 var spRec = null, spChunks = [], spStream = null;
@@ -659,7 +689,7 @@ function setMode(btn) {
   if (gMode === 'quick') {
     h.textContent = '⚡️ 최대 30초 — 짧은 대화나 단어를 빠르게 영어로 변환합니다.';
   } else {
-    h.textContent = '일상 대화, 회의, 수업 내용을 녹음하세요. AI가 영어 표현 + 단어장 + 드릴을 만들어줍니다.';
+    h.textContent = '15초마다 자동 전사 — 1시간 강의도 실시간으로 처리합니다. 시간 제한 없음!';
   }
 }
 
@@ -667,28 +697,113 @@ function koToggleRec() {
   if (koMediaRec && koMediaRec.state !== 'inactive') { koStop(); return; }
   navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream) {
     koStream = stream;
-    koChunks = [];
-    koSttAccum = [];
-    koChunkSeq = 0;
+    koChunkSeqNext = 0;
+    koChunkPending = 0;
+    koSttResults = {};
+    koAnalyzing = false;
+    document.getElementById('koLiveTranscript').textContent = '';
+    document.getElementById('koChunkCount').textContent = '';
+
     koMediaRec = new MediaRecorder(stream);
-    koMediaRec.ondataavailable = function(e) { if (e.data.size>0) koChunks.push(e.data); };
-    if (gMode === 'normal') {
-      koMediaRec.start(18000); // 18s chunks
+
+    koMediaRec.ondataavailable = function(e) {
+      if (e.data.size > 0) {
+        var seq = koChunkSeqNext++;
+        koChunkPending++;
+        // 즉시 비동기 처리 (블로킹 없음)
+        koSendChunk(new Blob([e.data], {type: e.data.type || 'audio/webm'}), seq);
+      }
+    };
+
+    koMediaRec.onstop = function() {
+      // 녹음 종료 후 미처리 청크가 남아 있으면 대기
+      koAnalyzing = true;
+      document.getElementById('koResult').style.display = 'none';
+      document.getElementById('koLoading').style.display = 'block';
+      document.getElementById('koLoadingMsg').textContent = koChunkPending > 0
+        ? '음성 변환 중... (' + koChunkPending + '개 처리 중)'
+        : 'AI 학습 데이터 생성 중...';
+      koCheckAnalyze();
+    };
+
+    if (gMode === 'quick') {
+      koMediaRec.start(); // 빠른 대화: 30초 단일 청크
     } else {
-      koMediaRec.start();
+      koMediaRec.start(15000); // 일반: 15초마다 청크 → 무제한
     }
+
     setKoUI('rec');
     koSecs = 0;
     koPaused = false;
-    var maxSec = gMode === 'quick' ? 30 : 120;
     koTimerInt = setInterval(function() {
       if (!koPaused) {
         koSecs++;
         document.getElementById('koTimer').textContent = fmt(koSecs);
-        if (koSecs >= maxSec) { koStop(); }
+        if (gMode === 'quick' && koSecs >= 30) { koStop(); }
+        // 일반 모드: 시간 제한 없음 (1시간 이상 가능)
       }
     }, 1000);
   }).catch(function(e) { alert('마이크 접근 실패: ' + e.message); });
+}
+
+// 청크를 STT API에 비동기 전송 (순서 보존)
+async function koSendChunk(blob, seq) {
+  try {
+    var b64 = await blobToB64(blob);
+    var res = await apiFetch('/api/stt', {audio: b64, mimeType: blob.type, lang_mode: 'ko'});
+    koSttResults[seq] = (res.text || '').trim();
+  } catch(e) {
+    console.warn('[STT chunk ' + seq + '] 실패:', e.message);
+    koSttResults[seq] = ''; // 실패 = 빈 문자열로 처리
+  }
+  koChunkPending--;
+
+  // 실시간 전사 UI 업데이트
+  var ordered = Object.keys(koSttResults)
+    .map(Number).sort(function(a,b){return a-b;})
+    .map(function(k){return koSttResults[k];})
+    .filter(Boolean).join(' ');
+  var el = document.getElementById('koLiveTranscript');
+  if (el) {
+    el.textContent = ordered || '(인식 중...)';
+    el.scrollTop = el.scrollHeight;
+  }
+  var cnt = document.getElementById('koChunkCount');
+  if (cnt) cnt.textContent = Object.keys(koSttResults).length + '/' + koChunkSeqNext + '청크';
+
+  // 녹음이 이미 종료된 상태면 분석 진행 여부 체크
+  if (koAnalyzing) koCheckAnalyze();
+}
+
+// 모든 청크 처리 완료 확인 후 분석
+function koCheckAnalyze() {
+  if (koChunkPending > 0) {
+    document.getElementById('koLoadingMsg').textContent =
+      '음성 변환 중... (' + koChunkPending + '개 남음)';
+    return;
+  }
+  // 완료 → 순서대로 텍스트 합산
+  var fullText = Object.keys(koSttResults)
+    .map(Number).sort(function(a,b){return a-b;})
+    .map(function(k){return koSttResults[k];})
+    .filter(Boolean).join(' ').trim();
+
+  if (!fullText) {
+    document.getElementById('koLoading').style.display = 'none';
+    alert('음성이 인식되지 않았습니다. 다시 시도해주세요.');
+    return;
+  }
+  document.getElementById('koRecognized').textContent = fullText;
+  document.getElementById('koLoadingMsg').textContent = 'AI 학습 데이터 생성 중...';
+
+  apiFetch('/api/analyze', {text: fullText, difficulty: gDiff}).then(function(anaRes) {
+    gData = anaRes;
+    document.getElementById('koLoading').style.display = 'none';
+    renderKoResult(anaRes);
+  }).catch(function(e) {
+    document.getElementById('koLoading').style.display = 'none';
+    alert('분석 오류: ' + e.message);
+  });
 }
 
 function koPause() {
@@ -709,11 +824,10 @@ function koPause() {
 function koStop() {
   clearInterval(koTimerInt);
   if (koMediaRec && koMediaRec.state !== 'inactive') {
-    koMediaRec.stop();
+    koMediaRec.stop(); // onstop 이 koCheckAnalyze 를 트리거함
   }
   if (koStream) { koStream.getTracks().forEach(function(t){t.stop();}); koStream = null; }
   setKoUI('idle');
-  setTimeout(koProcess, 300);
 }
 
 function setKoUI(st) {
@@ -721,48 +835,22 @@ function setKoUI(st) {
   var s = document.getElementById('koStatus');
   var btn = document.getElementById('koRecBtn');
   var live = document.getElementById('koLive');
+  var liveBox = document.getElementById('koLiveBox');
   if (st === 'rec') {
     d.className = 'dot dot-on'; s.textContent = '녹음 중';
     btn.style.display = 'none'; live.style.display = 'flex';
+    if (gMode === 'normal' && liveBox) liveBox.style.display = 'block';
   } else if (st === 'paused') {
     d.className = 'dot dot-ps'; s.textContent = '일시 정지';
   } else {
     d.className = 'dot dot-off'; s.textContent = '대기 중';
     btn.style.display = 'flex'; live.style.display = 'none';
     btn.textContent = '🎙 녹음 시작';
+    if (liveBox) liveBox.style.display = 'none';
   }
 }
 
-async function koProcess() {
-  if (!koChunks.length) return;
-  document.getElementById('koResult').style.display = 'none';
-  document.getElementById('koLoading').style.display = 'block';
-  document.getElementById('koLoadingMsg').textContent = 'Whisper STT 변환 중...';
-
-  var mime = koChunks[0].type || 'audio/webm';
-  var blob = new Blob(koChunks, {type: mime});
-  var b64 = await blobToB64(blob);
-
-  try {
-    var sttRes = await apiFetch('/api/stt', {audio: b64, mimeType: mime, lang_mode: 'ko'});
-    var koText = (sttRes.text || '').trim();
-    if (!koText) {
-      document.getElementById('koLoading').style.display = 'none';
-      alert('음성이 인식되지 않았습니다. 다시 시도해주세요.');
-      return;
-    }
-    document.getElementById('koRecognized').textContent = koText;
-    document.getElementById('koLoadingMsg').textContent = 'AI 학습 데이터 생성 중...';
-
-    var anaRes = await apiFetch('/api/analyze', {text: koText, difficulty: gDiff});
-    gData = anaRes;
-    document.getElementById('koLoading').style.display = 'none';
-    renderKoResult(anaRes);
-  } catch(e) {
-    document.getElementById('koLoading').style.display = 'none';
-    alert('오류: ' + e.message);
-  }
-}
+// koProcess() 는 koCheckAnalyze() 로 대체됨 (실시간 청크 방식)
 
 function renderKoResult(d) {
   document.getElementById('koResult').style.display = 'block';
@@ -898,9 +986,12 @@ function koSaveArc() {
 
 function koReset() {
   document.getElementById('koResult').style.display = 'none';
-  gData = null; koChunks = [];
+  gData = null;
+  koChunkSeqNext = 0; koChunkPending = 0; koSttResults = {}; koAnalyzing = false;
   document.getElementById('koTimer').textContent = '00:00';
   document.getElementById('koMeta').textContent = '녹음 버튼을 눌러 시작하세요';
+  document.getElementById('koLiveTranscript').textContent = '';
+  document.getElementById('koLiveBox').style.display = 'none';
 }
 
 // ═══ 영어 스피킹 ═══
@@ -1126,12 +1217,29 @@ async function spFreeToggle() {
         if (!text) { alert('음성이 인식되지 않았습니다.'); document.getElementById('spFreeLoad').style.display='none'; return; }
         // Get free speaking feedback from GPT
         var chatRes = await apiFetch('/api/chat', {
-          system: 'You are an English teacher. The student just said the following in English. Give feedback in Korean: (1) What they said well, (2) Grammar or vocabulary improvements, (3) A more natural way to say it. Be encouraging and specific. Keep it under 150 words.',
-          messages: [{role:'user', content:'Student said: "' + text + '"\nGive feedback in Korean.'}]
+          system: [
+            'You are an expert English speaking coach for Korean learners.',
+            'A student just spoke in English. Give feedback in this EXACT format (no deviation):',
+            '',
+            '🔍 교정 포인트:',
+            '❌ [원문 그대로]',
+            '✅ [교정된 영어 문장]',
+            '💬 [한국어 설명 — 1줄]',
+            '',
+            '(최대 3개 교정 포인트, 가장 중요한 것만)',
+            '',
+            '📝 자연스러운 영어로 다시 말하면:',
+            '[전체 문장을 자연스러운 원어민 영어로 rewrite — 반드시 영어로]',
+            '',
+            '🌟 잘한 점: [한국어 1줄]',
+            '',
+            'IMPORTANT: 교정 포인트의 ✅ 는 반드시 영어 문장이어야 합니다. 한국어로 설명만 하지 마세요.',
+          ].join('\n'),
+          messages: [{role:'user', content:'Student said: "' + text + '"'}]
         });
         document.getElementById('spFreeLoad').style.display = 'none';
         document.getElementById('spFreeText').textContent = text;
-        document.getElementById('spFreeFeedback').innerHTML = '<div class="fb-label">AI 피드백</div>' + esc(chatRes.reply || '').replace(/\n/g,'<br>');
+        document.getElementById('spFreeFeedback').innerHTML = renderFreeFeedback(chatRes.reply || '');
         document.getElementById('spFreeResult').style.display = 'block';
       } catch(e) {
         document.getElementById('spFreeLoad').style.display = 'none';
@@ -1412,6 +1520,84 @@ async function aiToggleMic() {
 document.getElementById('aiTextInp').addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); aiSend(); }
 });
+
+// ═══ 프리 스피킹 피드백 렌더러 ═══
+function renderFreeFeedback(raw) {
+  if (!raw) return '<div class="feedback-box">피드백을 받지 못했습니다.</div>';
+
+  var html = '';
+
+  // ── 교정 포인트 파싱 ──
+  // 각 블록: ❌ ... ✅ ... 💬 ...
+  var corrBlocks = [];
+  var lines = raw.split('\n');
+  var cur = null;
+  lines.forEach(function(line) {
+    var t = line.trim();
+    if (t.startsWith('❌')) {
+      if (cur) corrBlocks.push(cur);
+      cur = {orig: t.replace(/^❌\s*/, ''), fix: '', exp: ''};
+    } else if (t.startsWith('✅') && cur) {
+      cur.fix = t.replace(/^✅\s*/, '');
+    } else if (t.startsWith('💬') && cur) {
+      cur.exp = t.replace(/^💬\s*/, '');
+    }
+  });
+  if (cur) corrBlocks.push(cur);
+
+  if (corrBlocks.length) {
+    html += '<div class="fb-section">';
+    html += '<div class="fb-section-title">🔍 교정 포인트</div>';
+    corrBlocks.forEach(function(b) {
+      html += '<div class="corr-block">';
+      if (b.orig) {
+        html += '<div class="corr-orig"><span class="corr-badge">❌</span><span class="corr-orig-text">' + esc(b.orig) + '</span></div>';
+      }
+      if (b.fix) {
+        html += '<div class="corr-fix"><span class="corr-badge">✅</span><span class="corr-fix-text">' + esc(b.fix) + '</span></div>';
+      }
+      if (b.exp) {
+        html += '<div class="corr-exp">' + esc(b.exp) + '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // ── 전체 rewrite ──
+  var rewriteMatch = raw.match(/📝[^\n]*\n([\s\S]*?)(?=\n🌟|\n$|$)/);
+  if (rewriteMatch) {
+    var rewrite = rewriteMatch[1].trim();
+    if (rewrite) {
+      html += '<div class="fb-section">';
+      html += '<div class="fb-section-title">📝 자연스러운 영어로 다시 말하면</div>';
+      html += '<div class="rewrite-box"><div class="rewrite-en">' + esc(rewrite) + '</div></div>';
+      // TTS 버튼
+      html += '<button onclick="spFreeTTS(\'' + rewrite.replace(/'/g,"\\'") + '\')" style="margin-top:8px;background:#E8F2FF;border:none;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:800;color:var(--blue);cursor:pointer;">🔊 원어민 발음으로 듣기</button>';
+      html += '</div>';
+    }
+  }
+
+  // ── 잘한 점 ──
+  var goodMatch = raw.match(/🌟[^\n]*[:：]?\s*(.+)/);
+  if (goodMatch) {
+    html += '<div class="good-box"><div class="good-text">🌟 ' + esc(goodMatch[1].trim()) + '</div></div>';
+  }
+
+  // 파싱 실패 fallback
+  if (!html) {
+    html = '<div class="feedback-box"><div class="fb-label">AI 피드백</div>' + esc(raw).replace(/\n/g,'<br>') + '</div>';
+  }
+
+  return html;
+}
+
+function spFreeTTS(text) {
+  speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.85;
+  speechSynthesis.speak(u);
+}
 
 // ═══ 보관함 ═══
 function loadArc() { try { return JSON.parse(localStorage.getItem('ryanspeaking_arc')||'[]'); } catch(e){ return []; } }
